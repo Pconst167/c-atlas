@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#202a25"><title>C Atlas · C code explorer</title>
-<meta name="description" content="Explore C project ZIPs in your browser with interactive call and include graphs.">
+<meta name="description" content="Explore C projects from GitHub or ZIP archives in your browser with interactive call and include graphs.">
 <style>:root{--ink:#202820;--dim:#59645a;--muted:#697568;--line:#d5dad0;--pale:#f5f7f0;--paper:#fff;--lime:#d4f495;--mono:"IBM Plex Mono",ui-monospace,"DejaVu Sans Mono",monospace;--sans:"Inter","Arial",sans-serif;font:16px var(--sans);color:var(--ink);background:#fafbf7}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button,a{color:inherit}button{cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:8px}button:focus-visible,a:focus-visible,input:focus-visible,#canvas:focus-visible{outline:3px solid #6a8e40;outline-offset:2px}button:disabled{opacity:.45;cursor:default}button svg,i svg{width:18px;height:18px}i{display:inline-flex;align-items:center;justify-content:center;font-style:normal}svg{display:block;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}button,.tabs{border-radius:6px}button{transition:background .13s,border-color .13s}button:hover:not(:disabled){filter:brightness(.97)}button[hidden],[hidden]{display:none!important}
 .topbar{height:67px;background:#fff;border-bottom:1px solid var(--line);padding:0 27px;display:flex;gap:20px;align-items:center}.wordmark{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--mono);font-size:23px;font-weight:bold;letter-spacing:-1.6px}.brand-icon,.brand-icon svg{width:34px;height:34px}.top-sep{height:22px;width:1px;background:var(--line)}.app-name{font-size:14px;color:#586253}.top-actions{margin-left:auto;display:flex;align-items:center;gap:23px}.plain{padding:6px 0;background:transparent;border:none;font-size:14px;color:#465042}.dark{background:#283522;color:white;border:1px solid #283522;padding:10px 17px;font-size:14px;font-weight:600}.dark svg{color:#d9efc4}
@@ -189,13 +189,19 @@ body.graph-fullscreen #canvas{position:fixed;inset:0;z-index:20;min-width:0;min-
 body.graph-fullscreen .graph-controls{right:max(13px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom))}
 body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom))}
 @container (max-width:560px){.legend,body.graph-fullscreen .legend{bottom:max(50px,calc(42px + env(safe-area-inset-bottom)))}}
+
+.project-dialog h2{margin-bottom:20px}.repo-form{display:grid;gap:9px}.project-label{font:600 14px var(--sans);color:var(--ink)}.repo-form .metadata,.repo-message{margin:0}.repo-message{color:#913f34;font:13px var(--sans)}.repo-message:empty{display:none}.repo-form .dark{justify-self:start}.local-project-option{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);margin-top:24px;padding-top:16px}#cancelImport{font-size:12px;padding:0 3px;text-decoration:underline}footer .ready{min-width:0}#status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:430px){.symbol-launch span{display:none}.top-actions{gap:9px}.symbol-launch{min-width:32px}}
+
+.topbar .account-launch{color:#d6e3d6;gap:6px}.account-launch svg{width:16px}.account-body p{line-height:1.5}.account-identity,.account-tools,.saved-project{display:flex;gap:12px;align-items:center}.account-identity{justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:9px}.account-tools{margin:15px 0}.saved-project{border-top:1px solid var(--line);justify-content:space-between}.saved-repo,.saved-remove{border:0;background:transparent;color:#355435}.saved-repo{padding:12px 4px;justify-content:flex-start;text-align:left;min-width:0}.saved-repo strong{font:600 13px var(--mono);overflow-wrap:anywhere}.saved-repo svg{flex:none;width:16px}.saved-remove{font:12px var(--sans);padding:7px}.saved-project-list{max-height:45dvh;overflow:auto}.account-dialog .repo-message:not(:empty){padding-top:12px}.account-tools{flex-wrap:wrap}
+@media(max-width:720px){.account-launch span{display:none}.topbar .account-launch{padding:8px 3px}}
 </style>
 </head>
 <body>
 <header class="topbar">
   <a class="wordmark" href="#" aria-label="C Atlas home"><span class="brand-icon" data-icon="brand"></span>C Atlas</a>
   <span class="top-sep"></span><span class="app-name">Code explorer</span>
-  <div class="top-actions"><button class="symbol-launch" id="goSymbol" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Go to symbol (Ctrl or ⌘ + K)"><i data-icon="search"></i><span>Go to symbol</span><kbd>Ctrl K</kbd></button><button class="plain help-link" id="help"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="upload"></i>Open ZIP</button></div>
+  <div class="top-actions"><button class="symbol-launch" id="goSymbol" aria-label="Go to symbol" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Go to symbol (Ctrl or ⌘ + K)"><i data-icon="search"></i><span>Go to symbol</span><kbd>Ctrl K</kbd></button><button class="plain account-launch" id="accountHub" aria-label="My projects" title="My projects"><i data-icon="files"></i><span>My projects</span></button><button class="plain help-link" id="help" aria-label="Quick guide" title="Quick guide"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="folder"></i>Open project</button></div>
 </header>
 <div id="workspace" class="workspace">
   <aside id="sidebar" aria-label="Project explorer">
@@ -207,7 +213,7 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
     <nav id="tree" aria-label="Project files"></nav>
     <nav id="globalList" aria-label="Project globals" hidden></nav>
     </div>
-    <button class="drop-zone" id="dropButton"><span class="drop-icon"><i data-icon="upload"></i></span><b>Open a project</b><small>Drop a ZIP or browse files</small></button>
+    <button class="drop-zone" id="dropButton"><span class="drop-icon"><i data-icon="upload"></i></span><b>Open a project</b><small>GitHub repository or ZIP</small></button>
   </aside>
   <main aria-label="Workspace">
     <div class="title-row">
@@ -251,7 +257,7 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
     </div>
   </main>
 </div>
-<footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
+<footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><button id="cancelImport" class="plain" hidden>Cancel import</button><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
 <input type="file" accept=".zip,application/zip" id="fileInput" hidden>
 <div id="toast" role="alert" hidden></div>
 <dialog id="dialog" aria-labelledby="dialogTitle"><form method="dialog"><button class="close" aria-label="Close dialog"><i data-icon="close"></i></button></form><div id="dialogContent"></div></dialog>
@@ -730,6 +736,148 @@ const AtlasAnalysis = (() => {
     return entries;
   }
   return {analyze, readZip, inspectVariables};
+})();
+</script>
+<script id="github-code">// The API supplies a commit and its file inventory. Raw source downloads use that same immutable commit.
+const AtlasGitHub=(()=>{
+  const maxFileBytes=8*1024*1024,maxTotalBytes=64*1024*1024,maxFiles=5000;
+  const shaPattern=/^(?:[a-f\d]{40}|[a-f\d]{64})$/i;
+  const sizeMessage="This project exceeds the limit of 64 MiB of C source, 8 MiB per file, or 5,000 files.";
+  const urlMessage="Enter a GitHub repository link such as https://github.com/owner/project. File and folder links are unsupported.";
+
+  function parseRepository(value){
+    const match=/^(?:(?:https:\/\/)?(?:www\.)?github\.com\/)?([a-z\d_-]+)\/([a-z\d_.-]+)\/?(?:[?#][^\s]*)?$/i.exec(String(value??"").trim());
+    if(!match)throw Error(urlMessage);
+    const owner=match[1],repo=match[2].replace(/\.git$/i,"");
+    if(!repo||repo==="."||repo===".."||owner.length>100||repo.length>100)throw Error(urlMessage);
+    const fullName=owner+"/"+repo;
+    return {owner,repo,fullName,url:"https://github.com/"+fullName};
+  }
+
+  async function request(url,signal,isApi){
+    let response;
+    try{
+      response=await fetch(url,{signal,credentials:"omit",referrerPolicy:"no-referrer",cache:isApi?"default":"no-store",
+        headers:isApi?{Accept:"application/vnd.github+json"}:{}});
+    }catch(error){
+      if(signal.aborted)throw error;
+      throw Error("Could not reach GitHub. Check your connection and retry, or open a project ZIP.");
+    }
+    if(response.ok)return response;
+    if(response.status===404){
+      throw Error(isApi?"GitHub could not find this public repository or its revision. Check the link and repository visibility.":
+        "GitHub could not serve a source file from this commit. Retry or open a project ZIP.");
+    }
+    if(response.status===409)throw Error("This GitHub repository has no available commit. Check whether it is empty.");
+    if(response.status===429||response.status===403&&
+       (response.headers.get("x-ratelimit-remaining")==="0"||response.headers.has("retry-after"))){
+      const reset=Number(response.headers.get("x-ratelimit-reset"))*1000;
+      const when=Number.isFinite(reset)&&reset>Date.now()?" after "+new Date(reset).toLocaleTimeString():" later";
+      throw Error("GitHub’s request limit was reached. Retry"+when+" or open a project ZIP.");
+    }
+    if(response.status===403||response.status===401)throw Error("GitHub denied public access to this project. Check its visibility or open a project ZIP.");
+    throw Error("GitHub returned HTTP "+response.status+". Retry or open a project ZIP.");
+  }
+  async function getJson(url,signal){
+    const response=await request(url,signal,true);
+    try{return await response.json();}
+    catch(error){if(signal.aborted)throw error;throw Error("GitHub returned an unreadable file list or revision. Retry the import.");}
+  }
+
+  async function listFiles(api,treeSha,signal){
+    const files=[],paths=new Set();let total=0;
+    const treeUrl=sha=>api+"/git/trees/"+sha;
+    function validPath(path){
+      return typeof path==="string"&&path.split("/").every(part=>part&&part!=="."&&part!==".."&&part!==".git"&&part!=="__MACOSX"&&!part.startsWith("._"));
+    }
+    function addFile(entry,path){
+      if(entry.type!=="blob"||!["100644","100755"].includes(entry.mode)||!(/\.[ch]$/i.test(path)))return;
+      if(paths.has(path)||!Number.isSafeInteger(entry.size)||entry.size<0)throw Error("GitHub returned an invalid source file listing.");
+      total+=entry.size;
+      if(files.length>=maxFiles||entry.size>maxFileBytes||total>maxTotalBytes)throw Error(sizeMessage);
+      paths.add(path);files.push({path,size:entry.size});
+    }
+    const pending=[{sha:treeSha,prefix:""}];
+    while(pending.length){
+      const {sha,prefix}=pending.pop();
+      const recursive=await getJson(treeUrl(sha)+"?recursive=1",signal);
+      if(!Array.isArray(recursive.tree))throw Error("GitHub did not return the repository’s file list.");
+      if(!recursive.truncated){
+        for(const entry of recursive.tree)if(validPath(entry.path))addFile(entry,prefix+entry.path);
+        continue;
+      }
+      // Split incomplete responses into smaller subtrees. Never silently index a partial tree.
+      const level=await getJson(treeUrl(sha),signal);
+      if(level.truncated||!Array.isArray(level.tree))throw Error("GitHub could not list this directory completely. Open a project ZIP to index it.");
+      for(const entry of level.tree){
+        if(!validPath(entry.path))continue;
+        const path=prefix+entry.path;
+        if(entry.type==="tree"){
+          if(!shaPattern.test(entry.sha))throw Error("GitHub returned an invalid directory revision.");
+          pending.push({sha:entry.sha,prefix:path+"/"});
+        }else addFile(entry,path);
+      }
+    }
+    if(!files.length)throw Error("No .c or .h files were found in this repository.");
+    return files;
+  }
+
+  async function readSource(rawBase,file,signal){
+    const encodedPath=file.path.split("/").map(encodeURIComponent).join("/");
+    const response=await request(rawBase+"/"+encodedPath,signal,false);
+    const reader=response.body?.getReader();
+    if(!reader)throw Error("GitHub did not return source content for "+file.path+".");
+    const bytes=new Uint8Array(file.size);let offset=0;
+    try{
+      for(;;){
+        const {value,done}=await reader.read();
+        if(done)break;
+        if(value.byteLength>bytes.length-offset){
+          await reader.cancel();
+          throw Error("GitHub returned unexpected content for "+file.path+". Open a ZIP containing its source.");
+        }
+        bytes.set(value,offset);offset+=value.byteLength;
+      }
+    }finally{reader.releaseLock();}
+    if(offset!==bytes.length)throw Error("The download of "+file.path+" was incomplete. Retry the import.");
+    return {path:file.path,source:new TextDecoder().decode(bytes)};
+  }
+
+  async function download(value,{signal,onProgress=()=>{}}={}){
+    const requested=parseRepository(value),controller=new AbortController(),abort=()=>controller.abort();
+    if(signal?.aborted)abort();else signal?.addEventListener("abort",abort,{once:true});
+    try{
+      onProgress("Opening "+requested.fullName+"…");
+      const metadata=await getJson("https://api.github.com/repos/"+requested.fullName,controller.signal);
+      const repository=parseRepository(metadata.full_name);
+      const branch=metadata.default_branch,api="https://api.github.com/repos/"+repository.fullName;
+      if(typeof branch!=="string"||!branch)throw Error("GitHub did not return a default branch for this repository.");
+      const commits=await getJson(api+"/commits?per_page=1&sha="+encodeURIComponent(branch),controller.signal);
+      const commit=commits[0]?.sha,treeSha=commits[0]?.commit?.tree?.sha;
+      if(!shaPattern.test(commit)||!shaPattern.test(treeSha))throw Error("GitHub did not return a readable commit for "+branch+".");
+      onProgress("Listing C sources on "+branch+"…");
+      const files=await listFiles(api,treeSha,controller.signal);
+      const rawBase="https://raw.githubusercontent.com/"+repository.fullName+"/"+commit;
+      const entries=new Array(files.length);let next=0,completed=0,lastUpdate=0;
+      onProgress("Downloading 0 of "+files.length+" C files…");
+      async function downloadNext(){
+        while(next<files.length){
+          const index=next++;
+          entries[index]=await readSource(rawBase,files[index],controller.signal);
+          completed++;
+          const now=Date.now();
+          if(now-lastUpdate>=150||completed===files.length){
+            onProgress("Downloading "+completed+" of "+files.length+" C files…");lastUpdate=now;
+          }
+        }
+      }
+      await Promise.all(Array.from({length:Math.min(4,files.length)},downloadNext));
+      return {entries,name:repository.repo,repository:{...repository,branch,commit}};
+    }finally{
+      abort();signal?.removeEventListener("abort",abort);
+    }
+  }
+  return {parseRepository,download};
 })();
 </script>
 <script>const sampleFiles = [
@@ -1505,6 +1653,361 @@ function showCallRoute(route){
   closeSourcePanel();refresh();byId("clearTrace").focus({preventScroll:true});
 }
 </script>
+<script>// The graph and public imports work independently of these optional account services.
+const AtlasAccounts=(()=>{
+  const sdkUrl="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js";
+  const sdkIntegrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ";
+  let sdkPromise=null,initialization=null,client=null,user=null,sessionKnown=false;
+  let onChange=()=>{},onError=()=>{},notification=0;
+
+  async function readConfig(){
+    const url=new URL("accounts.json",window.location.href);
+    const response=await fetch(url,{credentials:"omit",redirect:"error",cache:"no-cache"});
+    if(response.status===404)return null;
+    if(!response.ok)throw Error("Account settings could not be loaded. Try again.");
+    const config=await response.json();
+    const endpoint=String(config?.supabaseUrl||"").trim();
+    const key=String(config?.publishableKey||"").trim();
+    if(!endpoint&&!key)return null;
+    if(!/^https:\/\/[a-z0-9]+\.supabase\.co\/?$/.test(endpoint)||!/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)){
+      throw Error("C Atlas account settings need a Supabase project URL and publishable key.");
+    }
+    return {endpoint:new URL(endpoint).origin,key};
+  }
+
+  function loadSdk(){
+    if(sdkPromise)return sdkPromise;
+    sdkPromise=new Promise((resolve,reject)=>{
+      const script=document.createElement("script");
+      script.src=sdkUrl;script.integrity=sdkIntegrity;script.crossOrigin="anonymous";script.referrerPolicy="no-referrer";script.async=true;
+      function failed(){
+        script.remove();
+        reject(Error("The sign-in client could not load. Check your connection and try again."));
+      }
+      script.onerror=failed;
+      script.onload=()=>{if(typeof window.supabase?.createClient==="function")resolve(window.supabase);else failed();};
+      document.head.append(script);
+    }).catch(error=>{sdkPromise=null;throw error;});
+    return sdkPromise;
+  }
+
+  function remember(session){
+    const source=session?.user,meta=source?.user_metadata;
+    const name=[meta?.user_name,meta?.preferred_username,meta?.name,meta?.full_name].find(value=>typeof value==="string"&&value.trim())||"GitHub user";
+    const next=source?.id?{id:source.id,name:name.trim()}:null;
+    if(sessionKnown&&next?.id===user?.id&&next?.name===user?.name)return;
+    user=next;sessionKnown=true;
+    // Auth callbacks run inside the SDK's lock. Notify UI after the lock has been released.
+    const version=++notification;
+    setTimeout(()=>{if(notification===version)onChange(user);},0);
+  }
+
+  async function connect(){
+    const config=await readConfig();
+    if(!config)return {configured:false};
+    const sdk=await loadSdk();
+    client=sdk.createClient(config.endpoint,config.key,{auth:{
+      flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,
+      storageKey:"c-atlas-"+new URL(config.endpoint).hostname.split(".")[0]+"-auth"
+    }});
+    client.auth.onAuthStateChange((_event,session)=>{remember(session);});
+    const setup=await client.auth.initialize();
+    const {data,error}=await client.auth.getSession();
+    if(!error)remember(data.session);
+    const problem=setup?.error||error;
+    if(problem)setTimeout(()=>onError(Error("GitHub sign-in could not be completed. Please try signing in again.")),0);
+    return {configured:true};
+  }
+
+  function initialize(options={}){
+    if(typeof options.onChange==="function")onChange=options.onChange;
+    if(typeof options.onError==="function")onError=options.onError;
+    if(!initialization)initialization=connect().catch(error=>{initialization=null;throw error;});
+    return initialization;
+  }
+
+  function requireUser(){
+    if(!client||!user)throw Error("Sign in with GitHub to use saved projects.");
+    return user.id;
+  }
+  function slug(value){
+    const match=/^([a-z0-9_-]{1,100})\/([a-z0-9_.-]{1,100})$/i.exec(String(value));
+    if(!match||match[2]==="."||match[2]==="..")throw Error("Choose a valid GitHub repository.");
+    return match[0].toLowerCase();
+  }
+  function checkResult(result,owner){
+    if(user?.id!==owner)throw Error("The signed-in account changed. Open your projects again.");
+    if(result.error)throw Error("The saved-project request failed. Check your connection and try again.");
+  }
+  async function list(){
+    const owner=requireUser(),items=[],size=200;
+    let last="";
+    for(;;){
+      let query=client.from("c_atlas_projects").select("repository,created_at").eq("user_id",owner).order("repository").limit(size);
+      if(last)query=query.gt("repository",last);
+      const result=await query;
+      checkResult(result,owner);
+      const batch=result.data||[];items.push(...batch);
+      if(batch.length<size)return items;
+      last=batch[batch.length-1].repository;
+    }
+  }
+  async function save(value){
+    const owner=requireUser(),repository=slug(value);
+    // The database supplies user_id from the verified session and enforces ownership.
+    const result=await client.from("c_atlas_projects").upsert({repository},{onConflict:"user_id,repository",ignoreDuplicates:true});
+    checkResult(result,owner);
+  }
+  async function remove(value){
+    const owner=requireUser(),repository=slug(value);
+    const result=await client.from("c_atlas_projects").delete().eq("user_id",owner).eq("repository",repository);
+    checkResult(result,owner);
+  }
+  async function signIn(){
+    if(!client)throw Error("GitHub sign-in is unavailable.");
+    const {origin,pathname}=window.location;
+    const {error}=await client.auth.signInWithOAuth({provider:"github",options:{redirectTo:origin+pathname}});
+    if(error)throw Error("GitHub sign-in could not start. Please try again.");
+  }
+  async function signOut(){
+    if(!client)return;
+    const {error}=await client.auth.signOut({scope:"local"});
+    if(error)throw Error("Sign-out failed. Please try again.");
+    remember(null);
+  }
+  return {initialize,signIn,signOut,list,save,remove,currentUser:()=>user};
+})();
+</script>
+<script>// Account state belongs to the sign-in provider. Keep the current account dialog isolated
+// from older requests when the visitor signs out, changes accounts, or opens another dialog.
+let accountReady=null,accountsConfigured=false,accountLoadError="",activeAccountId=null;
+const pendingRepoKey="c-atlas.return-repository";
+
+function accountDialogIsOpen(box){
+  return byId("dialog").open && box.isConnected;
+}
+function readReturnRepository(){
+  try{
+    const value=sessionStorage.getItem(pendingRepoKey);
+    sessionStorage.removeItem(pendingRepoKey);
+    return value?AtlasGitHub.parseRepository(value).url:null;
+  }catch{return null;}
+}
+function initializeAccounts(){
+  if(!window.location)return;
+  if(accountReady)return accountReady;
+  accountLoadError="";
+  accountReady=AtlasAccounts.initialize({onError:error=>notify(error.message),onChange:user=>{
+    const projectsOpen=byId("dialog").open && !!byId("dialogContent").querySelector(".account-dialog");
+    const changed=activeAccountId && activeAccountId!==user?.id;
+    activeAccountId=user?.id||null;
+    if(changed){
+      readReturnRepository();cancelProjectImport();lastRepositoryInput="";repositoryError="";
+      if(state.repository){
+        setRepositoryLocation(null);
+        loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
+      }
+    }
+    if(projectsOpen && accountsConfigured)showMyProjects();
+  }}).then(info=>{
+    accountsConfigured=info.configured;
+    const user=AtlasAccounts.currentUser();
+    const pending=readReturnRepository();
+    if(pending && user && !importWorker && !state.repository)startProjectImport({repository:pending});
+  }).catch(error=>{accountLoadError=error.message||"Could not connect to the account service.";});
+  return accountReady;
+}
+
+async function showMyProjects(){
+  const box=el("div","account-dialog"),body=el("div","account-body"),message=el("p","repo-message");
+  message.setAttribute("role","status");box.append(el("h2","","My projects"),body,message);
+  body.append(el("p","metadata","Loading your projects…"));showDialog(box);
+  await initializeAccounts();
+  if(!accountDialogIsOpen(box))return;
+  body.replaceChildren();
+  if(accountLoadError){
+    message.textContent=accountLoadError;
+    body.append(button("outline","Retry connection",()=>{accountReady=null;showMyProjects();}));return;
+  }
+  if(!accountsConfigured){
+    body.append(el("p","","GitHub sign-in is awaiting setup for this site. Public repositories and ZIP files are available now."),
+      button("outline","Open project",()=>showOpenProject()));return;
+  }
+  const user=AtlasAccounts.currentUser();
+  if(!user){
+    const login=button("dark","Sign in with GitHub",async()=>{
+      login.disabled=true;message.textContent="Opening GitHub…";
+      try{
+        if(state.repository)sessionStorage.setItem(pendingRepoKey,state.repository.fullName);
+      }catch{}
+      try{await AtlasAccounts.signIn();}catch(error){
+        readReturnRepository();message.textContent=error.message;login.disabled=false;
+      }
+    });
+    body.append(el("p","","Save repository links and reopen them on any device. Your first GitHub sign-in creates your C Atlas account."),login);return;
+  }
+  const identity=el("div","account-identity"),list=el("div","saved-project-list"),tools=el("div","account-tools");
+  const signOut=button("plain","Sign out",async()=>{
+    signOut.disabled=true;
+    try{await AtlasAccounts.signOut();if(accountDialogIsOpen(box))showMyProjects();}
+    catch(error){if(accountDialogIsOpen(box)){message.textContent=error.message;signOut.disabled=false;}}
+  });
+  identity.append(el("span","metadata","Signed in as "+user.name),signOut);
+  tools.append(button("dark","Open repository",()=>showOpenProject()));
+  body.append(identity,tools,list);
+  let rows;
+  try{rows=await AtlasAccounts.list();}
+  catch(error){
+    if(accountDialogIsOpen(box)){
+      message.textContent="Could not load your saved projects. "+error.message;
+      list.append(button("outline","Retry",showMyProjects));
+    }return;
+  }
+  if(!accountDialogIsOpen(box)||AtlasAccounts.currentUser()?.id!==user.id)return;
+  function rowsChanged(){
+    list.replaceChildren();
+    if(!rows.length)list.append(el("p","metadata","Open a GitHub repository to save your first project."));
+    for(const {repository} of rows){
+      const row=el("div","saved-project");
+      const open=button("saved-repo","",()=>{
+        byId("dialog").close();startProjectImport({repository:AtlasGitHub.parseRepository(repository).url});
+      });
+      open.append(icon("folder"),el("strong","",repository));open.title="Open the latest commit of "+repository;
+      const remove=button("saved-remove","Remove",async()=>{
+        remove.disabled=true;
+        try{
+          await AtlasAccounts.remove(repository);
+          if(!accountDialogIsOpen(box)||AtlasAccounts.currentUser()?.id!==user.id)return;
+          rows=rows.filter(row=>row.repository!==repository);message.textContent=repository+" removed from My projects.";rowsChanged();
+        }catch(error){if(accountDialogIsOpen(box)){message.textContent=error.message;remove.disabled=false;}}
+      });
+      remove.setAttribute("aria-label","Remove "+repository+" from My projects");row.append(open,remove);list.append(row);
+    }
+    const current=state.repository?.fullName.toLowerCase();
+    const previous=tools.querySelector(".save-current");if(previous)previous.remove();
+    if(current&&!rows.some(row=>row.repository===current)){
+      const save=button("outline save-current","Save current repository",async()=>{
+        save.disabled=true;
+        try{
+          await AtlasAccounts.save(current);
+          if(!accountDialogIsOpen(box)||AtlasAccounts.currentUser()?.id!==user.id)return;
+          rows.unshift({repository:current});message.textContent=current+" saved.";rowsChanged();
+        }catch(error){if(accountDialogIsOpen(box)){message.textContent=error.message;save.disabled=false;}}
+      });
+      tools.append(save);
+    }
+  }
+  rowsChanged();
+}
+
+async function saveImportedRepository(repository,owner){
+  if(!repository||!owner||AtlasAccounts.currentUser()?.id!==owner)return;
+  try{await AtlasAccounts.save(repository.fullName);}
+  catch(error){if(AtlasAccounts.currentUser()?.id===owner && state.repository===repository)
+    notify("Repository opened. Saving to My projects failed. "+error.message);}
+}
+</script>
+<script>let lastRepositoryInput="",repositoryError="";
+function showOpenProject(message=""){
+  const box=el("div","project-dialog"),form=el("form","repo-form"),field=el("input","trace-search");
+  const label=el("label","project-label","GitHub repository"),hint=el("p","metadata","C Atlas reads C sources from the public repository’s default branch in your browser.");
+  const status=el("p","repo-message",message||repositoryError),submit=el("button","dark","Open repository");
+  field.id="repoUrlInput";field.name="repository";field.type="text";field.required=true;
+  field.spellcheck=false;field.autocapitalize="none";field.autocomplete="off";field.placeholder="https://github.com/owner/repository";
+  field.value=lastRepositoryInput;label.htmlFor=field.id;hint.id="repoHint";status.id="repoMessage";status.setAttribute("role","alert");
+  field.setAttribute("aria-describedby","repoHint repoMessage");submit.id="repoOpen";submit.type="submit";form.id="repoForm";
+  form.append(label,hint,field,status,submit);
+  field.addEventListener("input",()=>{lastRepositoryInput=field.value;repositoryError="";status.textContent="";field.removeAttribute("aria-invalid");});
+  form.addEventListener("submit",event=>{
+    event.preventDefault();lastRepositoryInput=field.value.trim();let repository;
+    try{repository=AtlasGitHub.parseRepository(lastRepositoryInput);}catch(error){
+      status.textContent=error.message;field.setAttribute("aria-invalid","true");field.focus();return;
+    }
+    byId("dialog").close();startProjectImport({repository:repository.url});
+  });
+  const local=el("div","local-project-option"),browse=button("outline","Choose ZIP",()=>byId("fileInput").click());
+  browse.id="chooseZip";local.append(el("div","project-label","Local ZIP"),browse);
+  box.append(el("h2","","Open project"),form,local);
+  showDialog(box);field.focus();
+}
+
+function runProjectWorker(){
+  self.onmessage=async({data})=>{
+    try{
+      let entries,name,repository=null;
+      if(data.file){
+        name=data.name;entries=await AtlasAnalysis.readZip(await data.file.arrayBuffer());
+      }else{
+        const result=await AtlasGitHub.download(data.repository,{onProgress:progress=>self.postMessage({progress})});
+        ({entries,name,repository}=result);
+      }
+      self.postMessage({progress:"Indexing "+name+"…"});
+      self.postMessage({project:AtlasAnalysis.analyze(entries,name),repository});
+    }catch(error){self.postMessage({error:error.message||"Unable to open this project."});}
+  };
+}
+
+function cancelProjectImport(){
+  if(importWorker)importWorker.terminate();
+  importWorker=null;byId("cancelImport").hidden=true;
+  byId("status").textContent="Ready";
+}
+function startProjectImport(request){
+  cancelProjectImport();repositoryError="";hideSidebar();
+  const owner=(accountReady||Promise.resolve()).then(()=>AtlasAccounts.currentUser()?.id);
+  const source=[byId("analysis-code").textContent,byId("github-code").textContent,"("+runProjectWorker.toString()+")();"].join("\n");
+  const url=URL.createObjectURL(new Blob([source],{type:"text/javascript"}));
+  let worker;
+  try{worker=new Worker(url);}catch{notify("The analysis worker could not start. Reload the page and try again.");return;}
+  finally{URL.revokeObjectURL(url);}
+  importWorker=worker;byId("cancelImport").hidden=false;
+  byId("status").textContent=request.file?"Indexing "+request.file.name+"…":"Connecting to GitHub…";
+  function fail(message){
+    if(importWorker!==worker)return;
+    cancelProjectImport();byId("status").textContent="Import failed";
+    if(request.repository){
+      lastRepositoryInput=request.repository;repositoryError=message;
+      if(!byId("dialog").open){showOpenProject();return;}
+    }
+    notify(message);
+  }
+  worker.onmessage=({data})=>{
+    if(importWorker!==worker)return;
+    if(data.error){fail(data.error);return;}
+    if(data.progress){byId("status").textContent=data.progress;return;}
+    if(!data.project)return;
+    cancelProjectImport();loadProject(data.project,false,data.repository||null);
+    if(data.repository)lastRepositoryInput=data.repository.url;
+    setRepositoryLocation(data.repository);
+    if(data.repository)owner.then(id=>saveImportedRepository(data.repository,id));
+  };
+  worker.onerror=()=>fail("The project could not be indexed in this browser.");
+  worker.postMessage(request);
+}
+function importFile(file){
+  if(!file)return;
+  if(!/\.zip$/i.test(file.name)){notify("Choose a .zip archive containing .c or .h files.");return;}
+  if(file.size>256*1024*1024){notify("The ZIP must be 256 MiB or smaller.");return;}
+  if(byId("dialog").open)byId("dialog").close();
+  startProjectImport({file,name:file.name.replace(/\.zip$/i,"")});
+}
+function setRepositoryLocation(repository){
+  if(!window.location)return;
+  const location=new URL(window.location.href);
+  if(repository)location.hash=new URLSearchParams({repo:repository.fullName}).toString();
+  else if(new URLSearchParams(location.hash.slice(1)).has("repo"))location.hash="";
+  else return;
+  window.history.replaceState(null,"",location);
+}
+function openLinkedRepository(){
+  if(!window.location)return;
+  const reference=new URLSearchParams(window.location.hash.slice(1)).get("repo");
+  if(!reference)return;
+  lastRepositoryInput=reference;
+  try{startProjectImport({repository:AtlasGitHub.parseRepository(reference).url});}
+  catch(error){showOpenProject(error.message);}
+}
+</script>
 <script>"use strict";
 const byId = id => document.getElementById(id);
 const base = path => path.split("/").at(-1);
@@ -1558,7 +2061,8 @@ function buildView(items){
   for(const item of items) for(const target of item.next) if(incoming.has(target)){incoming.get(target).push(item.id);count++;}
   return {items,byKey,incoming,count};
 }
-function loadProject(project,demo=false) {
+function loadProject(project,demo=false,repository=null) {
+  state.repository=repository;
   if(graphFullscreenView)exitGraphFullscreen();
   inspectorView="overview";
   closeSourcePanel();
@@ -1583,8 +2087,9 @@ function loadProject(project,demo=false) {
   revealTree(state.activeFile); if(demo)state.opened.add("src");
   explorerQueries.files=explorerQueries.globals="";
   byId("search").value=""; byId("projectName").textContent=project.name;
-  byId("projectMeta").textContent=demo?"C sample project":"Imported C project";
-  byId("projectBadge").lastChild.textContent=demo?"Sample project":"Local project";
+  const origin=repository?repository.fullName+" · "+repository.branch+" · "+repository.commit.slice(0,7):demo?"C sample project":"Imported C project";
+  byId("projectMeta").textContent=origin;byId("projectMeta").title=origin;
+  byId("projectBadge").lastChild.textContent=repository?"GitHub project":demo?"Sample project":"Local project";
   byId("fileCount").textContent=project.files.length;
   byId("globalCount").textContent=project.globals.length;
   byId("globalList").replaceChildren();
@@ -2200,25 +2705,13 @@ function renderSource(variable=null){
   }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
-  if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Choose Open project and paste a public GitHub repository URL, or choose a ZIP containing your C sources and headers. Both are indexed in your browser. GitHub projects open the latest commit on the default branch. When signed in, My projects saves the repository link so you can reopen it on another device. The source files stay in your browser during analysis.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();cancelProjectImport();setRepositoryLocation(null);loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
-function importFile(file){
-  if(!file)return;
-  if(!/\.zip$/i.test(file.name)){notify("Choose a .zip archive containing .c or .h files.");return;}
-  if(file.size>256*1024*1024){notify("The ZIP must be 256 MiB or smaller.");return;}
-  if(importWorker)importWorker.terminate();
-  const workerCode=byId("analysis-code").textContent+'\nself.onmessage=async ({data})=>{try{const entries=await AtlasAnalysis.readZip(await data.file.arrayBuffer()); self.postMessage({project:AtlasAnalysis.analyze(entries,data.name)});}catch(error){self.postMessage({error:error.message});}};';
-  const url=URL.createObjectURL(new Blob([workerCode],{type:"text/javascript"}));
-  const worker=new Worker(url);URL.revokeObjectURL(url);importWorker=worker;
-  byId("status").textContent="Indexing "+file.name+"…";hideSidebar();
-  function finish(error){worker.terminate();if(importWorker!==worker)return false;importWorker=null;if(error){notify(error);byId("status").textContent="Import failed";}return true;}
-  worker.onmessage=({data})=>{if(finish(data.error)&&data.project)loadProject(data.project);};
-  worker.onerror=()=>finish("The project could not be indexed in this browser.");
-  worker.postMessage({file,name:file.name.replace(/\.zip$/i,"")});
-}
-for(const id of ["upload","dropButton"])byId(id).onclick=()=>byId("fileInput").click();
+for(const id of ["upload","dropButton"])byId(id).onclick=()=>showOpenProject();
+byId("cancelImport").onclick=cancelProjectImport;
+byId("accountHub").onclick=showMyProjects;
 byId("fileInput").onchange=event=>{importFile(event.target.files[0]);event.target.value="";};
 let dragDepth=0;
 window.addEventListener("dragenter",event=>{if(event.dataTransfer.types.includes("Files")){event.preventDefault();dragDepth++;document.body.classList.add("dragging");}});
@@ -2403,5 +2896,7 @@ new ResizeObserver(()=>{
   }
 }).observe(canvas);
 loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
+initializeAccounts();
+openLinkedRepository();
 </script>
 </body></html>
