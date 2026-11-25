@@ -85,6 +85,29 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
   .source-open .source-panel{min-height:155px}
   .source-heading{max-height:35%;overflow:auto}
 }
+
+.panel-button{border:0;background:transparent;border-radius:4px;padding:5px;color:var(--ink);font:inherit}
+.panel-button:hover{background:#e7ecdf}
+.side-heading .panel-button{margin:-5px;color:var(--dim);min-width:32px;min-height:32px}
+.explorer-tabs{display:flex;gap:4px;margin-top:14px;border-bottom:1px solid var(--line)}
+.explorer-tab{flex:1;gap:7px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 4px;background:transparent;font-size:14px;color:var(--dim)}
+.explorer-tab[aria-selected=true]{border-color:#668744;color:#304d25;font-weight:650}
+#explorerPanel{display:flex;flex-direction:column;min-height:0}
+#explorerPanel .search{margin:12px 0}
+#globalList{max-height:55vh;overflow:auto;padding-bottom:12px}
+.global-entry{border-bottom:1px solid #e2e6dc;border-radius:0;overflow-wrap:anywhere;padding:7px 6px}
+.global-entry small{margin-top:3px}
+.global-more{width:100%;margin:6px 0}
+#toggleInspector{margin:-3px 0 -3px -5px;font-size:13px;font-weight:650}
+#toggleInspector[aria-expanded=false] svg{transform:rotate(-90deg)}
+#inspectorPanel.collapsed{flex:none;min-height:0}
+#inspectorPanel.collapsed .inspector-title{border-bottom:0}
+@media(min-width:721px){
+  .workspace.explorer-hidden{grid-template-columns:minmax(0,1fr)}
+  .workspace.explorer-hidden #sidebar{display:none}
+  .explorer-hidden #toggleSidebar{display:inline-flex;border:1px solid var(--line);background:white;padding:4px 7px;font:13px var(--sans)}
+}
+@media(max-width:720px){#globalList{max-height:50vh}}
 </style>
 </head>
 <body>
@@ -93,17 +116,20 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
   <span class="top-sep"></span><span class="app-name">Code explorer</span>
   <div class="top-actions"><button class="plain help-link" id="help"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="upload"></i>Open ZIP</button></div>
 </header>
-<div class="workspace">
-  <aside id="sidebar">
-    <div class="side-heading"><span>Project explorer</span><i data-icon="panel"></i></div>
+<div id="workspace" class="workspace">
+  <aside id="sidebar" aria-label="Project explorer">
+    <div class="side-heading"><span>Project explorer</span><button id="hideExplorer" class="panel-button" aria-label="Hide Project explorer" aria-controls="sidebar" aria-expanded="true" title="Hide Project explorer"><i data-icon="panel"></i></button></div>
     <div class="project-card"><div class="project-mark"><i data-icon="cube"></i></div><div class="project-info"><strong id="projectName"></strong><small id="projectMeta"></small></div></div>
+    <div class="explorer-tabs" role="tablist" aria-label="Project explorer views"><button id="explore-files" class="explorer-tab" role="tab" aria-controls="explorerPanel" aria-selected="true">Files <span class="counter" aria-hidden="true" id="fileCount"></span></button><button id="explore-globals" class="explorer-tab" role="tab" aria-controls="explorerPanel" aria-selected="false" tabindex="-1">Globals <span class="counter" aria-hidden="true" id="globalCount"></span></button></div>
+    <div id="explorerPanel" role="tabpanel" aria-labelledby="explore-files">
     <label class="search"><i data-icon="search"></i><input id="search" type="search" placeholder="Find file or function" aria-label="Find a file or function"><kbd>/</kbd></label>
-    <div class="section-label files-label">FILES <span class="counter" id="fileCount"></span></div>
     <nav id="tree" aria-label="Project files"></nav>
+    <nav id="globalList" aria-label="Project globals" hidden></nav>
+    </div>
     <button class="drop-zone" id="dropButton"><span class="drop-icon"><i data-icon="upload"></i></span><b>Open a project</b><small>Drop a ZIP or browse files</small></button>
   </aside>
   <main aria-label="Workspace">
-    <div class="title-row"><div class="crumb"><button id="toggleSidebar" class="mobile-files"><i data-icon="panel"></i> Files</button><i data-icon="folder"></i><span id="crumbName"></span><span class="slash">/</span> Workspace</div><div id="projectBadge" class="sample-badge"><span></span>Sample project</div></div>
+    <div class="title-row"><div class="crumb"><button id="toggleSidebar" class="mobile-files" aria-label="Show Project explorer" aria-controls="sidebar" aria-expanded="false" title="Show Project explorer"><i data-icon="panel"></i> Explorer</button><i data-icon="folder"></i><span id="crumbName"></span><span class="slash">/</span> Workspace</div><div id="projectBadge" class="sample-badge"><span></span>Sample project</div></div>
     <div class="view-toolbar"><div class="tabs" role="group" aria-label="Graph view"><button id="callTab" aria-pressed="true"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Includes</button></div><button id="focusButton" class="outline" title="Show the selected node and its neighbors" aria-pressed="false"><i data-icon="focus"></i><span>Focus</span></button></div>
     <div id="inspectorWorkspace">
     <div id="graphWorkspace" class="graph-workspace">
@@ -121,7 +147,7 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
     </section>
     </div>
     <div id="inspectorSplitter" role="separator" tabindex="0" aria-label="Resize workspace and Inspector" aria-controls="graphWorkspace inspectorPanel" aria-orientation="horizontal" aria-valuemin="35" aria-valuemax="80" aria-valuenow="72" title="Drag to resize the Inspector"></div>
-    <section id="inspectorPanel" class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
+    <section id="inspectorPanel" class="inspector" aria-label="Selection details"><div class="inspector-title"><button id="toggleInspector" class="panel-button" aria-label="Hide Inspector" title="Hide Inspector" aria-expanded="true" aria-controls="inspectorTabs details"><i data-icon="down"></i> Inspector</button><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
     </div>
   </main>
 </div>
@@ -133,7 +159,7 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 const AtlasAnalysis = (() => {
   const decoder = new TextDecoder();
   const controls = new Set("if else for while switch case return sizeof _Alignof alignof typeof __typeof__ _Generic _Static_assert static_assert _Alignas __attribute__ __attribute __declspec asm __asm__ do break continue goto".split(" "));
-  const decorations = new Set(["__attribute__", "__attribute", "__declspec", "asm", "__asm__"]);
+  const decorations = new Set(["__attribute__", "__attribute", "__declspec", "_Alignas", "alignas", "asm", "__asm__"]);
   const identifier = /^[A-Za-z_]\w*$/;
   function normalize(path) {
     const parts = [];
@@ -197,10 +223,14 @@ const AtlasAnalysis = (() => {
     if(start>=end)return null;
     const text=(first,last)=>source.slice(tokens[first].at,tokens[last-1].at+token(last-1).length).trim();
     function skipAttributes(index,limit){
-      while(index<limit && decorations.has(token(index)) && token(index+1)==="(" && pairs.has(index+1))index=pairs.get(index+1)+1;
+      while(index<limit){
+        if(decorations.has(token(index)) && token(index+1)==="(" && pairs.has(index+1))index=pairs.get(index+1)+1;
+        else if(token(index)==="[" && token(index+1)==="[" && pairs.has(index))index=pairs.get(index)+1;
+        else break;
+      }
       return index;
     }
-    let index=start,typed=false,isTypedef=false,isExtern=false;
+    let index=start,typed=false,isTypedef=false,isExtern=false,isStatic=false;
     while(index<end){
       const word=token(index);
       const afterAttribute=skipAttributes(index,end);
@@ -208,11 +238,12 @@ const AtlasAnalysis = (() => {
       if((word==="_Atomic"||word==="typeof"||word==="__typeof__") && token(index+1)==="(" && pairs.has(index+1)){
         index=pairs.get(index+1)+1;typed=true;continue;
       }
-      if(modifiers.has(word)){isTypedef ||= word==="typedef";isExtern ||= word==="extern";index++;continue;}
+      if(modifiers.has(word)){isTypedef ||= word==="typedef";isExtern ||= word==="extern";isStatic ||= word==="static";index++;continue;}
       if(builtinTypes.has(word)){typed=true;index++;continue;}
       if(tags.has(word)){
-        typed=true;index++;
+        typed=true;index=skipAttributes(index+1,end);
         if(identifier.test(token(index)||""))index++;
+        index=skipAttributes(index,end);
         if(token(index)==="{" && pairs.has(index))index=pairs.get(index)+1;
         continue;
       }
@@ -251,7 +282,7 @@ const AtlasAnalysis = (() => {
       entries.push({...parsed,name:token(parsed.nameIndex),begin,declEnd,next,declaration:specifier+" "+text(begin,declEnd)});
       index=next+1;
     }
-    return {entries,firstDeclarator,isTypedef,isExtern};
+    return {entries,firstDeclarator,isTypedef,isExtern,isStatic};
   }
 
   // Inspect a selected function on demand. Names bind from their declarator to the end of their block or loop.
@@ -365,7 +396,10 @@ const AtlasAnalysis = (() => {
         for(const entry of declaration?.entries||[]){
           const offset=tokens[entry.nameIndex].at,line=lineOf(offset);
           if(declaration.isTypedef){types.add(entry.name);typedefs.push({name:entry.name,line});}
-          else if(entry.firstOperator!=="(")globals.push({name:entry.name,declaration:entry.declaration,path,line,offset});
+          else if(entry.firstOperator!=="("){
+            const kind=token(entry.declEnd)==="="?"initialized":declaration.isExtern?"declaration":"tentative";
+            globals.push({name:entry.name,declaration:entry.declaration,path,line,offset,kind,internal:declaration.isStatic});
+          }
         }
         start=index+1;continue;
       }
@@ -401,6 +435,35 @@ const AtlasAnalysis = (() => {
       index = close;
     }
     return {path, source, lineCount:lineOf(source.length), includes, macros, functions, globals, typedefs};
+  }
+
+  function projectGlobals(files){
+    const variables=[];
+    const external=new Map();
+    const priority={declaration:0,tentative:1,initialized:2};
+    for(const file of files){
+      const byName=new Map(),internalNames=new Set();
+      for(const variable of file.globals){
+        if(variable.internal)internalNames.add(variable.name);
+        const previous=byName.get(variable.name);
+        if(!previous || priority[variable.kind]>priority[previous.kind])byName.set(variable.name,variable);
+      }
+      for(const variable of byName.values()){
+        if(internalNames.has(variable.name)){variables.push(variable);continue;}
+        if(!external.has(variable.name))external.set(variable.name,[]);
+        external.get(variable.name).push(variable);
+      }
+    }
+    for(const candidates of external.values()){
+      const initialized=candidates.filter(variable=>variable.kind==="initialized");
+      const definitions=initialized.length?initialized:candidates.filter(variable=>variable.kind==="tentative");
+      if(definitions.length){
+        for(const variable of definitions)variables.push(variable);
+      }else{
+        variables.push(candidates.find(variable=>/\.h$/i.test(variable.path))||candidates[0]);
+      }
+    }
+    return variables.sort((a,b)=>a.name.localeCompare(b.name)||a.path.localeCompare(b.path)||a.offset-b.offset);
   }
 
   function analyze(entries, name) {
@@ -449,7 +512,7 @@ const AtlasAnalysis = (() => {
         fn.calls = [...calls.keys()]; fn.unresolved = [...unresolved]; delete fn.rawCalls;
       }
     }
-    return {name, files};
+    return {name, files, globals:projectGlobals(files)};
   }
 
   const crcTable = Uint32Array.from({length:256}, (_,value)=>{
@@ -564,8 +627,10 @@ void render_frame(const engine_state_t *engine_state){
 `},
   {path:"src/world.c",source:`#include "world.h"
 
+const int initial_chunk_count = 16;
+
 bool world_load(engine_state_t *engine_state){
-  engine_state->chunk_count = 16;
+  engine_state->chunk_count = initial_chunk_count;
   return true;
 }
 
@@ -593,6 +658,8 @@ void engine_update(engine_state_t *engine_state);
 #define WORLD_H
 
 #include "engine.h"
+
+extern const int initial_chunk_count;
 
 bool world_load(engine_state_t *engine_state);
 void world_update(engine_state_t *engine_state);
@@ -651,6 +718,10 @@ function button(cls,label,action) {
 }
 const state={project:null,files:new Map(),functions:new Map(),views:{},mode:"call",selected:null,focused:false,demo:false,layout:null,opened:new Set(),expandedFiles:new Set(),activeFile:null,scale:1,x:0,y:0,tree:null};
 let importWorker=null, toastTimer=0;
+let explorerView="files";
+const explorerQueries={files:"",globals:""};
+const narrowExplorer=window.matchMedia("(max-width:720px)");
+let desktopExplorerOpen=true,mobileExplorerOpen=false,inspectorOpen=true;
 function notify(message){ clearTimeout(toastTimer); byId("toast").textContent=message; byId("toast").hidden=false; toastTimer=setTimeout(()=>{byId("toast").hidden=true;},6500); }
 function buildView(items){
   const byKey=new Map(items.map(item=>[item.id,item])),incoming=new Map(items.map(item=>[item.id,[]]));
@@ -672,10 +743,14 @@ function loadProject(project,demo=false) {
   state.focused=currentView().items.length>45;
   state.opened=new Set(); state.expandedFiles=new Set();state.tree=makeTree(project.files);
   revealTree(state.activeFile); if(demo)state.opened.add("src");
+  explorerQueries.files=explorerQueries.globals="";
   byId("search").value=""; byId("projectName").textContent=project.name;byId("crumbName").textContent=project.name;
   byId("projectMeta").textContent=demo?"C sample project":"Imported C project";
   byId("projectBadge").lastChild.textContent=demo?"Sample project":"Local project";
   byId("fileCount").textContent=project.files.length;
+  byId("globalCount").textContent=project.globals.length;
+  byId("globalList").replaceChildren();
+  setExplorerView("files",false);
   byId("status").textContent="Ready";
   refresh();
 }
@@ -695,8 +770,86 @@ function revealTree(path){
   const parts=path.split("/");
   for(let index=1;index<parts.length;index++)state.opened.add(parts.slice(0,index).join("/"));
 }
-function hideSidebar(){ byId("sidebar").classList.remove("open"); }
+function updateExplorerVisibility(){
+  const open=narrowExplorer.matches?mobileExplorerOpen:desktopExplorerOpen;
+  byId("workspace").classList.toggle("explorer-hidden",!desktopExplorerOpen);
+  byId("sidebar").classList.toggle("open",mobileExplorerOpen && narrowExplorer.matches);
+  for(const id of ["hideExplorer","toggleSidebar"])byId(id).setAttribute("aria-expanded",String(open));
+  const action=open?"Hide Project explorer":"Show Project explorer";
+  byId("toggleSidebar").setAttribute("aria-label",action);
+  byId("toggleSidebar").title=action;
+}
+function setExplorerOpen(open){
+  if(narrowExplorer.matches)mobileExplorerOpen=open;
+  else desktopExplorerOpen=open;
+  updateExplorerVisibility();
+}
+function hideSidebar(){
+  if(mobileExplorerOpen){mobileExplorerOpen=false;updateExplorerVisibility();}
+}
+function toggleInspector(){
+  inspectorOpen=!inspectorOpen;
+  byId("inspectorPanel").classList.toggle("collapsed",!inspectorOpen);
+  for(const id of ["inspectorSplitter","inspectorTabs","details","showSource"])byId(id).hidden=!inspectorOpen;
+  const toggle=byId("toggleInspector");
+  toggle.setAttribute("aria-expanded",String(inspectorOpen));
+  toggle.title=inspectorOpen?"Hide Inspector":"Show Inspector";
+  toggle.setAttribute("aria-label",toggle.title);
+}
+function setExplorerView(view,render=true){
+  explorerQueries[explorerView]=byId("search").value;
+  explorerView=view;
+  const files=view==="files",search=byId("search");
+  for(const name of ["files","globals"]){
+    const tab=byId("explore-"+name);
+    tab.setAttribute("aria-selected",String(name===view));
+    tab.tabIndex=name===view?0:-1;
+  }
+  byId("explorerPanel").setAttribute("aria-labelledby","explore-"+view);
+  byId("tree").hidden=!files;
+  byId("globalList").hidden=files;
+  search.placeholder=files?"Find file or function":"Find a global or file";
+  search.setAttribute("aria-label",files?"Find a file or function":"Find a global or file");
+  search.value=explorerQueries[view];
+  if(render){if(files)renderTree();else renderGlobals();}
+}
+function renderGlobals(){
+  const list=byId("globalList"),query=byId("search").value.trim().toLowerCase();
+  const matches=query?state.project.globals.filter(variable=>
+    variable.name.toLowerCase().includes(query)||variable.path.toLowerCase().includes(query)):state.project.globals;
+  list.replaceChildren();
+  list.scrollTop=0;
+  if(!matches.length){
+    list.append(el("p","empty-message",query?"No matching globals.":"No file-scope variables found in this project."));
+    return;
+  }
+  let shown=0;
+  function addBatch(){
+    const end=Math.min(shown+150,matches.length);
+    for(;shown<end;shown++){
+      const variable=matches[shown],location=variable.path+":"+variable.line;
+      const row=button("search-item global-entry",variable.name,()=>{
+        hideSidebar();
+        openSourcePanel(variable);
+      });
+      row.title=variable.declaration+" · "+location;
+      const detail=variable.kind==="declaration"?location+" · Declaration only":location;
+      row.append(el("small","",detail));list.append(row);
+    }
+    if(shown<matches.length){
+      const more=button("outline global-more","Show more globals",()=>{
+        more.remove();
+        const start=shown;
+        addBatch();
+        list.children[start].focus();
+      });
+      list.append(more);
+    }
+  }
+  addBatch();
+}
 function renderTree(){
+  if(explorerView!=="files")return;
   const tree=byId("tree");tree.replaceChildren();
   const query=byId("search").value.trim().toLowerCase();
   if(query){
@@ -746,7 +899,7 @@ function select(id,mode=state.mode,recenter=false){
   if(oldMode!==mode)state.focused=currentView().items.length>45;
   if(state.focused || oldMode!==mode || !state.layout?.positions.has(id))refresh();
   else {renderTree();renderDetails();markSelection();if(recenter)centerSelected();}
-  if(selectionChanged && !byId("sourcePanel").hidden)renderSource();
+  if((selectionChanged || displayedDeclaration) && !byId("sourcePanel").hidden)renderSource();
 }
 function switchView(mode){
   if(state.mode===mode)return;
@@ -1001,7 +1154,7 @@ function closeSourcePanel(){
 function dismissSource(){
   closeSourcePanel();
   const selectedNode=byId("nodes").querySelector('[aria-pressed="true"]');
-  (selectedNode || byId("showSource")).focus({preventScroll:true});
+  (selectedNode || byId(inspectorOpen?"showSource":"toggleInspector")).focus({preventScroll:true});
 }
 function renderSource(variable=null){
   displayedDeclaration=variable;
@@ -1060,7 +1213,7 @@ function renderSource(variable=null){
   }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -1132,13 +1285,32 @@ connectSplitter(byId("inspectorSplitter"),byId("inspectorWorkspace"),"upper","in
 });
 
 buildInspectorTabs();
-byId("search").oninput=renderTree;byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
+for(const name of ["files","globals"]){
+  const tab=byId("explore-"+name);
+  tab.onclick=()=>setExplorerView(name);
+  tab.addEventListener("keydown",event=>{
+    const other=name==="files"?"globals":"files";
+    const next={ArrowLeft:other,ArrowRight:other,Home:"files",End:"globals"}[event.key];
+    if(!next)return;
+    event.preventDefault();setExplorerView(next);byId("explore-"+next).focus();
+  });
+}
+byId("search").oninput=()=>explorerView==="files"?renderTree():renderGlobals();
+byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>180){notify("For this project, select a function or file to explore its neighborhood.");return;}state.focused=!state.focused;refresh();};
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
 byId("showSource").onclick=()=>{openSourcePanel();byId("sourceBody").focus({preventScroll:true});};
 byId("closeSource").onclick=dismissSource;byId("help").onclick=guide;
 byId("dialog").addEventListener("click",event=>{if(event.target===byId("dialog"))byId("dialog").close();else if(event.target.closest(".chip"))byId("dialog").close();});
-byId("toggleSidebar").onclick=()=>byId("sidebar").classList.toggle("open");
+byId("toggleInspector").onclick=toggleInspector;
+byId("hideExplorer").onclick=()=>{setExplorerOpen(false);byId("toggleSidebar").focus();};
+byId("toggleSidebar").onclick=()=>{
+  const opening=!(narrowExplorer.matches?mobileExplorerOpen:desktopExplorerOpen);
+  setExplorerOpen(opening);
+  if(opening)byId("explore-"+explorerView).focus();
+};
+narrowExplorer.addEventListener("change",()=>{mobileExplorerOpen=false;updateExplorerVisibility();});
+updateExplorerVisibility();
 document.addEventListener("click",event=>{if(!event.target.closest("#sidebar,#toggleSidebar"))hideSidebar();});
 document.querySelector(".wordmark").onclick=event=>{event.preventDefault();const view=currentView();select(view.items.find(i=>i.entry)?.id||view.items[0].id);fitGraph(true);};
 const canvas=byId("canvas");let drag=null;
@@ -1152,9 +1324,9 @@ canvas.addEventListener("keydown",event=>{
   if(shifts[event.key]){event.preventDefault();state.x+=shifts[event.key][0];state.y+=shifts[event.key][1];transform();}
   if(event.key==="+"||event.key==="=")zoom(1.25);if(event.key==="-")zoom(.8);if(event.key==="0")fitGraph();
 });
-document.addEventListener("keydown",event=>{if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();if(innerWidth<=720)byId("sidebar").classList.add("open");byId("search").focus();}if(event.key==="Escape"){
-  if(!byId("dialog").open && !byId("sidebar").classList.contains("open") && !byId("sourcePanel").hidden)dismissSource();
-  hideSidebar();
+document.addEventListener("keydown",event=>{if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();setExplorerOpen(true);byId("search").focus();}if(event.key==="Escape"){
+  if(mobileExplorerOpen){hideSidebar();byId("toggleSidebar").focus();}
+  else if(!byId("dialog").open && !byId("sourcePanel").hidden)dismissSource();
 }});
 new ResizeObserver(()=>{if(state.layout)fitGraph(true);}).observe(canvas);
 loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
