@@ -14,9 +14,9 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 @media(max-width:1000px){.workspace{grid-template-columns:212px minmax(0,1fr)}aside{padding-left:12px;padding-right:12px}main{padding:19px 17px 16px}.detail-grid{gap:8px;grid-template-columns:1fr .8fr 1.2fr}.detail-grid>div+div{padding-left:8px}}
 @media(max-width:720px){.topbar{padding:0 15px;gap:10px;height:56px}.top-actions{gap:12px}.help-link span,.app-name,.top-sep{display:none}.workspace{display:block;min-height:calc(100dvh - 87px)}.mobile-files{display:inline-flex;border:1px solid var(--line);background:white;padding:3px 6px;font:12px var(--sans)}.crumb>i{display:none}aside{display:none;position:absolute;z-index:5;left:0;top:56px;width:min(280px,80vw);height:min(700px,calc(100dvh - 87px));box-shadow:6px 6px 20px #26301f22}aside.open{display:flex}main{height:calc(100dvh - 87px);min-height:630px;padding:14px 12px}.view-toolbar{margin:13px 0 8px}.inspector{margin-top:9px}.detail-grid{grid-template-columns:1fr 1fr;padding:10px}.detail-grid>div:first-child{grid-column:1/-1}.detail-grid>div:nth-child(2){border:0;padding:0}.selection-title{display:inline;margin-right:7px;font-size:15px}.entry-tag{display:none}.legend{bottom:9px;left:6px;gap:7px;height:28px;padding:0 5px}.legend em{font-size:10px}.graph-controls{right:6px;bottom:9px;height:28px}.graph-controls button{width:22px}.graph-controls span{min-width:29px}.sample-badge{font-size:10px}.local{font-size:0}footer{gap:9px;padding:0 8px;font-size:10px}.drop-zone{margin-top:16px}#tree{max-height:50vh}.title-row{align-items:end}.tabs button{padding:5px 9px}}
 
-.graph-workspace{display:flex;flex:1;gap:12px;min-height:320px;min-width:0}
-.graph-workspace #canvas{min-width:0;min-height:0}
-.source-panel{display:flex;flex-direction:column;overflow:hidden;flex:0 0 43%;min-width:0;max-width:46rem;border:1px solid var(--line);border-radius:8px;background:#fff}
+.graph-workspace{display:flex;flex:1;gap:0;min-height:clamp(180px,30dvh,320px);min-width:0}
+.graph-workspace #canvas{container-type:inline-size;min-width:0;min-height:0}
+.source-panel{display:flex;flex-direction:column;overflow:hidden;flex:var(--source-share,43) 1 0;min-width:0;border:1px solid var(--line);border-radius:8px;background:#fff}
 .source-bar{display:flex;align-items:center;justify-content:space-between;background:#f6f8f1;border-bottom:1px solid var(--line);padding:6px 10px 6px 14px;flex:none}
 .source-bar h2{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:650;margin:0}
 .source-bar h2 svg{width:16px;height:16px}
@@ -29,13 +29,42 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 .source-body .source-line{padding:0 14px 0 6px;gap:12px}
 .source-body .line-num{flex:none}
 .source-body>.outline,.source-body>.metadata,.source-body>div:not(.source-code){margin:5px 12px 12px}
-@media(min-width:901px) and (max-width:1150px){.source-open .legend{bottom:51px}}
+@container (max-width:330px){.legend{bottom:50px}.legend em{font-size:10px}}
 @media(max-width:900px){
   main:has(.source-open){height:auto}
-  .graph-workspace.source-open{flex:1 0 auto;flex-direction:column;height:clamp(440px,60dvh,700px);gap:8px}
-  .source-open #canvas{flex:1;min-height:190px}
-  .source-panel{flex:0 0 45%;min-height:205px;width:100%;max-width:none}
+  .graph-workspace.source-open{flex:1 0 auto;flex-direction:column;height:clamp(440px,60dvh,700px);gap:0}
+  .source-open #canvas{min-height:0}
+  .source-panel{min-height:0;width:100%;max-width:none}
   .source-heading{padding:8px 12px}
+}
+
+.source-open #canvas{flex:var(--graph-share,57) 1 0}
+#paneSplitter{display:none;flex:0 0 16px;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;user-select:none;border-radius:4px}
+.source-open #paneSplitter{display:flex}
+#paneSplitter::before{content:"";width:4px;height:34px;border-radius:4px;background:#aab4a3}
+#paneSplitter:hover::before,#paneSplitter:focus-visible::before,.resizing #paneSplitter::before{background:#547542}
+#paneSplitter:focus-visible{outline:2px solid #608344;outline-offset:-3px}
+.graph-workspace.resizing{user-select:none}
+#inspectorTabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 7px}
+.inspector-tab{flex:none;border:none;border-radius:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--dim);font-size:13px}
+.inspector-tab[aria-selected="true"]{border-color:#668744;color:#304d25;font-weight:650}
+#details{max-height:clamp(110px,23vh,240px);overflow:auto}
+.variable-list{padding:10px 15px 13px;font-size:13px}
+.variable-function{font:600 14px var(--mono);margin:0 0 6px}
+.no-variables{margin:3px 0;color:var(--dim)}
+.variable-list table{border-collapse:collapse;width:100%;text-align:left}
+.variable-list th,.variable-list td{padding:5px 10px 5px 0;border-bottom:1px solid #e3e8dd;vertical-align:top;overflow-wrap:anywhere}
+.variable-list th{font-size:12px;color:var(--dim)}
+.variable-list code{font:13px var(--mono)}
+.variable-list td:last-child{font:12px var(--mono);color:var(--dim)}
+@media(max-width:900px){
+  #paneSplitter{cursor:row-resize}
+  #paneSplitter::before{width:34px;height:4px}
+  .source-open .source-panel{min-height:0}
+}
+@media(max-width:720px){
+  .inspector-tab{padding:8px 7px;font-size:12px}
+  .variable-list{padding:8px}
 }
 </style>
 </head>
@@ -64,13 +93,14 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
       <div class="legend"><span><b class="key entry"></b><em id="entryLegend">Entry point</em></span><span><b class="key regular"></b><em id="funcLegend">Function</em></span><span><b class="line-key"></b> <em id="edgeLegend">Calls</em></span></div>
       <div class="graph-controls"><button id="minus" aria-label="Zoom out" title="Zoom out"><i data-icon="minus"></i></button><span id="zoomLabel"></span><button id="plus" aria-label="Zoom in" title="Zoom in"><i data-icon="plus"></i></button><span class="ctl-divider"></span><button id="fit" aria-label="Fit graph" title="Fit graph"><i data-icon="fit"></i></button></div>
     </div>
+    <div id="paneSplitter" role="separator" tabindex="0" aria-label="Resize graph and source" aria-controls="canvas sourcePanel" aria-orientation="vertical" aria-valuemin="25" aria-valuemax="75" aria-valuenow="57" title="Drag to resize graph and source"></div>
     <section id="sourcePanel" class="source-panel" aria-labelledby="sourceHeading" hidden>
       <div class="source-bar"><h2 id="sourceHeading"><i data-icon="code"></i><span id="sourceKind">Function source</span></h2><button type="button" class="source-close" id="closeSource" aria-label="Close source panel" title="Close source panel"><i data-icon="close"></i></button></div>
       <div class="source-heading"><h3 id="sourceName"></h3><div id="sourceLocation" class="metadata"></div></div>
       <div id="sourceBody" class="source-body" tabindex="0" aria-label="Source code"></div>
     </section>
     </div>
-    <section class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="details"></div></section>
+    <section class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
   </main>
 </div>
 <footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
@@ -83,7 +113,6 @@ const AtlasAnalysis = (() => {
   const controls = new Set("if else for while switch case return sizeof _Alignof alignof typeof __typeof__ _Generic _Static_assert static_assert _Alignas __attribute__ __attribute __declspec asm __asm__ do break continue goto".split(" "));
   const decorations = new Set(["__attribute__", "__attribute", "__declspec", "asm", "__asm__"]);
   const identifier = /^[A-Za-z_]\w*$/;
-  const basename = path => path.split("/").at(-1);
   function normalize(path) {
     const parts = [];
     for (const part of path.replace(/\\/g, "/").split("/")) {
@@ -93,9 +122,7 @@ const AtlasAnalysis = (() => {
     return parts.join("/");
   }
 
-  function parseFile(path, original) {
-    const source = original.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
-    const lines = source.split("\n");
+  function tokenize(source,onDirective){
     const starts = [0];
     for (let offset = 0; offset < source.length; offset++) if (source[offset] === "\n") starts.push(offset + 1);
     function lineOf(offset) {
@@ -106,7 +133,6 @@ const AtlasAnalysis = (() => {
       }
       return lower;
     }
-    const includes = [], macros = [], functions = [];
     // Mask literals and comments first, retaining quoted include directives for indexing.
     const pattern = /\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*(?:\\\n[^\n]*)*|^[\t ]*#[^\n]*(?:\n(?<=\\\n)[^\n]*)*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?)\w*|->|[^\s]/gm;
     const tokens = [];
@@ -114,11 +140,7 @@ const AtlasAnalysis = (() => {
       const value = match[0];
       if (value.startsWith("//") || value.startsWith("/*")) continue;
       if (value.trimStart()[0] === "#") {
-        const directive = value.trimStart();
-        const include = /^#\s*include\s*(["<])([^">]+)[">]/.exec(directive);
-        if (include) includes.push({name:include[2], quoted:include[1] === '"', line:lineOf(match.index)});
-        const macro = /^#\s*define\s+(\w+)\(/.exec(directive);
-        if (macro) macros.push(macro[1]);
+        if(onDirective)onDirective(value.trimStart(),lineOf(match.index));
         continue;
       }
       tokens.push({value, at:match.index});
@@ -126,18 +148,205 @@ const AtlasAnalysis = (() => {
     const pairs = new Map(), brackets = [];
     for (let index = 0; index < tokens.length; index++) {
       const value = tokens[index].value;
-      if (value === "(" || value === "{") brackets.push(index);
-      else if (value === ")" || value === "}") {
+      if (value === "(" || value === "{" || value === "[") brackets.push(index);
+      else if (value === ")" || value === "}" || value === "]") {
         const left = brackets.at(-1);
-        if (left !== undefined && tokens[left].value === (value === ")" ? "(" : "{")) {
+        if (left !== undefined && tokens[left].value === (value === ")" ? "(" : value === "]" ? "[" : "{")) {
           brackets.pop(); pairs.set(left,index); pairs.set(index,left);
         }
       }
     }
     const token = index => tokens[index]?.value;
+    function until(index,end,stops){
+      while(index<end && !stops.has(token(index))){
+        const close=pairs.get(index);
+        index=close>index ? close+1 : index+1;
+      }
+      return Math.min(index,end);
+    }
+    return {source,tokens,token,pairs,lineOf,until};
+  }
+
+  const builtinTypes=new Set("void char short int long float double signed unsigned _Bool bool _Complex _Imaginary __int128 __int128_t __uint128_t".split(" "));
+  const modifiers=new Set("auto register static extern typedef inline const volatile restrict _Atomic _Thread_local thread_local constexpr __restrict __restrict__ __const __volatile__".split(" "));
+  const tags=new Set(["struct","union","enum"]);
+  function readDeclaration(reader,start,end,types,assumeType=false){
+    const {token,pairs,source,tokens}=reader;
+    if(start>=end)return null;
+    const text=(first,last)=>source.slice(tokens[first].at,tokens[last-1].at+token(last-1).length).trim();
+    function skipAttributes(index,limit){
+      while(index<limit && decorations.has(token(index)) && token(index+1)==="(" && pairs.has(index+1))index=pairs.get(index+1)+1;
+      return index;
+    }
+    let index=start,typed=false,isTypedef=false,isExtern=false;
+    while(index<end){
+      const word=token(index);
+      const afterAttribute=skipAttributes(index,end);
+      if(afterAttribute!==index){index=afterAttribute;continue;}
+      if((word==="_Atomic"||word==="typeof"||word==="__typeof__") && token(index+1)==="(" && pairs.has(index+1)){
+        index=pairs.get(index+1)+1;typed=true;continue;
+      }
+      if(modifiers.has(word)){isTypedef ||= word==="typedef";isExtern ||= word==="extern";index++;continue;}
+      if(builtinTypes.has(word)){typed=true;index++;continue;}
+      if(tags.has(word)){
+        typed=true;index++;
+        if(identifier.test(token(index)||""))index++;
+        if(token(index)==="{" && pairs.has(index))index=pairs.get(index)+1;
+        continue;
+      }
+      if(!typed && identifier.test(word) && !controls.has(word) &&
+        (types.has(word)||word.endsWith("_t")||assumeType||identifier.test(token(index+1)||""))){typed=true;index++;continue;}
+      break;
+    }
+    if(!typed)return null;
+    const firstDeclarator=index,specifier=text(start,index),entries=[];
+    function declarator(begin,limit){
+      let cursor=begin,indirect=false;
+      while(token(cursor)==="*"){
+        indirect=true;cursor++;
+        while(modifiers.has(token(cursor)))cursor++;
+      }
+      let nameIndex,firstOperator="";
+      if(token(cursor)==="(" && pairs.has(cursor) && pairs.get(cursor)<limit){
+        const group=declarator(cursor+1,pairs.get(cursor));if(!group)return null;
+        nameIndex=group.nameIndex;firstOperator=group.firstOperator;cursor=pairs.get(cursor)+1;
+      }else if(cursor<limit && identifier.test(token(cursor)) && !controls.has(token(cursor))){nameIndex=cursor++;}
+      else return null;
+      while(cursor<limit){
+        const after=skipAttributes(cursor,limit);
+        if(after!==cursor){cursor=after;continue;}
+        if(!["[","("].includes(token(cursor)) || !pairs.has(cursor) || pairs.get(cursor)>=limit)return null;
+        firstOperator ||= token(cursor);cursor=pairs.get(cursor)+1;
+      }
+      return {nameIndex,firstOperator:firstOperator||(indirect?"*":"")};
+    }
+    while(index<end){
+      const begin=index;
+      const declEnd=reader.until(index,end,new Set([",","="]));
+      const parsed=declarator(begin,declEnd);
+      if(!parsed)return null;
+      const next=reader.until(declEnd,end,new Set([","]));
+      entries.push({...parsed,name:token(parsed.nameIndex),begin,declEnd,next,declaration:specifier+" "+text(begin,declEnd)});
+      index=next+1;
+    }
+    return {entries,firstDeclarator,isTypedef,isExtern};
+  }
+
+  // Inspect a selected function on demand. Names bind from their declarator to the end of their block or loop.
+  function inspectVariables(fn,files){
+    const file=files.get(fn.path);
+    const types=new Set(),globals=new Map(),visited=new Set();
+    function importNames(current,limit){
+      if(visited.has(current.path))return;visited.add(current.path);
+      for(const include of current.includes)if(include.target && include.line<=limit)importNames(files.get(include.target),Infinity);
+      for(const alias of current.typedefs)if(alias.line<=limit)types.add(alias.name);
+      for(const variable of current.globals)if(variable.line<=limit)globals.set(variable.name,variable);
+    }
+    importNames(file,fn.firstLine);
+    const source=file.source.slice(fn.first,fn.last),reader=tokenize(source);
+    const {tokens,token,pairs,lineOf,until}=reader;
+    const params=tokens.findIndex(item=>item.at===fn.parametersOffset-fn.first);
+    const body=tokens.findIndex(item=>item.at===fn.bodyOffset-fn.first);
+    const result={locals:[],arguments:[],other:[]};
+    if(params<0||body<0)return result;
+    const close=pairs.get(body),hidden=new Set(),bindings=new Map(),usedGlobals=new Set();
+    function hide(first,end){for(let i=first;i<end;i++)hidden.add(i);}
+    function register(entry,scope,scopeEnd){
+      const index=entry.nameIndex;
+      const variable={name:entry.name,declaration:entry.declaration,path:file.path,line:fn.firstLine+lineOf(tokens[index].at)-1,scope};
+      if(!bindings.has(entry.name))bindings.set(entry.name,[]);
+      bindings.get(entry.name).push([index,scopeEnd]);
+      if(scope==="Parameter")result.arguments.push(variable);
+      else if(scope==="Function body")result.locals.push(variable);
+      else result.other.push(variable);
+    }
+    for(let index=params+1;index<pairs.get(params);){
+      const end=until(index,pairs.get(params),new Set([","]));
+      const declaration=readDeclaration(reader,index,end,types,true);
+      for(const entry of declaration?.entries||[])register(entry,"Parameter",close);
+      index=end+1;
+    }
+    function declarationStatement(start,end,scope,scopeEnd,visibleTypes){
+      const declaration=readDeclaration(reader,start,end,visibleTypes);
+      if(!declaration)return;
+      hide(start,declaration.firstDeclarator);
+      for(const entry of declaration.entries){
+        hidden.add(entry.nameIndex);
+        if(declaration.isTypedef){visibleTypes.add(entry.name);hide(entry.begin,entry.declEnd);continue;}
+        if(entry.firstOperator==="("){hide(entry.begin,entry.declEnd);continue;}
+        // Parameter names in a function-pointer prototype are separate from names used in the enclosing body.
+        for(let i=entry.nameIndex+1;i<entry.declEnd;i++)if(token(i)==="(" && pairs.has(i)){hide(i,pairs.get(i)+1);i=pairs.get(i);}
+        register(entry,declaration.isExtern?"Block extern":scope,scopeEnd);
+      }
+    }
+    function statementEnd(index,limit){
+      const word=token(index);
+      if(word==="{" && pairs.has(index))return pairs.get(index)+1;
+      if(["for","if","switch","while"].includes(word) && pairs.has(index+1)){
+        let end=statementEnd(pairs.get(index+1)+1,limit);
+        if(word==="if" && token(end)==="else")end=statementEnd(end+1,limit);
+        return end;
+      }
+      if(word==="do"){
+        const end=statementEnd(index+1,limit);
+        if(token(end)==="while" && pairs.has(end+1))return Math.min(limit,pairs.get(end+1)+2);
+        return end;
+      }
+      return Math.min(limit,until(index,limit,new Set([";"]))+1);
+    }
+    function walk(start,end,scope,visibleTypes){
+      for(let index=start;index<end;){
+        const word=token(index);
+        if(word==="{" && pairs.has(index)){
+          const finish=pairs.get(index);
+          walk(index+1,finish,"Nested block",new Set(visibleTypes));index=finish+1;continue;
+        }
+        if(word==="for" && pairs.has(index+1)){
+          const finish=pairs.get(index+1),firstSemi=until(index+2,finish,new Set([";"]));
+          declarationStatement(index+2,firstSemi,"Loop",statementEnd(finish+1,end),new Set(visibleTypes));
+          index=finish+1;continue;
+        }
+        if(["if","switch","while"].includes(word) && pairs.has(index+1)){index=pairs.get(index+1)+1;continue;}
+        if(word==="else"||word==="do"||word===";"){index++;continue;}
+        if(word==="case"||word==="default"){index=Math.min(end,until(index+1,end,new Set([":"]))+1);continue;}
+        if(identifier.test(word) && token(index+1)===":"){hidden.add(index);index+=2;continue;}
+        const finish=until(index,end,new Set([";"]));
+        declarationStatement(index,finish,scope,end,visibleTypes);index=finish+1;
+      }
+    }
+    walk(body+1,close,"Function body",new Set(types));
+    for(let index=body+1;index<close;index++){
+      const name=token(index);
+      if(!globals.has(name)||usedGlobals.has(name)||hidden.has(index))continue;
+      if([".","->","goto","struct","union","enum"].includes(token(index-1)))continue;
+      if(bindings.get(name)?.some(([first,last])=>first<=index && index<last))continue;
+      usedGlobals.add(name);
+      result.other.push({...globals.get(name),scope:"File scope"});
+    }
+    return result;
+  }
+
+  function parseFile(path, original) {
+    const source = original.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+    const includes=[],macros=[],functions=[],globals=[],typedefs=[],types=new Set();
+    const reader=tokenize(source,(directive,line)=>{
+        const include = /^#\s*include\s*(["<])([^">]+)[">]/.exec(directive);
+        if (include) includes.push({name:include[2], quoted:include[1] === '"', line});
+        const macro = /^#\s*define\s+(\w+)\(/.exec(directive);
+        if (macro) macros.push(macro[1]);
+    });
+    const {tokens,token,pairs,lineOf}=reader;
     let start = 0;
     for (let index = 0; index < tokens.length; index++) {
-      if (token(index) === ";") { start = index + 1; continue; }
+      if (token(index) === ";") {
+        const declaration=readDeclaration(reader,start,index,types,true);
+        for(const entry of declaration?.entries||[]){
+          const line=lineOf(tokens[entry.nameIndex].at);
+          if(declaration.isTypedef){types.add(entry.name);typedefs.push({name:entry.name,line});}
+          else if(entry.firstOperator!=="(")globals.push({name:entry.name,declaration:entry.declaration,path,line});
+        }
+        start=index+1;continue;
+      }
       if (token(index) !== "{") continue;
       const close = pairs.get(index);
       if (close === undefined) continue;
@@ -163,13 +372,13 @@ const AtlasAnalysis = (() => {
           rawCalls.push({name:called,line:lineOf(tokens[cursor].at)});
         }
         functions.push({name, path, id:path+"#"+tokens[nameAt].at, line:lineOf(tokens[nameAt].at), firstLine:lineOf(first),
-          lastLine:lineOf(last-1), first, last, signature:source.slice(first,tokens[index].at).trim().replace(/\s+/g," "),
+          lastLine:lineOf(last-1), first, last, parametersOffset:tokens[nameAt+1].at, bodyOffset:tokens[index].at, signature:source.slice(first,tokens[index].at).trim().replace(/\s+/g," "),
           internal:tokens.slice(start,nameAt).some(item=>item.value==="static"),rawCalls});
         start = close + 1;
       }
       index = close;
     }
-    return {path, source, lineCount:lines.length, includes, macros, functions};
+    return {path, source, lineCount:lineOf(source.length), includes, macros, functions, globals, typedefs};
   }
 
   function analyze(entries, name) {
@@ -276,7 +485,7 @@ const AtlasAnalysis = (() => {
       for(const entry of entries) entry.path=entry.path.slice(root.length);
     return entries;
   }
-  return {analyze, readZip};
+  return {analyze, readZip, inspectVariables};
 })();
 </script>
 <script>const sampleFiles = [
@@ -428,6 +637,7 @@ function buildView(items){
   return {items,byKey,incoming,count};
 }
 function loadProject(project,demo=false) {
+  inspectorView="overview";
   closeSourcePanel();
   state.project=project; state.demo=demo; state.mode="call"; state.files=new Map(project.files.map(file=>[file.path,file]));
   const all=project.files.flatMap(file=>file.functions);
@@ -649,7 +859,74 @@ function relationGroup(label,ids,mode=state.mode){
   for(const id of ids){const entry=state.views[mode].byKey.get(id);if(!entry)continue;const chip=button("chip",entry.title,()=>select(id,mode,true));chip.title=entry.path;items.append(chip);}
   if(!ids.length)items.append(el("span","no-rel","None"));return section;
 }
+const variableCache=new WeakMap();
+const inspectorViews=["overview","locals","arguments","other"];
+const inspectorLabels={overview:"Overview",locals:"Function locals",arguments:"Arguments",other:"Other variables"};
+let inspectorView="overview";
+
+function inspectTab(name){
+  inspectorView=name;
+  renderDetails();
+}
+function renderVariableList(fn){
+  let variables=variableCache.get(fn);
+  if(!variables){
+    variables=AtlasAnalysis.inspectVariables(fn,state.files);
+    variableCache.set(fn,variables);
+  }
+  const rows=variables[inspectorView];
+  const list=el("div","variable-list");
+  list.append(el("h3","variable-function",fn.name+"()"));
+  if(!rows.length){
+    const message={locals:"No variables declared directly in this function body.",arguments:"No named arguments.",other:"No nested variables or referenced file-scope variables found."};
+    list.append(el("p","no-variables",message[inspectorView]));
+    return list;
+  }
+  const table=el("table"),head=table.createTHead().insertRow(),body=table.createTBody();
+  const labels=["Declaration",...(inspectorView==="other"?["Scope"]:[]),"Location"];
+  for(const label of labels){const heading=el("th","",label);heading.scope="col";head.append(heading);}
+  for(const variable of rows){
+    const row=body.insertRow(),declaration=row.insertCell();
+    declaration.append(el("code","",variable.declaration));
+    if(inspectorView==="other")row.insertCell().textContent=variable.scope;
+    row.insertCell().textContent=variable.path+":"+variable.line;
+  }
+  list.append(table);
+  return list;
+}
+function buildInspectorTabs(){
+  const list=byId("inspectorTabs");
+  for(const [index,name] of inspectorViews.entries()){
+    const tab=button("inspector-tab",inspectorLabels[name],()=>inspectTab(name));
+    tab.id="inspect-"+name;
+    tab.setAttribute("role","tab");
+    tab.setAttribute("aria-controls","details");
+    tab.addEventListener("keydown",event=>{
+      const next={ArrowLeft:(index+3)%4,ArrowRight:(index+1)%4,Home:0,End:3}[event.key];
+      if(next===undefined||state.mode!=="call")return;
+      event.preventDefault();
+      inspectTab(inspectorViews[next]);
+      list.children[next].focus();
+    });
+    list.append(tab);
+  }
+}
+
 function renderDetails(){
+  const active=state.mode==="call"?inspectorView:"overview";
+  const panel=byId("details");
+  for(const [index,tab] of Array.from(byId("inspectorTabs").children).entries()){
+    const name=inspectorViews[index],selected=name===active;
+    tab.setAttribute("aria-selected",String(selected));
+    tab.disabled=state.mode!=="call" && name!=="overview";
+    tab.tabIndex=selected?0:-1;
+  }
+  panel.setAttribute("aria-labelledby","inspect-"+active);
+  if(active!=="overview"){
+    panel.replaceChildren(renderVariableList(state.functions.get(state.selected)));
+    panel.scrollTop=0;
+    return;
+  }
   const view=currentView(),item=view.byKey.get(state.selected),isCall=state.mode==="call";
   const grid=el("div","detail-grid"),name=el("div");
   name.append(el("h2","selection-title",item.title));
@@ -730,7 +1007,7 @@ function renderSource(){
   body.scrollLeft=0;
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Select another block to update the source panel, or close the panel to expand the graph.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider to resize the graph and source, or focus it and use the arrow keys. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -755,6 +1032,49 @@ window.addEventListener("dragenter",event=>{if(event.dataTransfer.types.includes
 window.addEventListener("dragover",event=>{if(event.dataTransfer.types.includes("Files"))event.preventDefault();});
 window.addEventListener("dragleave",()=>{if(--dragDepth<=0){dragDepth=0;document.body.classList.remove("dragging");}});
 window.addEventListener("drop",event=>{event.preventDefault();dragDepth=0;document.body.classList.remove("dragging");importFile(event.dataTransfer.files[0]);});
+const splitter=byId("paneSplitter"),graphWorkspace=byId("graphWorkspace");
+const stackedLayout=window.matchMedia("(max-width:900px)");
+const splitSizes={vertical:57,horizontal:55};
+let splitDrag=null;
+function setSplit(value){
+  const orientation=stackedLayout.matches?"horizontal":"vertical";
+  const size=Math.max(25,Math.min(75,Math.round(value)));
+  splitSizes[orientation]=size;
+  graphWorkspace.style.setProperty("--graph-share",size);
+  graphWorkspace.style.setProperty("--source-share",100-size);
+  splitter.setAttribute("aria-orientation",orientation);
+  splitter.setAttribute("aria-valuenow",size);
+  splitter.setAttribute("aria-valuetext","Graph "+size+"%, source "+(100-size)+"%");
+}
+function applySplitOrientation(){setSplit(splitSizes[stackedLayout.matches?"horizontal":"vertical"]);}
+stackedLayout.addEventListener("change",applySplitOrientation);
+applySplitOrientation();
+splitter.addEventListener("pointerdown",event=>{
+  if(event.button!==0||splitDrag)return;
+  event.preventDefault();
+  splitter.focus({preventScroll:true});
+  const stacked=stackedLayout.matches;
+  const available=stacked?graphWorkspace.clientHeight-splitter.offsetHeight:graphWorkspace.clientWidth-splitter.offsetWidth;
+  if(available<=0)return;
+  splitDrag={id:event.pointerId,stacked,available,origin:stacked?event.clientY:event.clientX,size:splitSizes[stacked?"horizontal":"vertical"]};
+  splitter.setPointerCapture(event.pointerId);
+  graphWorkspace.classList.add("resizing");
+});
+splitter.addEventListener("pointermove",event=>{
+  if(!splitDrag||event.pointerId!==splitDrag.id||splitDrag.stacked!==stackedLayout.matches)return;
+  const position=splitDrag.stacked?event.clientY:event.clientX;
+  setSplit(splitDrag.size+100*(position-splitDrag.origin)/splitDrag.available);
+});
+splitter.addEventListener("lostpointercapture",()=>{splitDrag=null;graphWorkspace.classList.remove("resizing");});
+splitter.addEventListener("keydown",event=>{
+  const stacked=stackedLayout.matches,size=splitSizes[stacked?"horizontal":"vertical"];
+  const changes=stacked?{ArrowUp:size-2,ArrowDown:size+2}:{ArrowLeft:size-2,ArrowRight:size+2};
+  const value={...changes,Home:25,End:75}[event.key];
+  if(value===undefined)return;
+  event.preventDefault();setSplit(value);
+});
+
+buildInspectorTabs();
 byId("search").oninput=renderTree;byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>180){notify("For this project, select a function or file to explore its neighborhood.");return;}state.focused=!state.focused;refresh();};
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
