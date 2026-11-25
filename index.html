@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f7f8f3"><title>C Atlas · C code explorer</title>
+<meta name="theme-color" content="#202a25"><title>C Atlas · C code explorer</title>
 <meta name="description" content="Explore C project ZIPs in your browser with interactive call and include graphs.">
 <style>:root{--ink:#202820;--dim:#59645a;--muted:#697568;--line:#d5dad0;--pale:#f5f7f0;--paper:#fff;--lime:#d4f495;--mono:"IBM Plex Mono",ui-monospace,"DejaVu Sans Mono",monospace;--sans:"Inter","Arial",sans-serif;font:16px var(--sans);color:var(--ink);background:#fafbf7}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button,a{color:inherit}button{cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:8px}button:focus-visible,a:focus-visible,input:focus-visible,#canvas:focus-visible{outline:3px solid #6a8e40;outline-offset:2px}button:disabled{opacity:.45;cursor:default}button svg,i svg{width:18px;height:18px}i{display:inline-flex;align-items:center;justify-content:center;font-style:normal}svg{display:block;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}button,.tabs{border-radius:6px}button{transition:background .13s,border-color .13s}button:hover:not(:disabled){filter:brightness(.97)}button[hidden],[hidden]{display:none!important}
@@ -167,13 +167,24 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 #canvasNote{position:absolute;top:8px;left:8px;border-radius:4px;background:#fafcf5ed;border:1px solid var(--line);padding:4px 7px;color:#4f6248;font:11px var(--mono);pointer-events:none}
 .edge-hit:focus-visible{outline:none;stroke:#6d8e51aa;stroke-width:7}
 .include-style .line-key{background:none;border-top:1px dashed #67785c}
+
+/* The toolbar anchors the workspace. Definition links stay readable in code at any zoom. */
+.topbar{background:#202a25;color:#f4f7f2;border-color:#313d35}.topbar .app-name,.topbar .help-link{color:#c3cec5}.topbar .top-sep{background:#526056}.top-actions{gap:20px}.topbar #upload{background:#d4f495;color:#243020;border-color:#d4f495}.topbar #upload svg{color:inherit}
+.symbol-launch{min-height:34px;padding:6px 9px;background:#303c34;color:#edf2ea;border:1px solid #607064;gap:9px;font-size:13px}.symbol-launch svg{width:15px}.symbol-launch kbd{font:11px var(--mono);color:#d1dbd0;padding:2px 4px;border:1px solid #6c796d;border-radius:3px}
+.source-call.source-type{color:#225d83}.source-call.source-type:hover{background:#ddecf6}.source-call.source-macro{color:#87541c}.source-call.source-macro:hover{background:#f6e9d2}
+.symbol-controls{display:flex;gap:8px}.symbol-controls input{min-width:0}.symbol-filter{font:13px var(--sans);border:1px solid var(--line);border-radius:5px;background:var(--paper);color:var(--ink);padding:0 7px}
+.symbol-results{max-height:min(48dvh,400px);overflow:auto;border-top:1px solid var(--line);overscroll-behavior:contain}.symbol-row,.impact-row{display:flex;align-items:center;width:100%;padding:9px 7px;gap:12px;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent}.symbol-row:hover,.impact-row:hover,.symbol-row:focus-visible{background:#eff4e9}
+.symbol-kind{flex:0 0 62px;font:11px var(--mono);text-align:center;padding:3px;border:1px solid #ced7ca;border-radius:4px;color:#415545;background:#f2f5ef}.kind-typedef,.kind-struct,.kind-union,.kind-enum{color:#255e80;background:#edf5fa;border-color:#c8dce9}.kind-macro{color:#82511d;background:#fbf3e6;border-color:#e7d4b6}.symbol-label{min-width:0;display:grid;gap:3px;margin-right:auto}.symbol-label strong,.impact-row strong{font:600 13px var(--mono);overflow-wrap:anywhere}.symbol-label small,.impact-row small{font:12px var(--mono);color:var(--dim);overflow-wrap:anywhere}
+.impact-list{padding:12px 18px}.impact-list h3,.impact-list p{margin:0 0 7px}.impact-row{justify-content:flex-start;flex-wrap:wrap;gap:5px 12px}.impact-distance{margin-left:auto;color:#436735;font:12px var(--sans);white-space:nowrap}.symbol-row:focus-visible{outline-offset:-3px}
+@media(max-width:720px){.top-actions{gap:10px}.symbol-launch kbd{display:none}.symbol-launch{gap:6px}.topbar .app-name,.topbar .top-sep{display:none}.impact-list{padding:10px}}
+@media(max-width:430px){.topbar .help-link span{display:none}.symbol-launch{padding:5px 7px}.topbar{padding:0 10px}.top-actions{gap:9px}.symbol-row{gap:8px}.impact-distance{margin-left:0}}
 </style>
 </head>
 <body>
 <header class="topbar">
   <a class="wordmark" href="#" aria-label="C Atlas home"><span class="brand-icon" data-icon="brand"></span>C Atlas</a>
   <span class="top-sep"></span><span class="app-name">Code explorer</span>
-  <div class="top-actions"><button class="plain help-link" id="help"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="upload"></i>Open ZIP</button></div>
+  <div class="top-actions"><button class="symbol-launch" id="goSymbol" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Go to symbol (Ctrl or ⌘ + K)"><i data-icon="search"></i><span>Go to symbol</span><kbd>Ctrl K</kbd></button><button class="plain help-link" id="help"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="upload"></i>Open ZIP</button></div>
 </header>
 <div id="workspace" class="workspace">
   <aside id="sidebar" aria-label="Project explorer">
@@ -231,7 +242,7 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 <footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
 <input type="file" accept=".zip,application/zip" id="fileInput" hidden>
 <div id="toast" role="alert" hidden></div>
-<dialog id="dialog"><form method="dialog"><button class="close" aria-label="Close dialog"><i data-icon="close"></i></button></form><div id="dialogContent"></div></dialog>
+<dialog id="dialog" aria-labelledby="dialogTitle"><form method="dialog"><button class="close" aria-label="Close dialog"><i data-icon="close"></i></button></form><div id="dialogContent"></div></dialog>
 <script id="analysis-code">/* Lightweight C source index. C text is tokenized, never executed. */
 const AtlasAnalysis = (() => {
   const decoder = new TextDecoder();
@@ -383,7 +394,7 @@ const AtlasAnalysis = (() => {
     function hide(first,end){for(let i=first;i<end;i++)hidden.add(i);}
     function register(entry,scope,scopeEnd){
       const index=entry.nameIndex;
-      const variable={name:entry.name,declaration:entry.declaration,path:file.path,offset:fn.first+tokens[index].at,line:fn.firstLine+lineOf(tokens[index].at)-1,scope};
+      const variable={name:entry.name,declaration:entry.declaration,path:file.path,offset:fn.first+tokens[index].at,line:fn.firstLine+lineOf(tokens[index].at)-1,scope,scopeEndOffset:fn.first+(tokens[scopeEnd]?.at??source.length)};
       if(!bindings.has(entry.name))bindings.set(entry.name,[]);
       bindings.get(entry.name).push([index,scopeEnd]);
       if(scope==="Parameter")result.arguments.push(variable);
@@ -456,16 +467,70 @@ const AtlasAnalysis = (() => {
     return result;
   }
 
+  // C tags and typedef names occupy separate namespaces. Keep the defining token and its block.
+  function indexTypeDefinitions(reader,definitions,path){
+    const {tokens,token,pairs,lineOf}=reader;
+    const blocks=[],aggregateBodies=new Set(),types=new Set();
+    const afterAttributes=index=>{
+      while(decorations.has(token(index)) && token(index+1)==="(" && pairs.has(index+1))index=pairs.get(index+1)+1;
+      return index;
+    };
+    function record(index,kind){
+      const offset=tokens[index].at,block=blocks.at(-1);
+      definitions.push({kind,name:token(index),path,line:lineOf(offset),offset,
+        scopeStart:block===undefined?0:tokens[block].at+1,scopeEnd:block===undefined?Infinity:tokens[pairs.get(block)].at});
+    }
+    for(let index=0;index<tokens.length;index++){
+      const word=token(index);
+      if(word==="{"){if(pairs.has(index)&&!aggregateBodies.has(index))blocks.push(index);continue;}
+      if(word==="}"){if(pairs.get(index)===blocks.at(-1))blocks.pop();continue;}
+      if(tags.has(word)){
+        const name=afterAttributes(index+1);
+        const named=identifier.test(token(name)||"");
+        const body=named?afterAttributes(name+1):name;
+        if(token(body)==="{"){
+          aggregateBodies.add(body);
+          if(named)record(name,word);
+        }
+      }
+      if(word==="typedef"){
+        const end=reader.until(index,tokens.length,new Set([";"]));
+        for(const entry of readDeclaration(reader,index,end,types,true)?.entries||[]){
+          record(entry.nameIndex,"typedef");types.add(entry.name);
+        }
+      }
+    }
+  }
+
   function parseFile(path, original) {
     const source = original.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
-    const includes=[],macros=[],functions=[],globals=[],typedefs=[],types=new Set();
+    const includes=[],macros=[],functions=[],globals=[],typedefs=[],definitions=[],directives=[],types=new Set();
+    
     const reader=tokenize(source,(directive,line,offset)=>{
         const include = /^#\s*include\s*(["<])([^">]+)[">]/.exec(directive);
         if (include) includes.push({name:include[2], quoted:include[1] === '"', line, offset:offset+include[0].length-include[2].length-1});
-        const macro = /^#\s*define\s+(\w+)\(/.exec(directive);
-        if (macro) macros.push(macro[1]);
+        const header=/^#\s*([A-Za-z_]\w*)/.exec(directive);
+        if(!header)return;
+        const command=header[1],event={command,start:offset,keyword:offset+header[0].length-command.length,end:offset+directive.length};
+        if(include)event.include=includes.length-1;
+        if(command==="define"||command==="undef"){
+          const match=/^#\s*(?:define|undef)\s+([A-Za-z_]\w*)/.exec(directive);
+          if(match){
+            const name=match[1],at=offset+match[0].length-name.length;
+            event.name=name;
+            if(command==="define"){
+              const tail=directive.slice(match[0].length);
+              const parameters=/^\(([^)]*)\)/.exec(tail);
+              if(parameters){event.parameters=parameters[1].match(/[A-Za-z_]\w*/g)||[];macros.push(name);}
+              event.definition=definitions.length;
+              definitions.push({kind:"macro",name,path,line,offset:at,functionLike:!!parameters});
+            }
+          }
+        }
+        directives.push(event);
     });
     const {tokens,token,pairs,lineOf}=reader;
+    indexTypeDefinitions(reader,definitions,path);
     let start = 0;
     for (let index = 0; index < tokens.length; index++) {
       if (token(index) === ";") {
@@ -504,14 +569,14 @@ const AtlasAnalysis = (() => {
           if (token(cursor-1) === "." || token(cursor-1) === "->") continue;
           rawCalls.push({name:called,line:lineOf(tokens[cursor].at),offset:tokens[cursor].at});
         }
-        functions.push({name, path, id:path+"#"+tokens[nameAt].at, line:lineOf(tokens[nameAt].at), firstLine:lineOf(first),
+        functions.push({name, path, nameOffset:tokens[nameAt].at, id:path+"#"+tokens[nameAt].at, line:lineOf(tokens[nameAt].at), firstLine:lineOf(first),
           lastLine:lineOf(last-1), first, last, parametersOffset:tokens[nameAt+1].at, bodyOffset:tokens[index].at, signature:source.slice(first,tokens[index].at).trim().replace(/\s+/g," "),
           internal:tokens.slice(start,nameAt).some(item=>item.value==="static"),rawCalls});
         start = close + 1;
       }
       index = close;
     }
-    return {path, source, lineCount:lineOf(source.length), includes, macros, functions, globals, typedefs};
+    return {path, source, lineCount:lineOf(source.length), includes, macros, functions, globals, typedefs,definitions,directives};
   }
 
   function projectGlobals(files){
@@ -579,7 +644,7 @@ const AtlasAnalysis = (() => {
         const calls = new Set(), unresolved = new Set();
         fn.callSites=[];
         for (const call of fn.rawCalls) {
-          if (macros.has(call.name)) { unresolved.add(call.name); continue; }
+          if (macros.has(call.name)) { unresolved.add(call.name);continue; }
           const matches = definitions.get(call.name) || [];
           let candidates = matches.filter(other => other.path === file.path);
           if (!candidates.length) candidates = matches.filter(other => other.internal && reachable.has(other.path));
@@ -694,7 +759,7 @@ void engine_update(engine_state_t *engine_state){
   {path:"src/renderer.c",source:`#include "renderer.h"
 
 bool renderer_init(engine_state_t *engine_state){
-  return engine_state->chunk_count > 0;
+  return engine_state->chunk_count > MIN_VISIBLE_CHUNKS;
 }
 
 static void draw_chunks(const engine_state_t *engine_state){
@@ -750,6 +815,7 @@ void world_update(engine_state_t *engine_state);
 `},
   {path:"include/renderer.h",source:`#ifndef RENDERER_H
 #define RENDERER_H
+#define MIN_VISIBLE_CHUNKS 0
 
 #include "engine.h"
 
@@ -963,8 +1029,7 @@ function showTracePicker(){
       const row=button("result-item",item.title,()=>{
         const route=callPath(state.functions,start,item.id);
         if(!route){status.textContent="No indexed call path to "+item.title+". Try another destination.";return;}
-        rememberLocation();state.route=route;state.focused=false;byId("dialog").close();closeSourcePanel();refresh();
-        byId("clearTrace").focus({preventScroll:true});
+        showCallRoute(route);
       });
       row.append(el("small","",item.path+":"+state.functions.get(item.id).line));results.append(row);
     }
@@ -1177,6 +1242,256 @@ function downloadGraph(){
   setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 </script>
+<script>// Build the project-wide directory once. Resolve source links only when their file is opened.
+function buildSymbolIndex(project){
+  const symbols=[],byName=new Map();
+  function add(symbol){
+    symbols.push(symbol);
+    if(symbol.kind==="file")return;
+    if(!byName.has(symbol.name))byName.set(symbol.name,[]);
+    byName.get(symbol.name).push(symbol);
+  }
+  for(const file of project.files){
+    add({kind:"file",name:base(file.path),path:file.path});
+    for(const fn of file.functions)add({kind:"function",name:fn.name,path:file.path,line:fn.line,offset:fn.nameOffset,id:fn.id});
+    for(const definition of file.definitions)add(definition);
+  }
+  for(const global of project.globals)add({...global,kind:"global"});
+  symbols.sort((left,right)=>left.name.localeCompare(right.name)||left.path.localeCompare(right.path)||(left.line||0)-(right.line||0));
+  return {symbols,byName,sourceCache:new Map()};
+}
+
+function sourceSymbols(file){
+  const {sourceCache,byName}=state.symbols;
+  if(sourceCache.has(file.path))return sourceCache.get(file.path);
+  const lines=new Map(),headers=new Set(),macros=new Map(),branches=[];
+  const definitions=new Set(file.definitions.map(item=>item.offset));
+  const shadowBindings=new Map();
+  let functionIndex=0;
+  function shadowsType(name,offset){
+    while(functionIndex<file.functions.length && file.functions[functionIndex].last<=offset)functionIndex++;
+    const fn=file.functions[functionIndex];
+    if(!fn||offset<fn.parametersOffset)return false;
+    if(!shadowBindings.has(fn)){
+      let vars=variableCache.get(fn);
+      if(!vars){vars=AtlasAnalysis.inspectVariables(fn,state.files);variableCache.set(fn,vars);}
+      const byVariable=new Map();
+      for(const variable of [...vars.arguments,...vars.locals,...vars.other]){
+        if(variable.scopeEndOffset===undefined)continue;
+        if(!byVariable.has(variable.name))byVariable.set(variable.name,[]);
+        byVariable.get(variable.name).push(variable);
+      }
+      shadowBindings.set(fn,byVariable);
+    }
+    return shadowBindings.get(fn).get(name)?.some(v=>v.offset<=offset && offset<v.scopeEndOffset);
+  }
+  function remember(name){
+    const frame=branches.at(-1);
+    if(frame&&!frame.before.has(name)){
+      const original=macros.get(name)||[];frame.before.set(name,original);
+      if(frame.alternatives)frame.outcomes.set(name,new Set(original));
+    }
+  }
+  function endBranch(frame){
+    for(const [name,original] of frame.before){
+      if(!frame.outcomes.has(name))frame.outcomes.set(name,new Set());
+      for(const definition of macros.get(name)||[])frame.outcomes.get(name).add(definition);
+      macros.set(name,original);
+    }
+  }
+  function applyDirective(sourceFile,event){
+    const {command,name}=event;
+    if(["if","ifdef","ifndef"].includes(command)){
+      branches.push({before:new Map(),outcomes:new Map(),hasElse:false,alternatives:0});return;
+    }
+    if(command==="else"||command==="elif"){
+      const frame=branches.at(-1);
+      if(frame){endBranch(frame);frame.alternatives++;if(command==="else")frame.hasElse=true;}
+      return;
+    }
+    if(command==="endif"){
+      const frame=branches.pop();if(!frame)return;
+      endBranch(frame);
+      for(const [name,choices] of frame.outcomes){
+        remember(name);
+        if(!frame.hasElse)for(const original of frame.before.get(name))choices.add(original);
+        macros.set(name,[...choices]);
+      }
+      return;
+    }
+    if(!name)return;
+    remember(name);
+    if(command==="undef"){macros.delete(name);return;}
+    if(command==="define"){
+      const definition=sourceFile.definitions[event.definition];
+      const existing=macros.get(name)||[];
+      const foreign=sourceFile===file?[]:existing.filter(item=>item.path!==sourceFile.path);
+      macros.set(name,[...foreign,definition]);
+    }
+  }
+  function processDirective(sourceFile,event){
+    if(event.include===undefined){applyDirective(sourceFile,event);return;}
+    const stack=[];
+    function enter(target){
+      if(!target||target===file.path||headers.has(target))return;
+      headers.add(target);stack.push({file:state.files.get(target),index:0});
+    }
+    enter(sourceFile.includes[event.include].target);
+    while(stack.length){
+      const frame=stack.at(-1),next=frame.file.directives[frame.index++];
+      if(!next){stack.pop();continue;}
+      if(next.include!==undefined)enter(frame.file.includes[next.include].target);
+      else applyDirective(frame.file,next);
+    }
+  }
+  function visibleTypes(name,kind,offset){
+    const matches=(byName.get(name)||[]).filter(symbol=>symbol.kind===kind);
+    const local=matches.filter(symbol=>symbol.path===file.path && symbol.offset<offset &&
+      symbol.scopeStart<=offset && offset<symbol.scopeEnd);
+    if(local.length){
+      const deepest=local.reduce((depth,item)=>Math.max(depth,item.scopeStart),0);
+      if(deepest)return local.filter(symbol=>symbol.scopeStart===deepest);
+    }
+    const imported=matches.filter(symbol=>symbol.scopeStart===0 && headers.has(symbol.path));
+    if(local.length||imported.length)return local.concat(imported);
+    return kind==="typedef"?[]:matches.filter(symbol=>symbol.scopeStart===0);
+  }
+  const pattern=/\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|(?:u8|u|U|L)?"(?:\\[\s\S]|[^"\\])*"|(?:u|U|L)?'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|->|[^\s]/g;
+  const directives=file.directives;
+  let directiveIndex=0,line=1,nextBreak=file.source.indexOf("\n"),previous="",lastDirective=null;
+  for(const match of file.source.matchAll(pattern)){
+    const name=match[0],offset=match.index;
+    while(nextBreak!==-1&&nextBreak<offset){line++;nextBreak=file.source.indexOf("\n",nextBreak+1);}
+    while(directiveIndex<directives.length && directives[directiveIndex].end<=offset)
+      processDirective(file,directives[directiveIndex++]);
+    const next=directives[directiveIndex],directive=next&&next.start<=offset?next:null;
+    if(directive!==lastDirective){previous="";lastDirective=directive;}
+    if(name.startsWith("/*")||name.startsWith("//"))continue;
+    const preceding=previous;previous=name;
+    if(!/^[A-Za-z_]\w*$/.test(name)||!byName.has(name)||definitions.has(offset))continue;
+    if(directive && (directive.include!==undefined || offset===directive.keyword ||
+        directive.parameters?.includes(name)))continue;
+    let choices=macros.get(name)||[];
+    if(!choices.length && directive?.command==="ifndef" && directives[directiveIndex+1]?.command==="define" &&
+       directives[directiveIndex+1].name===name)choices=[file.definitions[directives[directiveIndex+1].definition]];
+    if(!directive && choices.some(item=>item.functionLike)){
+      const after=/\s*(?:(?:\/\*[\s\S]*?\*\/|\/\/[^\n]*\n)\s*)*\(/y;
+      after.lastIndex=offset+name.length;
+      if(!after.test(file.source))choices=choices.filter(item=>!item.functionLike);
+    }
+    const tag=["struct","union","enum"].includes(preceding)?preceding:null;
+    if(!choices.length && ![".","->","goto"].includes(preceding) && (!directive||directive.command==="define")){
+      choices=visibleTypes(name,tag||"typedef",offset);
+      if(choices.length&&!tag&&shadowsType(name,offset))choices=[];
+    }
+    if(!choices.length)continue;
+    if(!lines.has(line))lines.set(line,[]);
+    lines.get(line).push({name,offset,line,choices});
+  }
+  if(sourceCache.size>=4)sourceCache.delete(sourceCache.keys().next().value);
+  sourceCache.set(file.path,lines);return lines;
+}
+
+function openSymbol(symbol){
+  if(byId("dialog").open)byId("dialog").close();
+  if(symbol.kind==="function"){visitSource(symbol.id,"call",symbol);return;}
+  if(symbol.kind==="file"){visitSource(symbol.path,"include");return;}
+  const owner=symbol.scopeStart && state.files.get(symbol.path).functions.find(fn=>fn.first<=symbol.offset&&symbol.offset<fn.last);
+  visitSource(owner?owner.id:symbol.path,owner?"call":"include",symbol);
+}
+function symbolRow(symbol,action=()=>openSymbol(symbol)){
+  const row=button("symbol-row","",action),label=el("span","symbol-label");
+  row.append(el("span","symbol-kind kind-"+symbol.kind,symbol.kind));
+  label.append(el("strong","",symbol.name+(symbol.kind==="function"?"()":"")),el("small","",symbol.path+(symbol.line?":"+symbol.line:"")));
+  row.append(label);return row;
+}
+function openDefinitions(choices){
+  if(choices.length===1){openSymbol(choices[0]);return;}
+  const box=el("div"),list=el("div","symbol-results");
+  box.append(el("h2","","Definitions of "+choices[0].name),el("p","metadata","Choose a definition to open."),list);
+  for(const symbol of choices)list.append(symbolRow(symbol));
+  showDialog(box);list.children[0].focus();
+}
+
+function showSymbolSearch(){
+  const box=el("div","symbol-dialog"),input=el("input","trace-search"),filter=el("select","symbol-filter");
+  const controls=el("div","symbol-controls"),status=el("p","metadata"),list=el("div","symbol-results");
+  input.type="search";input.placeholder="Search by name or file path";input.setAttribute("aria-label","Symbol name or file path");
+  filter.setAttribute("aria-label","Symbol category");
+  for(const [value,label] of [["all","All symbols"],["function","Functions"],["type","Types"],["macro","Macros"],["global","Globals"],["file","Files"]]){
+    const option=el("option","",label);option.value=value;filter.append(option);
+  }
+  filter.value="all";status.setAttribute("role","status");
+  box.append(el("h2","","Go to symbol"),controls,status,list);controls.append(input,filter);
+  function search(){
+    const words=input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const scored=[];
+    for(const symbol of state.symbols.symbols){
+      const category=["typedef","struct","union","enum"].includes(symbol.kind)?"type":symbol.kind;
+      if(filter.value!=="all"&&filter.value!==category)continue;
+      const name=symbol.name.toLowerCase(),path=symbol.path.toLowerCase();
+      if(!words.every(word=>name.includes(word)||path.includes(word)))continue;
+      const rank=words.reduce((sum,word)=>sum+(name===word?0:name.startsWith(word)?1:name.includes(word)?2:3),0);
+      scored.push({symbol,rank});
+    }
+    scored.sort((left,right)=>left.rank-right.rank);
+    status.textContent=scored.length?(scored.length>80?"Showing 80 of "+scored.length+" results. Refine your search.":countLabel(scored.length,"result")):"No matching symbols";
+    list.replaceChildren(...scored.slice(0,80).map(({symbol})=>symbolRow(symbol)));
+    list.scrollTop=0;
+  }
+  input.addEventListener("input",search);filter.addEventListener("change",search);
+  input.addEventListener("keydown",event=>{
+    if((event.key==="ArrowDown"||event.key==="Enter")&&list.children.length){
+      event.preventDefault();if(event.key==="Enter")list.children[0].click();else list.children[0].focus();
+    }
+  });
+  list.addEventListener("keydown",event=>{
+    const rows=Array.from(list.children),index=rows.indexOf(event.target);
+    if(index<0||!["ArrowDown","ArrowUp"].includes(event.key))return;
+    event.preventDefault();
+    if(event.key==="ArrowUp"&&index===0)input.focus();else rows[Math.min(rows.length-1,index+(event.key==="ArrowDown"?1:-1))].focus();
+  });
+  search();showDialog(box);input.focus();
+}
+
+function renderCallerImpact(fn){
+  const incoming=state.views.call.incoming,nextHop=new Map([[fn.id,null]]),pending=[{id:fn.id,depth:0}];
+  for(let index=0;index<pending.length;index++){
+    const {id,depth}=pending[index];
+    for(const caller of incoming.get(id)||[]){
+      if(nextHop.has(caller))continue;
+      nextHop.set(caller,id);pending.push({id:caller,depth:depth+1});
+    }
+  }
+  const panel=el("div","impact-list"),callers=pending.slice(1),direct=incoming.get(fn.id).filter(id=>id!==fn.id).length;
+  panel.append(el("h3","variable-function","Callers of "+fn.name+"()"));
+  if(!callers.length){panel.append(el("p","no-variables","No other indexed function calls this function."));return panel;}
+  panel.append(el("p","metadata",direct+" direct · "+(callers.length-direct)+" indirect. Select a caller to show its shortest call path."));
+  let index=0;
+  function showMore(){
+    const end=Math.min(index+60,callers.length);
+    for(;index<end;index++){
+      const {id,depth}=callers[index],caller=state.functions.get(id);
+      const row=button("impact-row","",()=>{
+        const route=[];for(let step=id;step!==null;step=nextHop.get(step))route.push(step);
+        showCallRoute(route);
+      });
+      row.append(el("strong","",caller.name+"()"),el("small","",caller.path+":"+caller.line),el("span","impact-distance",depth===1?"Direct":depth+" calls away"));panel.append(row);
+    }
+    if(index<callers.length){
+      const more=button("outline","Show more callers",()=>{more.remove();showMore();});panel.append(more);
+    }
+  }
+  showMore();return panel;
+}
+function showCallRoute(route){
+  rememberLocation();state.route=route;state.selected=route[0];
+  state.activeFile=state.functions.get(route[0]).path;revealTree(state.activeFile);
+  state.focused=false;inspectorView="overview";
+  if(byId("dialog").open)byId("dialog").close();
+  closeSourcePanel();refresh();byId("clearTrace").focus({preventScroll:true});
+}
+</script>
 <script>"use strict";
 const byId = id => document.getElementById(id);
 const base = path => path.split("/").at(-1);
@@ -1235,6 +1550,8 @@ function loadProject(project,demo=false) {
   state.project=project; state.demo=demo; state.mode="call"; state.files=new Map(project.files.map(file=>[file.path,file]));
   const all=project.files.flatMap(file=>file.functions);
   state.functions=new Map(all.map(fn=>[fn.id,fn]));
+  state.symbols=buildSymbolIndex(project);
+  if(byId("dialog").open)byId("dialog").close();
   state.views.call=buildView(all.map(fn=>({id:fn.id,title:fn.name+"()",meta:base(fn.path)+" · L"+fn.line,path:fn.path,next:fn.calls,entry:fn.name==="main"})));
   state.views.include=buildView(project.files.map(file=>({id:file.path,title:base(file.path),meta:file.path.includes("/")?file.path.slice(0,file.path.lastIndexOf("/"))+"/":"Project root",path:file.path,next:[...new Set(file.includes.map(item=>item.target).filter(Boolean))],entry:/\.c$/i.test(file.path)})));
   state.entryPoints=all.filter(fn=>fn.name==="main");
@@ -1604,8 +1921,8 @@ function relationGroup(label,ids,mode=state.mode,direction=null){
   if(!ids.length)items.append(el("span","no-rel","None"));return section;
 }
 const variableCache=new WeakMap();
-const inspectorViews=["overview","locals","arguments","other"];
-const inspectorLabels={overview:"Overview",locals:"Function locals",arguments:"Arguments",other:"Other variables"};
+const inspectorViews=["overview","locals","arguments","other","impact"];
+const inspectorLabels={overview:"Overview",locals:"Function locals",arguments:"Arguments",other:"Other variables",impact:"Caller impact"};
 let inspectorView="overview";
 
 function inspectTab(name){
@@ -1651,7 +1968,8 @@ function buildInspectorTabs(){
     tab.setAttribute("role","tab");
     tab.setAttribute("aria-controls","details");
     tab.addEventListener("keydown",event=>{
-      const next={ArrowLeft:(index+3)%4,ArrowRight:(index+1)%4,Home:0,End:3}[event.key];
+      const count=inspectorViews.length;
+      const next={ArrowLeft:(index+count-1)%count,ArrowRight:(index+1)%count,Home:0,End:count-1}[event.key];
       if(next===undefined||state.mode!=="call")return;
       event.preventDefault();
       inspectTab(inspectorViews[next]);
@@ -1673,7 +1991,8 @@ function renderDetails(){
   }
   panel.setAttribute("aria-labelledby","inspect-"+active);
   if(active!=="overview"){
-    panel.replaceChildren(renderVariableList(state.functions.get(state.selected)));
+    const fn=state.functions.get(state.selected);
+    panel.replaceChildren(active==="impact"?renderCallerImpact(fn):renderVariableList(fn));
     panel.scrollTop=0;
     return;
   }
@@ -1726,6 +2045,7 @@ function refresh(){
   renderTree();renderDetails();renderGraph();fitGraph(true);
 }
 function showDialog(content){
+  const heading=content.querySelector("h2");if(heading)heading.id="dialogTitle";
   byId("dialogContent").replaceChildren(content);
   if(!byId("dialog").open)byId("dialog").showModal();
 }
@@ -1791,7 +2111,21 @@ function renderSource(variable=null){
     indexSites(file.includes);
     for(const definition of file.functions)indexSites(definition.callSites);
   }
+  for(const [line,symbols] of sourceSymbols(file)){
+    if(fn && (line<fn.firstLine || line>fn.lastLine))continue;
+    const symbolsInRange=fn?symbols.filter(symbol=>symbol.offset>=fn.first && symbol.offset<fn.last):symbols;
+    if(!symbolsInRange.length)continue;
+    const offsets=new Set(symbolsInRange.map(symbol=>symbol.offset));
+    const sites=(sitesByLine.get(line)||[]).filter(site=>!offsets.has(site.offset));
+    sitesByLine.set(line,sites.concat(symbolsInRange).sort((left,right)=>left.offset-right.offset));
+  }
   function sourceLink(site){
+    if(site.choices){
+      const first=site.choices[0],kind=first.kind==="macro"?"macro":"type";
+      const link=button("source-call source-"+kind,site.name,()=>openDefinitions(site.choices));
+      link.title=site.choices.length===1?"Go to "+first.kind+" "+first.name+" at "+first.path+":"+first.line:"Choose a definition of "+site.name;
+      link.setAttribute("aria-label",link.title);return link;
+    }
     const callee=state.functions.get(site.target);
     const link=button("source-call",site.name,()=>visitSource(site.target,callee?"call":"include"));
     link.title=callee?"Open "+callee.name+"() in "+callee.path:"Open "+site.target;
@@ -1838,7 +2172,7 @@ function renderSource(variable=null){
   const loadMore=button("outline","Show more lines",more);
   earlier.hidden=first===0;
   more();body.replaceChildren(earlier,code,loadMore);
-  if(fn?.unresolved.length)body.append(el("p","metadata","Unresolved call-like names: "+fn.unresolved.join(", ")));
+  if(fn?.unresolved.length)body.append(el("p","metadata","Outside the direct call graph: "+fn.unresolved.join(", ")));
   if(!fn && file.functions.length)body.append(relationGroup("FUNCTIONS IN THIS FILE",file.functions.map(f=>f.id),"call"));
   body.scrollTop=0;body.scrollLeft=0;
   if(marker){
@@ -1849,7 +2183,7 @@ function renderSource(variable=null){
   }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -1952,6 +2286,8 @@ byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>
 byId("exportGraph").onclick=downloadGraph;
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
 byId("showSource").onclick=()=>{openSourcePanel();byId("sourceBody").focus({preventScroll:true});};
+byId("goSymbol").onclick=showSymbolSearch;
+if(/Mac|iPhone|iPad/.test(window.navigator?.platform||""))byId("goSymbol").querySelector("kbd").textContent="⌘ K";
 byId("closeSource").onclick=dismissSource;byId("help").onclick=guide;
 byId("dialog").addEventListener("click",event=>{if(event.target===byId("dialog"))byId("dialog").close();else if(event.target.closest(".chip"))byId("dialog").close();});
 byId("toggleInspector").onclick=toggleInspector;
@@ -1976,7 +2312,11 @@ canvas.addEventListener("keydown",event=>{
   if(shifts[event.key]){event.preventDefault();state.x+=shifts[event.key][0];state.y+=shifts[event.key][1];transform();}
   if(event.key==="+"||event.key==="=")zoom(1.25);if(event.key==="-")zoom(.8);if(event.key==="0")fitGraph();
 });
-document.addEventListener("keydown",event=>{if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();setExplorerOpen(true);byId("search").focus();}if(event.key==="Escape"){
+document.addEventListener("keydown",event=>{
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){
+    event.preventDefault();if(!event.repeat)showSymbolSearch();return;
+  }
+  if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();setExplorerOpen(true);byId("search").focus();}if(event.key==="Escape"){
   if(mobileExplorerOpen){hideSidebar();byId("toggleSidebar").focus();}
   else if(!byId("dialog").open && !byId("sourcePanel").hidden)dismissSource();
 }});
