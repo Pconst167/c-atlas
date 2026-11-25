@@ -31,20 +31,20 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 .source-body>.outline,.source-body>.metadata,.source-body>div:not(.source-code){margin:5px 12px 12px}
 @container (max-width:330px){.legend{bottom:50px}.legend em{font-size:10px}}
 @media(max-width:900px){
-  main:has(.source-open){height:auto}
-  .graph-workspace.source-open{flex:1 0 auto;flex-direction:column;height:clamp(440px,60dvh,700px);gap:0}
+  main:has(.source-open){min-height:800px}
+  .graph-workspace.source-open{flex-direction:column;gap:0}
   .source-open #canvas{min-height:0}
   .source-panel{min-height:0;width:100%;max-width:none}
   .source-heading{padding:8px 12px}
 }
 
 .source-open #canvas{flex:var(--graph-share,57) 1 0}
-#paneSplitter{display:none;flex:0 0 16px;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;user-select:none;border-radius:4px}
-.source-open #paneSplitter{display:flex}
-#paneSplitter::before{content:"";width:4px;height:34px;border-radius:4px;background:#aab4a3}
-#paneSplitter:hover::before,#paneSplitter:focus-visible::before,.resizing #paneSplitter::before{background:#547542}
-#paneSplitter:focus-visible{outline:2px solid #608344;outline-offset:-3px}
-.graph-workspace.resizing{user-select:none}
+#paneSplitter,#inspectorSplitter{display:none;flex:0 0 16px;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;user-select:none;border-radius:4px}
+.source-open #paneSplitter,#inspectorSplitter{display:flex}
+#paneSplitter::before,#inspectorSplitter::before{content:"";width:4px;height:34px;border-radius:4px;background:#aab4a3}
+[role=separator]:hover::before,[role=separator]:focus-visible::before,.resizing>[role=separator]::before{background:#547542}
+[role=separator]:focus-visible{outline:2px solid #608344;outline-offset:-3px}
+.resizing{user-select:none}
 #inspectorTabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 7px}
 .inspector-tab{flex:none;border:none;border-radius:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--dim);font-size:13px}
 .inspector-tab[aria-selected="true"]{border-color:#668744;color:#304d25;font-weight:650}
@@ -66,6 +66,25 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
   .inspector-tab{padding:8px 7px;font-size:12px}
   .variable-list{padding:8px}
 }
+
+#inspectorWorkspace{flex:1;min-height:0;display:flex;flex-direction:column}
+#inspectorWorkspace>.graph-workspace{flex:var(--upper-share,72) 1 0;min-height:0}
+#inspectorSplitter{cursor:row-resize}
+#inspectorSplitter::before{width:42px;height:4px}
+#inspectorPanel{flex:var(--inspector-share,28) 1 0;display:flex;flex-direction:column;min-height:96px;margin:0}
+#inspectorPanel .inspector-title,#inspectorTabs{flex:none}
+#details{flex:1;min-height:0;max-height:none}
+.declaration-link{display:inline;text-align:left;padding:2px 0;border:0;border-radius:2px;background:none;color:#355a30;text-decoration:underline;text-decoration-color:#98b18c;text-underline-offset:3px;overflow-wrap:anywhere}
+.variable-list tbody tr{cursor:pointer}
+.variable-list tbody tr:hover,.variable-list tbody tr:focus-within{background:#f0f5e9}
+.declaration-line{background:#e9f3da;box-shadow:inset 3px 0 #688447}
+.declaration-name{background:#d1e9a6;color:#263d20;border-radius:2px;font-weight:700;outline:none}
+@media(max-width:900px){
+  #inspectorWorkspace>.graph-workspace.source-open{min-height:270px}
+  .source-open #canvas{min-height:85px}
+  .source-open .source-panel{min-height:155px}
+  .source-heading{max-height:35%;overflow:auto}
+}
 </style>
 </head>
 <body>
@@ -86,6 +105,7 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
   <main>
     <div class="title-row"><div><div class="crumb"><button id="toggleSidebar" class="mobile-files"><i data-icon="panel"></i> Files</button><i data-icon="folder"></i><span id="crumbName"></span><span class="slash">/</span> Workspace</div><h1>Project map</h1></div><div id="projectBadge" class="sample-badge"><span></span>Sample project</div></div>
     <div class="view-toolbar"><div class="tabs" role="group" aria-label="Graph view"><button id="callTab" aria-pressed="true"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Includes</button></div><button id="focusButton" class="outline" title="Show the selected node and its neighbors" aria-pressed="false"><i data-icon="focus"></i><span>Focus</span></button></div>
+    <div id="inspectorWorkspace">
     <div id="graphWorkspace" class="graph-workspace">
     <div id="canvas" tabindex="0" aria-label="Interactive project graph">
       <div id="stage"><svg id="edges" aria-hidden="true"></svg><div id="nodes"></div></div>
@@ -100,7 +120,9 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
       <div id="sourceBody" class="source-body" tabindex="0" aria-label="Source code"></div>
     </section>
     </div>
-    <section class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
+    <div id="inspectorSplitter" role="separator" tabindex="0" aria-label="Resize workspace and Inspector" aria-controls="graphWorkspace inspectorPanel" aria-orientation="horizontal" aria-valuemin="35" aria-valuemax="80" aria-valuenow="72" title="Drag to resize the Inspector"></div>
+    <section id="inspectorPanel" class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
+    </div>
   </main>
 </div>
 <footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
@@ -253,7 +275,7 @@ const AtlasAnalysis = (() => {
     function hide(first,end){for(let i=first;i<end;i++)hidden.add(i);}
     function register(entry,scope,scopeEnd){
       const index=entry.nameIndex;
-      const variable={name:entry.name,declaration:entry.declaration,path:file.path,line:fn.firstLine+lineOf(tokens[index].at)-1,scope};
+      const variable={name:entry.name,declaration:entry.declaration,path:file.path,offset:fn.first+tokens[index].at,line:fn.firstLine+lineOf(tokens[index].at)-1,scope};
       if(!bindings.has(entry.name))bindings.set(entry.name,[]);
       bindings.get(entry.name).push([index,scopeEnd]);
       if(scope==="Parameter")result.arguments.push(variable);
@@ -341,9 +363,9 @@ const AtlasAnalysis = (() => {
       if (token(index) === ";") {
         const declaration=readDeclaration(reader,start,index,types,true);
         for(const entry of declaration?.entries||[]){
-          const line=lineOf(tokens[entry.nameIndex].at);
+          const offset=tokens[entry.nameIndex].at,line=lineOf(offset);
           if(declaration.isTypedef){types.add(entry.name);typedefs.push({name:entry.name,line});}
-          else if(entry.firstOperator!=="(")globals.push({name:entry.name,declaration:entry.declaration,path,line});
+          else if(entry.firstOperator!=="(")globals.push({name:entry.name,declaration:entry.declaration,path,line,offset});
         }
         start=index+1;continue;
       }
@@ -887,7 +909,12 @@ function renderVariableList(fn){
   for(const label of labels){const heading=el("th","",label);heading.scope="col";head.append(heading);}
   for(const variable of rows){
     const row=body.insertRow(),declaration=row.insertCell();
-    declaration.append(el("code","",variable.declaration));
+    const jump=()=>openSourcePanel(variable);
+    const link=button("declaration-link","",jump);
+    link.title="Go to "+variable.name+" at "+variable.path+":"+variable.line;
+    link.setAttribute("aria-label",link.title);
+    link.append(el("code","",variable.declaration));declaration.append(link);
+    row.addEventListener("click",event=>{if(!event.target.closest("button"))jump();});
     if(inspectorView==="other")row.insertCell().textContent=variable.scope;
     row.insertCell().textContent=variable.path+":"+variable.line;
   }
@@ -955,15 +982,17 @@ function highlight(line){
     end=match.index+match[0].length;
   }fragment.append(line.slice(end));return fragment;
 }
-function openSourcePanel(){
+let displayedDeclaration=null;
+function openSourcePanel(variable=null){
   const panel=byId("sourcePanel");
-  if(!panel.hidden)return;
-  renderSource();
+  if(!panel.hidden && !variable && !displayedDeclaration)return;
   panel.hidden=false;
   byId("graphWorkspace").classList.add("source-open");
   byId("showSource").setAttribute("aria-expanded","true");
+  renderSource(variable);
 }
 function closeSourcePanel(){
+  displayedDeclaration=null;
   byId("sourcePanel").hidden=true;
   byId("graphWorkspace").classList.remove("source-open");
   byId("showSource").setAttribute("aria-expanded","false");
@@ -974,40 +1003,64 @@ function dismissSource(){
   const selectedNode=byId("nodes").querySelector('[aria-pressed="true"]');
   (selectedNode || byId("showSource")).focus({preventScroll:true});
 }
-function renderSource(){
+function renderSource(variable=null){
+  displayedDeclaration=variable;
   const item=currentView().byKey.get(state.selected);
-  const file=state.files.get(item.path);
-  const fn=state.mode==="call"?state.functions.get(item.id):null;
+  const file=state.files.get(variable?variable.path:item.path);
+  const selectedFunction=state.mode==="call"?state.functions.get(item.id):null;
+  const withinFunction=selectedFunction && (!variable || (file.path===selectedFunction.path &&
+    variable.offset>=selectedFunction.first && variable.offset<selectedFunction.last));
+  const fn=withinFunction?selectedFunction:null;
   const source=fn?file.source.slice(fn.first,fn.last):file.source;
   const lines=source.split("\n"),firstLine=fn?fn.firstLine:1;
   const body=byId("sourceBody");
   byId("sourceKind").textContent=fn?"Function source":"File source";
-  byId("sourceName").textContent=item.title;
-  byId("sourceLocation").textContent=item.path+" · "+(lines.length===1?"line "+firstLine:"lines "+firstLine+"–"+(firstLine+lines.length-1));
+  byId("sourceName").textContent=fn?fn.name+"()":base(file.path);
+  const location=variable?"line "+variable.line:lines.length===1?"line "+firstLine:"lines "+firstLine+"–"+(firstLine+lines.length-1);
+  byId("sourceLocation").textContent=file.path+" · "+location;
   const code=el("div","source-code");
-  let next=0;
-  function more(){
-    const limit=Math.min(next+400,lines.length);
+  const pageSize=400,targetLine=variable?variable.line-firstLine:-1;
+  let first=Math.max(0,targetLine-Math.floor(pageSize/2)),next=first,marker=null;
+  function makeLines(begin,end){
     const batch=document.createDocumentFragment();
-    for(;next<limit;next++){
-      const row=el("div","source-line"),text=el("span");
-      text.append(highlight(lines[next]));
-      row.append(el("span","line-num",firstLine+next),text);
-      batch.append(row);
+    for(let index=begin;index<end;index++){
+      const line=lines[index],row=el("div","source-line"),text=el("span");
+      if(index===targetLine){
+        const lineStart=Math.max(fn?fn.first:0,file.source.lastIndexOf("\n",variable.offset-1)+1);
+        const column=variable.offset-lineStart;
+        marker=el("mark","declaration-name",line.slice(column,column+variable.name.length));
+        marker.tabIndex=-1;
+        row.classList.add("declaration-line");
+        text.append(highlight(line.slice(0,column)),marker,highlight(line.slice(column+variable.name.length)));
+      }else text.append(highlight(line));
+      row.append(el("span","line-num",firstLine+index),text);batch.append(row);
     }
-    code.append(batch);
-    loadMore.hidden=next===lines.length;
+    return batch;
+  }
+  const earlier=button("outline","Show earlier lines",()=>{
+    const begin=Math.max(0,first-pageSize),oldHeight=body.scrollHeight,oldScroll=body.scrollTop;
+    code.prepend(makeLines(begin,first));first=begin;earlier.hidden=first===0;
+    body.scrollTop=oldScroll+body.scrollHeight-oldHeight;
+  });
+  function more(){
+    const end=Math.min(next+pageSize,lines.length);
+    code.append(makeLines(next,end));next=end;loadMore.hidden=next===lines.length;
   }
   const loadMore=button("outline","Show more lines",more);
-  more();
-  body.replaceChildren(code,loadMore);
+  earlier.hidden=first===0;
+  more();body.replaceChildren(earlier,code,loadMore);
   if(fn?.unresolved.length)body.append(el("p","metadata","Unresolved call-like names: "+fn.unresolved.join(", ")));
   if(!fn && file.functions.length)body.append(relationGroup("FUNCTIONS IN THIS FILE",file.functions.map(f=>f.id),"call"));
-  body.scrollTop=0;
-  body.scrollLeft=0;
+  body.scrollTop=0;body.scrollLeft=0;
+  if(marker){
+    marker.focus({preventScroll:true});
+    const bounds=body.getBoundingClientRect(),target=marker.getBoundingClientRect();
+    body.scrollTop+=target.top-bounds.top-(bounds.height-target.height)/2;
+    marker.scrollIntoView({block:"nearest",inline:"nearest"});
+  }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider to resize the graph and source, or focus it and use the arrow keys. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -1032,46 +1085,50 @@ window.addEventListener("dragenter",event=>{if(event.dataTransfer.types.includes
 window.addEventListener("dragover",event=>{if(event.dataTransfer.types.includes("Files"))event.preventDefault();});
 window.addEventListener("dragleave",()=>{if(--dragDepth<=0){dragDepth=0;document.body.classList.remove("dragging");}});
 window.addEventListener("drop",event=>{event.preventDefault();dragDepth=0;document.body.classList.remove("dragging");importFile(event.dataTransfer.files[0]);});
-const splitter=byId("paneSplitter"),graphWorkspace=byId("graphWorkspace");
-const stackedLayout=window.matchMedia("(max-width:900px)");
-const splitSizes={vertical:57,horizontal:55};
-let splitDrag=null;
-function setSplit(value){
-  const orientation=stackedLayout.matches?"horizontal":"vertical";
-  const size=Math.max(25,Math.min(75,Math.round(value)));
-  splitSizes[orientation]=size;
-  graphWorkspace.style.setProperty("--graph-share",size);
-  graphWorkspace.style.setProperty("--source-share",100-size);
-  splitter.setAttribute("aria-orientation",orientation);
-  splitter.setAttribute("aria-valuenow",size);
-  splitter.setAttribute("aria-valuetext","Graph "+size+"%, source "+(100-size)+"%");
+// Both dividers resize their first pane. The graph/source divider changes direction on narrow screens.
+function connectSplitter(splitter,container,firstPane,secondPane,options){
+  const sizes={vertical:options.vertical,horizontal:options.horizontal};
+  const orientation=()=>options.stacked && !options.stacked.matches?"vertical":"horizontal";
+  let drag=null;
+  function setSize(value){
+    const direction=orientation(),size=Math.max(options.min,Math.min(options.max,Math.round(value)));
+    sizes[direction]=size;
+    container.style.setProperty("--"+firstPane+"-share",size);
+    container.style.setProperty("--"+secondPane+"-share",100-size);
+    splitter.setAttribute("aria-orientation",direction);
+    splitter.setAttribute("aria-valuenow",size);
+    splitter.setAttribute("aria-valuetext",options.firstLabel+" "+size+"%, "+options.secondLabel+" "+(100-size)+"%");
+  }
+  options.stacked?.addEventListener("change",()=>setSize(sizes[orientation()]));
+  setSize(sizes[orientation()]);
+  splitter.addEventListener("pointerdown",event=>{
+    if(event.button!==0 || drag)return;
+    event.preventDefault();splitter.focus({preventScroll:true});
+    const direction=orientation(),horizontal=direction==="horizontal";
+    const available=horizontal?container.clientHeight-splitter.offsetHeight:container.clientWidth-splitter.offsetWidth;
+    if(available<=0)return;
+    drag={id:event.pointerId,direction,available,origin:horizontal?event.clientY:event.clientX,size:sizes[direction]};
+    splitter.setPointerCapture(event.pointerId);container.classList.add("resizing");
+  });
+  splitter.addEventListener("pointermove",event=>{
+    if(!drag || event.pointerId!==drag.id || drag.direction!==orientation())return;
+    const position=drag.direction==="horizontal"?event.clientY:event.clientX;
+    setSize(drag.size+100*(position-drag.origin)/drag.available);
+  });
+  splitter.addEventListener("lostpointercapture",()=>{drag=null;container.classList.remove("resizing");});
+  splitter.addEventListener("keydown",event=>{
+    const direction=orientation(),size=sizes[direction];
+    const moves=direction==="horizontal"?{ArrowUp:size-2,ArrowDown:size+2}:{ArrowLeft:size-2,ArrowRight:size+2};
+    const value={...moves,Home:options.min,End:options.max}[event.key];
+    if(value===undefined)return;
+    event.preventDefault();setSize(value);
+  });
 }
-function applySplitOrientation(){setSplit(splitSizes[stackedLayout.matches?"horizontal":"vertical"]);}
-stackedLayout.addEventListener("change",applySplitOrientation);
-applySplitOrientation();
-splitter.addEventListener("pointerdown",event=>{
-  if(event.button!==0||splitDrag)return;
-  event.preventDefault();
-  splitter.focus({preventScroll:true});
-  const stacked=stackedLayout.matches;
-  const available=stacked?graphWorkspace.clientHeight-splitter.offsetHeight:graphWorkspace.clientWidth-splitter.offsetWidth;
-  if(available<=0)return;
-  splitDrag={id:event.pointerId,stacked,available,origin:stacked?event.clientY:event.clientX,size:splitSizes[stacked?"horizontal":"vertical"]};
-  splitter.setPointerCapture(event.pointerId);
-  graphWorkspace.classList.add("resizing");
+connectSplitter(byId("paneSplitter"),byId("graphWorkspace"),"graph","source",{
+  stacked:window.matchMedia("(max-width:900px)"),vertical:57,horizontal:55,min:25,max:75,firstLabel:"Graph",secondLabel:"Source"
 });
-splitter.addEventListener("pointermove",event=>{
-  if(!splitDrag||event.pointerId!==splitDrag.id||splitDrag.stacked!==stackedLayout.matches)return;
-  const position=splitDrag.stacked?event.clientY:event.clientX;
-  setSplit(splitDrag.size+100*(position-splitDrag.origin)/splitDrag.available);
-});
-splitter.addEventListener("lostpointercapture",()=>{splitDrag=null;graphWorkspace.classList.remove("resizing");});
-splitter.addEventListener("keydown",event=>{
-  const stacked=stackedLayout.matches,size=splitSizes[stacked?"horizontal":"vertical"];
-  const changes=stacked?{ArrowUp:size-2,ArrowDown:size+2}:{ArrowLeft:size-2,ArrowRight:size+2};
-  const value={...changes,Home:25,End:75}[event.key];
-  if(value===undefined)return;
-  event.preventDefault();setSplit(value);
+connectSplitter(byId("inspectorSplitter"),byId("inspectorWorkspace"),"upper","inspector",{
+  horizontal:72,min:35,max:80,firstLabel:"Workspace",secondLabel:"Inspector"
 });
 
 buildInspectorTabs();
