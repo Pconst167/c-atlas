@@ -9,7 +9,7 @@
 .topbar{height:67px;background:#fff;border-bottom:1px solid var(--line);padding:0 27px;display:flex;gap:20px;align-items:center}.wordmark{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--mono);font-size:23px;font-weight:bold;letter-spacing:-1.6px}.brand-icon,.brand-icon svg{width:34px;height:34px}.top-sep{height:22px;width:1px;background:var(--line)}.app-name{font-size:14px;color:#586253}.top-actions{margin-left:auto;display:flex;align-items:center;gap:23px}.plain{padding:6px 0;background:transparent;border:none;font-size:14px;color:#465042}.dark{background:#283522;color:white;border:1px solid #283522;padding:10px 17px;font-size:14px;font-weight:600}.dark svg{color:#d9efc4}
 .workspace{display:grid;grid-template-columns:258px minmax(0,1fr);min-height:calc(100dvh - 98px)}aside{display:flex;flex-direction:column;background:#f6f7f1;border-right:1px solid var(--line);padding:25px 18px 20px;min-width:0}.side-heading{display:flex;justify-content:space-between;align-items:center;font-weight:650;font-size:15px;margin:0 2px 21px}.side-heading i{color:#7b8578}.project-card{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);padding:11px;border-radius:7px}.project-mark{width:39px;height:39px;display:grid;place-items:center;background:#e8f1da;border-radius:5px;color:#4a6543}.project-mark svg{width:23px;height:23px}.project-info{display:grid;gap:4px;min-width:0}.project-info strong{font:600 14px var(--mono);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.project-info small{font-size:12px;color:var(--dim)}.search{margin:16px 0 24px;display:flex;align-items:center;gap:7px;background:#fafbf8;border:1px solid var(--line);border-radius:5px;padding:8px;color:#687364}.search input{width:0;flex:1;background:transparent;border:none;outline:none;font-size:13px;color:var(--ink)}.search svg{width:15px}.search kbd{font:12px var(--mono);border:1px solid #d9ddd4;border-radius:3px;padding:0 4px;color:#727b6e}.section-label{color:#687363;letter-spacing:.105em;font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px}.counter{letter-spacing:0;color:#5b6657;padding:1px 5px;font:11px var(--mono);background:#e8ece2;border-radius:4px}.files-label{margin-left:4px;margin-bottom:12px}#tree{max-height:55vh;overflow:auto;padding-bottom:12px}.tree-row{width:100%;justify-content:flex-start;text-align:left;background:transparent;border:1px solid transparent;padding:7px 5px;border-radius:4px;gap:7px;font:13px var(--mono);min-height:32px}.tree-row .name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tree-row.folder{font-weight:600}.tree-row:hover,.search-item:hover{background:#ebeee5}.tree-row.active{background:#e4eccf;color:#283e22}.tree-row .tiny{width:12px;height:12px}.file-symbol{display:inline-grid;place-items:center;font:bold 12px var(--mono);color:#4c8567;height:17px;width:16px;border:1px solid #a7bda8;border-radius:3px;background:#eef4e9}.file-symbol.header{color:#8a714e;background:#f5f0e4;border-color:#d1c4aa}.folder svg{width:15px}.file-row-count{margin-left:auto;font:11px var(--mono);color:#798572}.search-item{background:transparent;border:0;display:block;width:100%;padding:6px;text-align:left;font:13px var(--mono)}.search-item small{display:block;color:var(--dim);font-size:11px;overflow-wrap:anywhere}.drop-zone{margin-top:auto;padding:19px 5px 16px;flex-direction:column;gap:7px;background:transparent;border:1px dashed #b3bfaa;color:#46563e}.drop-icon{width:30px;height:30px;background:#e9eee0;display:grid;place-items:center;border-radius:6px}.drop-zone b{font-size:13px}.drop-zone small{font-size:12px;color:#67735e}body.dragging #canvas{outline:3px dashed #69943a;outline-offset:-5px}
 main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;height:calc(100dvh - 98px);min-height:644px;background:#fafbf7}.title-row,.view-toolbar,.inspector-title{display:flex;align-items:center;justify-content:space-between}.crumb{display:flex;align-items:center;gap:8px;font:12px var(--mono);color:#67725f}.crumb svg{width:14px;height:14px}.slash{color:#a2ac9d}.sample-badge{font:12px var(--mono);color:#516843;background:#eef4e6;border:1px solid #cedbc2;padding:5px 9px;display:flex;align-items:center;gap:6px;border-radius:20px}.sample-badge span,.ready b{display:inline-block;width:7px;height:7px;border-radius:100%;background:#659349}.mobile-files{display:none}.view-toolbar{margin:19px 0 11px}.tabs{display:inline-flex;border:1px solid var(--line);background:#eef1e9;padding:3px}.tabs button{border:1px solid transparent;color:#62705d;background:transparent;padding:6px 12px;font-weight:550;font-size:13px;border-radius:4px}.tabs svg,.outline svg{width:15px;height:15px}.tabs button[aria-pressed="true"]{background:#fff;border-color:#d7ddce;box-shadow:0 1px 2px #22301514;color:#273524}.outline{padding:8px 10px;background:white;border:1px solid var(--line);font-size:13px}.outline[aria-pressed="true"]{background:#deedc9;border-color:#9db980}
-#canvas{position:relative;overflow:hidden;isolation:isolate;flex:1;min-height:320px;border:1px solid #cfd6c7;border-radius:8px;background-color:#f4f6ef;background-image:radial-gradient(#cfd7c8 .8px,transparent .95px);background-size:16px 16px;cursor:grab;touch-action:none}#canvas:active{cursor:grabbing}#stage{transform-origin:0 0;position:absolute;inset:0 auto auto 0}#edges{position:absolute;inset:0;overflow:visible;pointer-events:none;stroke-width:1.8}#nodes{position:absolute;inset:0}.graph-node{position:absolute;width:max-content;min-width:174px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;overflow:hidden;padding:9px 12px;background:#fff;border:1.3px solid #aebba6;box-shadow:0 2px 0 #27371c0c;border-radius:6px;text-align:left;cursor:pointer}.graph-node.entry{background:#e5f5c9;border-color:#92aa73}.graph-node.selected{background:#d5f2a7;border-color:#577142;box-shadow:0 0 0 3px #8ea97138}.graph-node:hover{border-color:#577142}.node-line{display:flex;align-items:center;gap:6px;width:max-content;font:600 14px var(--mono);white-space:nowrap;letter-spacing:-.4px}.node-mark{width:18px;height:18px;display:grid;place-items:center;flex:none;color:#596e4e;background:#eff3e8;border:1px solid #d7dfce;border-radius:3px;font:italic bold 13px Georgia,serif}.selected .node-mark,.entry .node-mark{background:#eaf9cd;border-color:#adc891;color:#3e5b2d}.graph-node small{contain:inline-size;align-self:stretch;font:11px var(--mono);color:#66725d;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.legend,.graph-controls{position:absolute;bottom:12px;display:flex;align-items:center;border:1px solid #d3d9cb;background:#ffffffee;border-radius:5px;z-index:2;height:32px;cursor:default}.legend{left:13px;gap:14px;padding:0 10px}.legend span{display:flex;align-items:center;gap:5px}.legend em{font:11px var(--sans);color:#52604d}.key{width:9px;height:9px;border-radius:2px;border:1px solid #9aab8e}.key.entry{background:#d5eca9;border-color:#89a96b}.key.regular{background:white}.line-key{height:1px;width:16px;background:#84917e;position:relative}.line-key:after{content:"";position:absolute;right:0;top:-2px;width:4px;height:4px;transform:rotate(-45deg);border-right:1px solid #84917e;border-bottom:1px solid #84917e}.graph-controls{right:13px;padding:0 3px}.graph-controls button{width:28px;height:28px;background:transparent;border:0}.graph-controls svg{width:14px;height:14px}.graph-controls span{font:11px var(--mono);min-width:38px;text-align:center}.graph-controls .ctl-divider{min-width:1px;height:15px;background:var(--line);margin:0 3px}.inspector{margin-top:14px;border:1px solid var(--line);border-radius:7px;background:white;overflow:hidden;flex:none}.inspector-title{padding:8px 15px;border-bottom:1px solid var(--line);background:#f6f8f1;min-height:37px}.inspector-title>span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650}.inspector-title svg{width:15px;height:15px}.inspector-title .plain{font-size:12px;padding:1px}.detail-grid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(110px,.7fr) minmax(200px,1.3fr);padding:14px 15px;gap:14px}.detail-grid>div{min-width:0}.detail-grid>div+div{border-left:1px solid #e1e5dc;padding-left:16px}.selection-title{margin:0 0 6px;font:600 17px var(--mono);overflow-wrap:anywhere}.metadata{font:12px var(--mono);color:var(--dim);overflow-wrap:anywhere}.section-label.insp{font-size:10px;margin-bottom:7px}.chips{display:flex;gap:5px;flex-wrap:wrap;max-height:62px;overflow:auto}.chip{font:11px var(--mono);background:#f4f6ef;border:1px solid #d8dece;padding:3px 5px;border-radius:4px}.no-rel{color:#6e7969;font-size:13px}.file-fns{max-height:120px;overflow:auto}.entry-tag{display:inline-block;margin-top:6px;font-size:11px;color:#496135}.ready,.local,footer{display:flex;align-items:center}footer{border-top:1px solid var(--line);background:#f0f3e9;height:31px;padding:0 18px;gap:18px;font:11px var(--mono);color:#5c6755}footer .ready{gap:7px}footer .local{gap:6px;margin-left:auto}.local svg{width:12px;height:12px}.empty-message{font-size:14px;color:var(--dim);margin:12px 4px}#emptyGraph{margin:40px 20px;text-align:center;color:var(--dim);font-size:14px}dialog{color:var(--ink);border:1px solid #bbc6b2;border-radius:10px;box-shadow:0 15px 60px #17220c33;padding:25px;width:min(770px,92vw);max-height:85vh;background:#fff}dialog::backdrop{background:#1e2a1b68}.close{position:absolute;right:12px;top:12px;border:1px solid var(--line);background:#f6f8f1;padding:5px}.close svg{width:16px;height:16px}dialog h2{font-size:24px;margin:0 35px 8px 0;letter-spacing:-.7px}dialog p,dialog li{line-height:1.5;font-size:15px}dialog h3{font-size:16px;margin-bottom:4px}.source-code{padding:12px 0;width:max-content;min-width:100%}.source-line{display:flex;gap:16px;white-space:pre;font:13px/1.65 var(--mono)}.line-num{color:#77866d;user-select:none;min-width:4ch;text-align:right}.code-key{color:#655391}.code-string{color:#427141}.code-comment{color:#788270}.dialog-actions{display:flex;gap:12px;margin-top:18px}.dialog-actions button{font-size:13px}#toast{position:fixed;bottom:43px;left:50%;transform:translateX(-50%);z-index:15;padding:11px 16px;background:#283522;color:white;font-size:14px;border-radius:6px;max-width:90vw}
+#canvas{position:relative;overflow:hidden;isolation:isolate;flex:1;min-height:320px;border:1px solid #cfd6c7;border-radius:8px;background-color:#f4f6ef;background-image:radial-gradient(#cfd7c8 .8px,transparent .95px);background-size:16px 16px;cursor:grab;touch-action:none}#canvas:active{cursor:grabbing}#stage{transform-origin:0 0;position:absolute;inset:0 auto auto 0}#edges{position:absolute;inset:0;overflow:visible;pointer-events:none;stroke-width:1.8}#nodes{position:absolute;inset:0}.graph-node{position:absolute;width:max-content;min-width:174px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;overflow:hidden;padding:9px 12px;background:#fff;border:1.3px solid #aebba6;box-shadow:0 2px 0 #27371c0c;border-radius:6px;text-align:left;cursor:pointer}.graph-node.entry{background:#e5f5c9;border-color:#92aa73}.graph-node.selected{background:#d5f2a7;border-color:#577142;box-shadow:0 0 0 3px #8ea97138}.graph-node:hover{border-color:#577142}.node-line{display:flex;align-items:center;gap:6px;width:max-content;font:600 14px var(--mono);white-space:nowrap;letter-spacing:-.4px}.node-mark{width:18px;height:18px;display:grid;place-items:center;flex:none;color:#596e4e;background:#eff3e8;border:1px solid #d7dfce;border-radius:3px;font:italic bold 13px Georgia,serif}.selected .node-mark,.entry .node-mark{background:#eaf9cd;border-color:#adc891;color:#3e5b2d}.graph-node small{contain:inline-size;align-self:stretch;font:11px var(--mono);color:#66725d;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.legend,.graph-controls{position:absolute;bottom:12px;display:flex;align-items:center;border:1px solid #d3d9cb;background:#ffffffee;border-radius:5px;z-index:2;height:32px;cursor:default}.legend{left:13px;gap:14px;padding:0 10px}.legend span{display:flex;align-items:center;gap:5px}.legend em{font:11px var(--sans);color:#52604d}.key{width:9px;height:9px;border-radius:2px;border:1px solid #9aab8e}.key.entry{background:#d5eca9;border-color:#89a96b}.key.regular{background:white}.line-key{height:1px;width:16px;background:#84917e;position:relative}.line-key:after{content:"";position:absolute;right:0;top:-2px;width:4px;height:4px;transform:rotate(-45deg);border-right:1px solid #84917e;border-bottom:1px solid #84917e}.graph-controls{right:13px;padding:0 3px}.graph-controls button{width:28px;height:28px;background:transparent;border:0}.graph-controls svg{width:14px;height:14px}.graph-controls span{font:11px var(--mono);min-width:38px;text-align:center}.graph-controls .ctl-divider{min-width:1px;height:15px;background:var(--line);margin:0 3px}.inspector{margin-top:14px;border:1px solid var(--line);border-radius:7px;background:white;overflow:hidden;flex:none}.inspector-title{padding:8px 15px;border-bottom:1px solid var(--line);background:#f6f8f1;min-height:37px}.inspector-title>span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650}.inspector-title svg{width:15px;height:15px}.inspector-title .plain{font-size:12px;padding:1px}.detail-grid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(110px,.7fr) minmax(200px,1.3fr);padding:14px 15px;gap:14px}.detail-grid>div{min-width:0}.detail-grid>div+div{border-left:1px solid #e1e5dc;padding-left:16px}.selection-title{margin:0 0 6px;font:600 17px var(--mono);overflow-wrap:anywhere}.metadata{font:12px var(--mono);color:var(--dim);overflow-wrap:anywhere}.section-label.insp{font-size:10px;margin-bottom:7px}.chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font:11px var(--mono);background:#f4f6ef;border:1px solid #d8dece;padding:3px 5px;border-radius:4px}.no-rel{color:#6e7969;font-size:13px}.file-fns{max-height:120px;overflow:auto}.entry-tag{display:inline-block;margin-top:6px;font-size:11px;color:#496135}.ready,.local,footer{display:flex;align-items:center}footer{border-top:1px solid var(--line);background:#f0f3e9;height:31px;padding:0 18px;gap:18px;font:11px var(--mono);color:#5c6755}footer .ready{gap:7px}footer .local{gap:6px;margin-left:auto}.local svg{width:12px;height:12px}.empty-message{font-size:14px;color:var(--dim);margin:12px 4px}#emptyGraph{margin:40px 20px;text-align:center;color:var(--dim);font-size:14px}dialog{color:var(--ink);border:1px solid #bbc6b2;border-radius:10px;box-shadow:0 15px 60px #17220c33;padding:25px;width:min(770px,92vw);max-height:85vh;background:#fff}dialog::backdrop{background:#1e2a1b68}.close{position:absolute;right:12px;top:12px;border:1px solid var(--line);background:#f6f8f1;padding:5px}.close svg{width:16px;height:16px}dialog h2{font-size:24px;margin:0 35px 8px 0;letter-spacing:-.7px}dialog p,dialog li{line-height:1.5;font-size:15px}dialog h3{font-size:16px;margin-bottom:4px}.source-code{padding:12px 0;width:max-content;min-width:100%}.source-line{display:flex;gap:16px;white-space:pre;font:13px/1.65 var(--mono)}.line-num{color:#77866d;user-select:none;min-width:4ch;text-align:right}.code-key{color:#655391}.code-string{color:#427141}.code-comment{color:#788270}.dialog-actions{display:flex;gap:12px;margin-top:18px}.dialog-actions button{font-size:13px}#toast{position:fixed;bottom:43px;left:50%;transform:translateX(-50%);z-index:15;padding:11px 16px;background:#283522;color:white;font-size:14px;border-radius:6px;max-width:90vw}
 @media(min-width:1450px){.workspace{grid-template-columns:285px minmax(0,1fr)}main{padding:30px 38px}.side-heading{margin-top:5px}.graph-node{border-radius:7px}}
 @media(max-width:1000px){.workspace{grid-template-columns:212px minmax(0,1fr)}aside{padding-left:12px;padding-right:12px}main{padding:19px 17px 16px}.detail-grid{gap:8px;grid-template-columns:1fr .8fr 1.2fr}.detail-grid>div+div{padding-left:8px}}
 @media(max-width:720px){.topbar{padding:0 15px;gap:10px;height:56px}.top-actions{gap:12px}.help-link span,.app-name,.top-sep{display:none}.workspace{display:block;min-height:calc(100dvh - 87px)}.mobile-files{display:inline-flex;border:1px solid var(--line);background:white;padding:3px 6px;font:12px var(--sans)}.crumb>i{display:none}aside{display:none;position:absolute;z-index:5;left:0;top:56px;width:min(280px,80vw);height:min(700px,calc(100dvh - 87px));box-shadow:6px 6px 20px #26301f22}aside.open{display:flex}main{height:calc(100dvh - 87px);min-height:630px;padding:14px 12px}.view-toolbar{margin:13px 0 8px}.inspector{margin-top:9px}.detail-grid{grid-template-columns:1fr 1fr;padding:10px}.detail-grid>div:first-child{grid-column:1/-1}.detail-grid>div:nth-child(2){border:0;padding:0}.selection-title{display:inline;margin-right:7px;font-size:15px}.entry-tag{display:none}.legend{bottom:9px;left:6px;gap:7px;height:28px;padding:0 5px}.legend em{font-size:10px}.graph-controls{right:6px;bottom:9px;height:28px}.graph-controls button{width:22px}.graph-controls span{min-width:29px}.sample-badge{font-size:10px}.local{font-size:0}footer{gap:9px;padding:0 8px;font-size:10px}.drop-zone{margin-top:16px}#tree{max-height:50vh}.tabs button{padding:5px 9px}}
@@ -28,6 +28,7 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 .source-body{flex:1;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;background:#fafbf7;tab-size:2}
 .source-body .source-line{padding:0 14px 0 6px;gap:12px}
 .source-body .line-num{flex:none}
+.source-body .chips{max-height:62px;overflow:auto}
 .source-body>.outline,.source-body>.metadata,.source-body>div:not(.source-code){margin:5px 12px 12px}
 @container (max-width:330px){.legend{bottom:50px}.legend em{font-size:10px}}
 @media(max-width:900px){
@@ -48,7 +49,6 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 #inspectorTabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 7px}
 .inspector-tab{flex:none;border:none;border-radius:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--dim);font-size:13px}
 .inspector-tab[aria-selected="true"]{border-color:#668744;color:#304d25;font-weight:650}
-#details{max-height:clamp(110px,23vh,240px);overflow:auto}
 .variable-list{padding:10px 15px 13px;font-size:13px}
 .variable-function{font:600 14px var(--mono);margin:0 0 6px}
 .no-variables{margin:3px 0;color:var(--dim)}
@@ -73,7 +73,8 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 #inspectorSplitter::before{width:42px;height:4px}
 #inspectorPanel{flex:var(--inspector-share,28) 1 0;display:flex;flex-direction:column;min-height:96px;margin:0}
 #inspectorPanel .inspector-title,#inspectorTabs{flex:none}
-#details{flex:1;min-height:0;max-height:none}
+#details{flex:1;min-height:0;overflow:auto}
+#details .chips>.chip{max-width:100%;overflow-wrap:anywhere}
 .declaration-link{display:inline;text-align:left;padding:2px 0;border:0;border-radius:2px;background:none;color:#355a30;text-decoration:underline;text-decoration-color:#98b18c;text-underline-offset:3px;overflow-wrap:anywhere}
 .variable-list tbody tr{cursor:pointer}
 .variable-list tbody tr:hover,.variable-list tbody tr:focus-within{background:#f0f5e9}
@@ -178,6 +179,16 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 .impact-list{padding:12px 18px}.impact-list h3,.impact-list p{margin:0 0 7px}.impact-row{justify-content:flex-start;flex-wrap:wrap;gap:5px 12px}.impact-distance{margin-left:auto;color:#436735;font:12px var(--sans);white-space:nowrap}.symbol-row:focus-visible{outline-offset:-3px}
 @media(max-width:720px){.top-actions{gap:10px}.symbol-launch kbd{display:none}.symbol-launch{gap:6px}.topbar .app-name,.topbar .top-sep{display:none}.impact-list{padding:10px}}
 @media(max-width:430px){.topbar .help-link span{display:none}.symbol-launch{padding:5px 7px}.topbar{padding:0 10px}.top-actions{gap:9px}.symbol-row{gap:8px}.impact-distance{margin-left:0}}
+
+.graph-controls #fit{width:auto;min-width:26px;padding:0 4px;font:600 11px var(--sans);color:#45513f}
+#fullscreenSource{position:absolute;right:max(14px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));background:var(--paper);z-index:2}
+body.graph-fullscreen{overflow:hidden}
+body.graph-fullscreen :is(.topbar,footer,#sidebar,.title-row,.view-toolbar,#traceBar,#sourcePanel,#paneSplitter,#inspectorPanel,#inspectorSplitter){display:none!important}
+body.graph-fullscreen .workspace,body.graph-fullscreen main,body.graph-fullscreen #inspectorWorkspace,body.graph-fullscreen #graphWorkspace{display:block;height:auto;min-height:0;padding:0;margin:0}
+body.graph-fullscreen #canvas{position:fixed;inset:0;z-index:20;min-width:0;min-height:0;border:0;border-radius:0;outline-offset:-3px}
+body.graph-fullscreen .graph-controls{right:max(13px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom))}
+body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom))}
+@container (max-width:560px){.legend,body.graph-fullscreen .legend{bottom:max(50px,calc(42px + env(safe-area-inset-bottom)))}}
 </style>
 </head>
 <body>
@@ -223,9 +234,10 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
     <div id="canvas" tabindex="0" aria-label="Interactive project graph">
       <div id="stage"><svg id="edges" role="group" aria-label="Graph connections"></svg><div id="nodes"></div></div>
       <div id="canvasNote" hidden></div>
+      <button id="fullscreenSource" class="outline" hidden><i data-icon="code"></i>View source</button>
       <div id="emptyGraph" hidden></div>
       <div class="legend"><span><b class="key entry"></b><em id="entryLegend">Entry point</em></span><span><b class="key regular"></b><em id="funcLegend">Function</em></span><span><b class="line-key"></b> <em id="edgeLegend">Calls</em></span><span id="includeKey" hidden><b class="dashed-key"></b><em>Includes only</em></span></div>
-      <div class="graph-controls"><button id="minus" aria-label="Zoom out" title="Zoom out"><i data-icon="minus"></i></button><span id="zoomLabel"></span><button id="plus" aria-label="Zoom in" title="Zoom in"><i data-icon="plus"></i></button><span class="ctl-divider"></span><button id="fit" aria-label="Fit graph" title="Fit graph"><i data-icon="fit"></i></button><button id="exportGraph" aria-label="Download graph as SVG" title="Download graph as SVG"><i data-icon="download"></i></button></div>
+      <div class="graph-controls"><button id="minus" aria-label="Zoom out" title="Zoom out"><i data-icon="minus"></i></button><span id="zoomLabel"></span><button id="plus" aria-label="Zoom in" title="Zoom in"><i data-icon="plus"></i></button><button id="fit" aria-label="Fit graph" title="Fit graph to view">Fit</button><span class="ctl-divider"></span><button id="graphFullscreen" aria-label="Enter graph full screen" title="Enter graph full screen" aria-pressed="false" aria-controls="canvas"><i data-icon="fit"></i></button><button id="exportGraph" aria-label="Download graph as SVG" title="Download graph as SVG"><i data-icon="download"></i></button></div>
     </div>
     <div id="paneSplitter" role="separator" tabindex="0" aria-label="Resize graph and source" aria-controls="canvas sourcePanel" aria-orientation="vertical" aria-valuemin="25" aria-valuemax="75" aria-valuenow="57" title="Drag to resize graph and source"></div>
     <section id="sourcePanel" class="source-panel" aria-labelledby="sourceHeading" hidden>
@@ -975,6 +987,7 @@ function updateBreadcrumbs(){
   crumb.replaceChildren(parts);crumb.scrollLeft=crumb.scrollWidth;
 }
 function visitSource(id,mode,marker=null){
+  if(graphFullscreenView)exitGraphFullscreen();
   if(state.selected===id && state.mode===mode && displayedDeclaration===marker && !byId("sourcePanel").hidden){
     hideSidebar();return;
   }
@@ -1508,6 +1521,7 @@ const iconPaths = {
   files:'<path d="M8 3h7l4 4v11H8zM15 3v5h4M5 7H3v14h12v-1"/>',
   focus:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>',
   plus:'<path d="M5 12h14m-7-7v14"/>',minus:'<path d="M5 12h14"/>',
+  collapse:'<path d="M9 3v6H3m18 0h-6V3M3 15h6v6m6 0v-6h6"/>',
   fit:'<path d="M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"/>',
   inspect:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/>',
   code:'<path d="m7 7-5 5 5 5m10-10 5 5-5 5m-4-14-3 18"/>',lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -1545,6 +1559,7 @@ function buildView(items){
   return {items,byKey,incoming,count};
 }
 function loadProject(project,demo=false) {
+  if(graphFullscreenView)exitGraphFullscreen();
   inspectorView="overview";
   closeSourcePanel();
   state.project=project; state.demo=demo; state.mode="call"; state.files=new Map(project.files.map(file=>[file.path,file]));
@@ -1807,6 +1822,7 @@ function svgElement(tag,attributes){
 function createGraphNode(item){
   const node=button("graph-node"+(item.entry?" entry":""),"",()=>{
     if(item.folder){openStructure(item.id,"folders",state.activeFile);return;}
+    if(graphFullscreenView){select(item.id,state.mode,true);return;}
     visitSource(item.id,state.mode);
   });
   node.setAttribute("aria-controls",item.folder?"canvas details":"sourcePanel");
@@ -2017,6 +2033,7 @@ function renderDetails(){
 }
 function updatePanelActions(){
   const folder=currentView().byKey.get(state.selected)?.folder;
+  if(graphFullscreenView)byId("fullscreenSource").hidden=!!folder;
   byId("showSource").hidden=!inspectorOpen||!!folder;
   byId("inspectorTabs").hidden=!inspectorOpen||state.mode!=="call";
   byId("traceBar").hidden=!state.route;
@@ -2183,7 +2200,7 @@ function renderSource(variable=null){
   }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -2284,6 +2301,8 @@ byId("entryButton").onclick=()=>{
 byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>180){notify("For this project, select a function or file to explore its neighborhood.");return;}state.focused=!state.focused;refresh();};
 byId("exportGraph").onclick=downloadGraph;
+byId("graphFullscreen").onclick=toggleGraphFullscreen;
+byId("fullscreenSource").onclick=()=>{visitSource(state.selected,state.mode);byId("sourceBody").focus({preventScroll:true});};
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
 byId("showSource").onclick=()=>{openSourcePanel();byId("sourceBody").focus({preventScroll:true});};
 byId("goSymbol").onclick=showSymbolSearch;
@@ -2299,7 +2318,7 @@ byId("toggleSidebar").onclick=()=>{
 };
 narrowExplorer.addEventListener("change",()=>{mobileExplorerOpen=false;updateExplorerVisibility();});
 updateExplorerVisibility();
-document.addEventListener("click",event=>{if(!event.target.closest("#sidebar,#toggleSidebar"))hideSidebar();});
+document.addEventListener("click",event=>{if(!graphFullscreenView && !event.target.closest("#sidebar,#toggleSidebar,#graphFullscreen"))hideSidebar();});
 document.querySelector(".wordmark").onclick=event=>{event.preventDefault();openStructure("",state.initialGrouping,state.entryPoints[0]?.path||state.project.files[0].path);fitGraph(true);};
 const canvas=byId("canvas");let drag=null;
 canvas.addEventListener("wheel",event=>{if(event.target.closest(".graph-controls,.legend"))return;event.preventDefault();const bounds=canvas.getBoundingClientRect();zoom(Math.exp(-Math.sign(event.deltaY)*.14),{x:event.clientX-bounds.left,y:event.clientY-bounds.top});},{passive:false});
@@ -2316,10 +2335,66 @@ document.addEventListener("keydown",event=>{
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){
     event.preventDefault();if(!event.repeat)showSymbolSearch();return;
   }
-  if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();setExplorerOpen(true);byId("search").focus();}if(event.key==="Escape"){
+  if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();if(graphFullscreenView)exitGraphFullscreen();setExplorerOpen(true);byId("search").focus();}if(event.key==="Escape"){
+  if(graphFullscreenView){if(!byId("dialog").open){event.preventDefault();exitGraphFullscreen();}return;}
   if(mobileExplorerOpen){hideSidebar();byId("toggleSidebar").focus();}
   else if(!byId("dialog").open && !byId("sourcePanel").hidden)dismissSource();
 }});
+let graphFullscreenView=null,nativeGraphOwner=null;
+
+function updateGraphFullscreenButton(){
+  const expanded=!!graphFullscreenView,control=byId("graphFullscreen");
+  const label=expanded?"Exit graph full screen":"Enter graph full screen";
+  control.setAttribute("aria-pressed",String(expanded));
+  control.setAttribute("aria-label",label);
+  control.title=expanded?label+" (Esc)":label;
+  control.replaceChildren(icon(expanded?"collapse":"fit"));
+  byId("fullscreenSource").hidden=!expanded||!!currentView().byKey.get(state.selected)?.folder;
+}
+
+function exitGraphFullscreen(){
+  const previous=graphFullscreenView;if(!previous)return;
+  graphFullscreenView=null;
+  document.body.classList.remove("graph-fullscreen");
+  updateGraphFullscreenButton();
+  if(nativeGraphOwner===previous && document.fullscreenElement===document.documentElement)
+    document.exitFullscreen().catch(()=>{});
+  noteCanvasSize();
+  if(previous.layout===state.layout && previous.selected===state.selected &&
+     previous.width===canvasWidth && previous.height===canvasHeight){
+    state.x=previous.x;state.y=previous.y;state.scale=previous.scale;transform();
+  }else fitGraph(true);
+  window.scrollTo(previous.scrollX,previous.scrollY);
+  byId("graphFullscreen").focus({preventScroll:true});
+}
+
+function toggleGraphFullscreen(){
+  if(graphFullscreenView){exitGraphFullscreen();return;}
+  const previous={width:canvas.clientWidth,height:canvas.clientHeight,layout:state.layout,selected:state.selected,
+    x:state.x,y:state.y,scale:state.scale,scrollX:window.scrollX,scrollY:window.scrollY};
+  graphFullscreenView=previous;
+  document.body.classList.add("graph-fullscreen");
+  updateGraphFullscreenButton();noteCanvasSize();fitGraph();
+  canvas.focus({preventScroll:true});
+  if(document.fullscreenEnabled && !document.fullscreenElement && !nativeGraphOwner){
+    nativeGraphOwner=previous;
+    document.documentElement.requestFullscreen().catch(()=>{
+      if(nativeGraphOwner===previous)nativeGraphOwner=null;
+    });
+  }
+}
+
+document.addEventListener("fullscreenchange",()=>{
+  if(!nativeGraphOwner)return;
+  if(document.fullscreenElement===document.documentElement){
+    // The user may already have left while the browser was entering native fullscreen.
+    if(graphFullscreenView!==nativeGraphOwner)document.exitFullscreen().catch(()=>{});
+  }else{
+    const previous=nativeGraphOwner;nativeGraphOwner=null;
+    if(graphFullscreenView===previous)exitGraphFullscreen();
+  }
+});
+
 let canvasWidth=0,canvasHeight=0;
 function noteCanvasSize(){canvasWidth=canvas.clientWidth;canvasHeight=canvas.clientHeight;}
 new ResizeObserver(()=>{
