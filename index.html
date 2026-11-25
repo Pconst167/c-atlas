@@ -9,10 +9,34 @@
 .topbar{height:67px;background:#fff;border-bottom:1px solid var(--line);padding:0 27px;display:flex;gap:20px;align-items:center}.wordmark{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--mono);font-size:23px;font-weight:bold;letter-spacing:-1.6px}.brand-icon,.brand-icon svg{width:34px;height:34px}.top-sep{height:22px;width:1px;background:var(--line)}.app-name{font-size:14px;color:#586253}.top-actions{margin-left:auto;display:flex;align-items:center;gap:23px}.plain{padding:6px 0;background:transparent;border:none;font-size:14px;color:#465042}.dark{background:#283522;color:white;border:1px solid #283522;padding:10px 17px;font-size:14px;font-weight:600}.dark svg{color:#d9efc4}
 .workspace{display:grid;grid-template-columns:258px minmax(0,1fr);min-height:calc(100dvh - 98px)}aside{display:flex;flex-direction:column;background:#f6f7f1;border-right:1px solid var(--line);padding:25px 18px 20px;min-width:0}.side-heading{display:flex;justify-content:space-between;align-items:center;font-weight:650;font-size:15px;margin:0 2px 21px}.side-heading i{color:#7b8578}.project-card{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);padding:11px;border-radius:7px}.project-mark{width:39px;height:39px;display:grid;place-items:center;background:#e8f1da;border-radius:5px;color:#4a6543}.project-mark svg{width:23px;height:23px}.project-info{display:grid;gap:4px;min-width:0}.project-info strong{font:600 14px var(--mono);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.project-info small{font-size:12px;color:var(--dim)}.search{margin:16px 0 24px;display:flex;align-items:center;gap:7px;background:#fafbf8;border:1px solid var(--line);border-radius:5px;padding:8px;color:#687364}.search input{width:0;flex:1;background:transparent;border:none;outline:none;font-size:13px;color:var(--ink)}.search svg{width:15px}.search kbd{font:12px var(--mono);border:1px solid #d9ddd4;border-radius:3px;padding:0 4px;color:#727b6e}.section-label{color:#687363;letter-spacing:.105em;font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px}.counter{letter-spacing:0;color:#5b6657;padding:1px 5px;font:11px var(--mono);background:#e8ece2;border-radius:4px}.files-label{margin-left:4px;margin-bottom:12px}#tree{max-height:55vh;overflow:auto;padding-bottom:12px}.tree-row{width:100%;justify-content:flex-start;text-align:left;background:transparent;border:1px solid transparent;padding:7px 5px;border-radius:4px;gap:7px;font:13px var(--mono);min-height:32px}.tree-row .name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tree-row.folder{font-weight:600}.tree-row:hover,.search-item:hover{background:#ebeee5}.tree-row.active{background:#e4eccf;color:#283e22}.tree-row .tiny{width:12px;height:12px}.file-symbol{display:inline-grid;place-items:center;font:bold 12px var(--mono);color:#4c8567;height:17px;width:16px;border:1px solid #a7bda8;border-radius:3px;background:#eef4e9}.file-symbol.header{color:#8a714e;background:#f5f0e4;border-color:#d1c4aa}.folder svg{width:15px}.file-row-count{margin-left:auto;font:11px var(--mono);color:#798572}.search-item{background:transparent;border:0;display:block;width:100%;padding:6px;text-align:left;font:13px var(--mono)}.search-item small{display:block;color:var(--dim);font-size:11px;overflow-wrap:anywhere}.drop-zone{margin-top:auto;padding:19px 5px 16px;flex-direction:column;gap:7px;background:transparent;border:1px dashed #b3bfaa;color:#46563e}.drop-icon{width:30px;height:30px;background:#e9eee0;display:grid;place-items:center;border-radius:6px}.drop-zone b{font-size:13px}.drop-zone small{font-size:12px;color:#67735e}body.dragging #canvas{outline:3px dashed #69943a;outline-offset:-5px}
 main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;height:calc(100dvh - 98px);min-height:644px;background:#fafbf7}.title-row,.view-toolbar,.inspector-title{display:flex;align-items:center;justify-content:space-between}.crumb{display:flex;align-items:center;gap:8px;font:12px var(--mono);color:#67725f}.crumb svg{width:14px;height:14px}.slash{color:#a2ac9d}h1{font-size:clamp(28px,3vw,40px);letter-spacing:-1.8px;line-height:1.1;margin:9px 0 0;font-weight:600}.sample-badge{font:12px var(--mono);color:#516843;background:#eef4e6;border:1px solid #cedbc2;padding:5px 9px;display:flex;align-items:center;gap:6px;border-radius:20px}.sample-badge span,.ready b{display:inline-block;width:7px;height:7px;border-radius:100%;background:#659349}.mobile-files{display:none}.view-toolbar{margin:19px 0 11px}.tabs{display:inline-flex;border:1px solid var(--line);background:#eef1e9;padding:3px}.tabs button{border:1px solid transparent;color:#62705d;background:transparent;padding:6px 12px;font-weight:550;font-size:13px;border-radius:4px}.tabs svg,.outline svg{width:15px;height:15px}.tabs button[aria-pressed="true"]{background:#fff;border-color:#d7ddce;box-shadow:0 1px 2px #22301514;color:#273524}.outline{padding:8px 10px;background:white;border:1px solid var(--line);font-size:13px}.outline[aria-pressed="true"]{background:#deedc9;border-color:#9db980}
-#canvas{position:relative;overflow:hidden;isolation:isolate;flex:1;min-height:320px;border:1px solid #cfd6c7;border-radius:8px;background-color:#f4f6ef;background-image:radial-gradient(#cfd7c8 .8px,transparent .95px);background-size:16px 16px;cursor:grab;touch-action:none}#canvas:active{cursor:grabbing}#stage{transform-origin:0 0;position:absolute;inset:0 auto auto 0}#edges{position:absolute;inset:0;overflow:visible;pointer-events:none;stroke-width:1.8}#nodes{position:absolute;inset:0}.graph-node{position:absolute;width:max-content;min-width:174px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;overflow:hidden;padding:9px 12px;background:#fff;border:1.3px solid #aebba6;box-shadow:0 2px 0 #27371c0c;border-radius:6px;text-align:left;cursor:pointer}.graph-node.entry{background:#e5f5c9;border-color:#92aa73}.graph-node.selected{background:#d5f2a7;border-color:#577142;box-shadow:0 0 0 3px #8ea97138}.graph-node:hover{border-color:#577142}.node-line{display:flex;align-items:center;gap:6px;width:max-content;font:600 14px var(--mono);white-space:nowrap;letter-spacing:-.4px}.node-mark{width:18px;height:18px;display:grid;place-items:center;flex:none;color:#596e4e;background:#eff3e8;border:1px solid #d7dfce;border-radius:3px;font:italic bold 13px Georgia,serif}.selected .node-mark,.entry .node-mark{background:#eaf9cd;border-color:#adc891;color:#3e5b2d}.graph-node small{contain:inline-size;align-self:stretch;font:11px var(--mono);color:#66725d;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.legend,.graph-controls{position:absolute;bottom:12px;display:flex;align-items:center;border:1px solid #d3d9cb;background:#ffffffee;border-radius:5px;z-index:2;height:32px;cursor:default}.legend{left:13px;gap:14px;padding:0 10px}.legend span{display:flex;align-items:center;gap:5px}.legend em{font:11px var(--sans);color:#52604d}.key{width:9px;height:9px;border-radius:2px;border:1px solid #9aab8e}.key.entry{background:#d5eca9;border-color:#89a96b}.key.regular{background:white}.line-key{height:1px;width:16px;background:#84917e;position:relative}.line-key:after{content:"";position:absolute;right:0;top:-2px;width:4px;height:4px;transform:rotate(-45deg);border-right:1px solid #84917e;border-bottom:1px solid #84917e}.graph-controls{right:13px;padding:0 3px}.graph-controls button{width:28px;height:28px;background:transparent;border:0}.graph-controls svg{width:14px;height:14px}.graph-controls span{font:11px var(--mono);min-width:38px;text-align:center}.graph-controls .ctl-divider{min-width:1px;height:15px;background:var(--line);margin:0 3px}.inspector{margin-top:14px;border:1px solid var(--line);border-radius:7px;background:white;overflow:hidden;flex:none}.inspector-title{padding:8px 15px;border-bottom:1px solid var(--line);background:#f6f8f1;min-height:37px}.inspector-title>span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650}.inspector-title svg{width:15px;height:15px}.inspector-title .plain{font-size:12px;padding:1px}.detail-grid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(110px,.7fr) minmax(200px,1.3fr);padding:14px 15px;gap:14px}.detail-grid>div{min-width:0}.detail-grid>div+div{border-left:1px solid #e1e5dc;padding-left:16px}.selection-title{margin:0 0 6px;font:600 17px var(--mono);overflow-wrap:anywhere}.metadata{font:12px var(--mono);color:var(--dim);overflow-wrap:anywhere}.section-label.insp{font-size:10px;margin-bottom:7px}.chips{display:flex;gap:5px;flex-wrap:wrap;max-height:62px;overflow:auto}.chip{font:11px var(--mono);background:#f4f6ef;border:1px solid #d8dece;padding:3px 5px;border-radius:4px}.no-rel{color:#6e7969;font-size:13px}.file-fns{max-height:120px;overflow:auto}.entry-tag{display:inline-block;margin-top:6px;font-size:11px;color:#496135}.ready,.local,footer{display:flex;align-items:center}footer{border-top:1px solid var(--line);background:#f0f3e9;height:31px;padding:0 18px;gap:18px;font:11px var(--mono);color:#5c6755}footer .ready{gap:7px}footer .local{gap:6px;margin-left:auto}.local svg{width:12px;height:12px}.empty-message{font-size:14px;color:var(--dim);margin:12px 4px}#emptyGraph{margin:40px 20px;text-align:center;color:var(--dim);font-size:14px}dialog{color:var(--ink);border:1px solid #bbc6b2;border-radius:10px;box-shadow:0 15px 60px #17220c33;padding:25px;width:min(770px,92vw);max-height:85vh;background:#fff}dialog::backdrop{background:#1e2a1b68}.close{position:absolute;right:12px;top:12px;border:1px solid var(--line);background:#f6f8f1;padding:5px}.close svg{width:16px;height:16px}dialog h2{font-size:24px;margin:0 35px 8px 0;letter-spacing:-.7px}dialog p,dialog li{line-height:1.5;font-size:15px}dialog h3{font-size:16px;margin-bottom:4px}.source-code{overflow:auto;max-height:53vh;margin:15px 0 0;background:#f7f9f3;border:1px solid var(--line);padding:12px;border-radius:5px}.source-line{display:flex;gap:16px;white-space:pre;font:13px/1.65 var(--mono)}.line-num{color:#77866d;user-select:none;min-width:4ch;text-align:right}.code-key{color:#655391}.code-string{color:#427141}.code-comment{color:#788270}.dialog-actions{display:flex;gap:12px;margin-top:18px}.dialog-actions button{font-size:13px}#toast{position:fixed;bottom:43px;left:50%;transform:translateX(-50%);z-index:15;padding:11px 16px;background:#283522;color:white;font-size:14px;border-radius:6px;max-width:90vw}
+#canvas{position:relative;overflow:hidden;isolation:isolate;flex:1;min-height:320px;border:1px solid #cfd6c7;border-radius:8px;background-color:#f4f6ef;background-image:radial-gradient(#cfd7c8 .8px,transparent .95px);background-size:16px 16px;cursor:grab;touch-action:none}#canvas:active{cursor:grabbing}#stage{transform-origin:0 0;position:absolute;inset:0 auto auto 0}#edges{position:absolute;inset:0;overflow:visible;pointer-events:none;stroke-width:1.8}#nodes{position:absolute;inset:0}.graph-node{position:absolute;width:max-content;min-width:174px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;overflow:hidden;padding:9px 12px;background:#fff;border:1.3px solid #aebba6;box-shadow:0 2px 0 #27371c0c;border-radius:6px;text-align:left;cursor:pointer}.graph-node.entry{background:#e5f5c9;border-color:#92aa73}.graph-node.selected{background:#d5f2a7;border-color:#577142;box-shadow:0 0 0 3px #8ea97138}.graph-node:hover{border-color:#577142}.node-line{display:flex;align-items:center;gap:6px;width:max-content;font:600 14px var(--mono);white-space:nowrap;letter-spacing:-.4px}.node-mark{width:18px;height:18px;display:grid;place-items:center;flex:none;color:#596e4e;background:#eff3e8;border:1px solid #d7dfce;border-radius:3px;font:italic bold 13px Georgia,serif}.selected .node-mark,.entry .node-mark{background:#eaf9cd;border-color:#adc891;color:#3e5b2d}.graph-node small{contain:inline-size;align-self:stretch;font:11px var(--mono);color:#66725d;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.legend,.graph-controls{position:absolute;bottom:12px;display:flex;align-items:center;border:1px solid #d3d9cb;background:#ffffffee;border-radius:5px;z-index:2;height:32px;cursor:default}.legend{left:13px;gap:14px;padding:0 10px}.legend span{display:flex;align-items:center;gap:5px}.legend em{font:11px var(--sans);color:#52604d}.key{width:9px;height:9px;border-radius:2px;border:1px solid #9aab8e}.key.entry{background:#d5eca9;border-color:#89a96b}.key.regular{background:white}.line-key{height:1px;width:16px;background:#84917e;position:relative}.line-key:after{content:"";position:absolute;right:0;top:-2px;width:4px;height:4px;transform:rotate(-45deg);border-right:1px solid #84917e;border-bottom:1px solid #84917e}.graph-controls{right:13px;padding:0 3px}.graph-controls button{width:28px;height:28px;background:transparent;border:0}.graph-controls svg{width:14px;height:14px}.graph-controls span{font:11px var(--mono);min-width:38px;text-align:center}.graph-controls .ctl-divider{min-width:1px;height:15px;background:var(--line);margin:0 3px}.inspector{margin-top:14px;border:1px solid var(--line);border-radius:7px;background:white;overflow:hidden;flex:none}.inspector-title{padding:8px 15px;border-bottom:1px solid var(--line);background:#f6f8f1;min-height:37px}.inspector-title>span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650}.inspector-title svg{width:15px;height:15px}.inspector-title .plain{font-size:12px;padding:1px}.detail-grid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(110px,.7fr) minmax(200px,1.3fr);padding:14px 15px;gap:14px}.detail-grid>div{min-width:0}.detail-grid>div+div{border-left:1px solid #e1e5dc;padding-left:16px}.selection-title{margin:0 0 6px;font:600 17px var(--mono);overflow-wrap:anywhere}.metadata{font:12px var(--mono);color:var(--dim);overflow-wrap:anywhere}.section-label.insp{font-size:10px;margin-bottom:7px}.chips{display:flex;gap:5px;flex-wrap:wrap;max-height:62px;overflow:auto}.chip{font:11px var(--mono);background:#f4f6ef;border:1px solid #d8dece;padding:3px 5px;border-radius:4px}.no-rel{color:#6e7969;font-size:13px}.file-fns{max-height:120px;overflow:auto}.entry-tag{display:inline-block;margin-top:6px;font-size:11px;color:#496135}.ready,.local,footer{display:flex;align-items:center}footer{border-top:1px solid var(--line);background:#f0f3e9;height:31px;padding:0 18px;gap:18px;font:11px var(--mono);color:#5c6755}footer .ready{gap:7px}footer .local{gap:6px;margin-left:auto}.local svg{width:12px;height:12px}.empty-message{font-size:14px;color:var(--dim);margin:12px 4px}#emptyGraph{margin:40px 20px;text-align:center;color:var(--dim);font-size:14px}dialog{color:var(--ink);border:1px solid #bbc6b2;border-radius:10px;box-shadow:0 15px 60px #17220c33;padding:25px;width:min(770px,92vw);max-height:85vh;background:#fff}dialog::backdrop{background:#1e2a1b68}.close{position:absolute;right:12px;top:12px;border:1px solid var(--line);background:#f6f8f1;padding:5px}.close svg{width:16px;height:16px}dialog h2{font-size:24px;margin:0 35px 8px 0;letter-spacing:-.7px}dialog p,dialog li{line-height:1.5;font-size:15px}dialog h3{font-size:16px;margin-bottom:4px}.source-code{padding:12px 0;width:max-content;min-width:100%}.source-line{display:flex;gap:16px;white-space:pre;font:13px/1.65 var(--mono)}.line-num{color:#77866d;user-select:none;min-width:4ch;text-align:right}.code-key{color:#655391}.code-string{color:#427141}.code-comment{color:#788270}.dialog-actions{display:flex;gap:12px;margin-top:18px}.dialog-actions button{font-size:13px}#toast{position:fixed;bottom:43px;left:50%;transform:translateX(-50%);z-index:15;padding:11px 16px;background:#283522;color:white;font-size:14px;border-radius:6px;max-width:90vw}
 @media(min-width:1450px){.workspace{grid-template-columns:285px minmax(0,1fr)}main{padding:30px 38px}.side-heading{margin-top:5px}.graph-node{border-radius:7px}}
 @media(max-width:1000px){.workspace{grid-template-columns:212px minmax(0,1fr)}aside{padding-left:12px;padding-right:12px}main{padding:19px 17px 16px}.detail-grid{gap:8px;grid-template-columns:1fr .8fr 1.2fr}.detail-grid>div+div{padding-left:8px}}
 @media(max-width:720px){.topbar{padding:0 15px;gap:10px;height:56px}.top-actions{gap:12px}.help-link span,.app-name,.top-sep{display:none}.workspace{display:block;min-height:calc(100dvh - 87px)}.mobile-files{display:inline-flex;border:1px solid var(--line);background:white;padding:3px 6px;font:12px var(--sans)}.crumb>i{display:none}aside{display:none;position:absolute;z-index:5;left:0;top:56px;width:min(280px,80vw);height:min(700px,calc(100dvh - 87px));box-shadow:6px 6px 20px #26301f22}aside.open{display:flex}main{height:calc(100dvh - 87px);min-height:630px;padding:14px 12px}.view-toolbar{margin:13px 0 8px}.inspector{margin-top:9px}.detail-grid{grid-template-columns:1fr 1fr;padding:10px}.detail-grid>div:first-child{grid-column:1/-1}.detail-grid>div:nth-child(2){border:0;padding:0}.selection-title{display:inline;margin-right:7px;font-size:15px}.entry-tag{display:none}.legend{bottom:9px;left:6px;gap:7px;height:28px;padding:0 5px}.legend em{font-size:10px}.graph-controls{right:6px;bottom:9px;height:28px}.graph-controls button{width:22px}.graph-controls span{min-width:29px}.sample-badge{font-size:10px}.local{font-size:0}footer{gap:9px;padding:0 8px;font-size:10px}.drop-zone{margin-top:16px}#tree{max-height:50vh}.title-row{align-items:end}.tabs button{padding:5px 9px}}
+
+.graph-workspace{display:flex;flex:1;gap:12px;min-height:320px;min-width:0}
+.graph-workspace #canvas{min-width:0;min-height:0}
+.source-panel{display:flex;flex-direction:column;overflow:hidden;flex:0 0 43%;min-width:0;max-width:46rem;border:1px solid var(--line);border-radius:8px;background:#fff}
+.source-bar{display:flex;align-items:center;justify-content:space-between;background:#f6f8f1;border-bottom:1px solid var(--line);padding:6px 10px 6px 14px;flex:none}
+.source-bar h2{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:650;margin:0}
+.source-bar h2 svg{width:16px;height:16px}
+.source-close{width:30px;height:30px;border:0;background:transparent;color:#596652}
+.source-close:hover{background:#e7ebdf}
+.source-close svg{width:16px;height:16px}
+.source-heading{padding:12px 14px;flex:none;border-bottom:1px solid #dde3d6}
+.source-heading h3{margin:0 0 4px;font:600 16px var(--mono);overflow-wrap:anywhere}
+.source-body{flex:1;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;background:#fafbf7;tab-size:2}
+.source-body .source-line{padding:0 14px 0 6px;gap:12px}
+.source-body .line-num{flex:none}
+.source-body>.outline,.source-body>.metadata,.source-body>div:not(.source-code){margin:5px 12px 12px}
+@media(min-width:901px) and (max-width:1150px){.source-open .legend{bottom:51px}}
+@media(max-width:900px){
+  main:has(.source-open){height:auto}
+  .graph-workspace.source-open{flex:1 0 auto;flex-direction:column;height:clamp(440px,60dvh,700px);gap:8px}
+  .source-open #canvas{flex:1;min-height:190px}
+  .source-panel{flex:0 0 45%;min-height:205px;width:100%;max-width:none}
+  .source-heading{padding:8px 12px}
+}
 </style>
 </head>
 <body>
@@ -33,13 +57,20 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
   <main>
     <div class="title-row"><div><div class="crumb"><button id="toggleSidebar" class="mobile-files"><i data-icon="panel"></i> Files</button><i data-icon="folder"></i><span id="crumbName"></span><span class="slash">/</span> Workspace</div><h1>Project map</h1></div><div id="projectBadge" class="sample-badge"><span></span>Sample project</div></div>
     <div class="view-toolbar"><div class="tabs" role="group" aria-label="Graph view"><button id="callTab" aria-pressed="true"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Includes</button></div><button id="focusButton" class="outline" title="Show the selected node and its neighbors" aria-pressed="false"><i data-icon="focus"></i><span>Focus</span></button></div>
+    <div id="graphWorkspace" class="graph-workspace">
     <div id="canvas" tabindex="0" aria-label="Interactive project graph">
       <div id="stage"><svg id="edges" aria-hidden="true"></svg><div id="nodes"></div></div>
       <div id="emptyGraph" hidden></div>
       <div class="legend"><span><b class="key entry"></b><em id="entryLegend">Entry point</em></span><span><b class="key regular"></b><em id="funcLegend">Function</em></span><span><b class="line-key"></b> <em id="edgeLegend">Calls</em></span></div>
       <div class="graph-controls"><button id="minus" aria-label="Zoom out" title="Zoom out"><i data-icon="minus"></i></button><span id="zoomLabel"></span><button id="plus" aria-label="Zoom in" title="Zoom in"><i data-icon="plus"></i></button><span class="ctl-divider"></span><button id="fit" aria-label="Fit graph" title="Fit graph"><i data-icon="fit"></i></button></div>
     </div>
-    <section class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" class="plain"><i data-icon="code"></i>View source</button></div><div id="details"></div></section>
+    <section id="sourcePanel" class="source-panel" aria-labelledby="sourceHeading" hidden>
+      <div class="source-bar"><h2 id="sourceHeading"><i data-icon="code"></i><span id="sourceKind">Function source</span></h2><button type="button" class="source-close" id="closeSource" aria-label="Close source panel" title="Close source panel"><i data-icon="close"></i></button></div>
+      <div class="source-heading"><h3 id="sourceName"></h3><div id="sourceLocation" class="metadata"></div></div>
+      <div id="sourceBody" class="source-body" tabindex="0" aria-label="Source code"></div>
+    </section>
+    </div>
+    <section class="inspector" aria-label="Selection details"><div class="inspector-title"><span><i data-icon="inspect"></i> Inspector</span><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i>View source</button></div><div id="details"></div></section>
   </main>
 </div>
 <footer><span class="ready"><b></b><span id="status" role="status">Ready</span></span><span id="stats"></span><span class="local"><i data-icon="lock"></i> Local analysis</span></footer>
@@ -397,6 +428,7 @@ function buildView(items){
   return {items,byKey,incoming,count};
 }
 function loadProject(project,demo=false) {
+  closeSourcePanel();
   state.project=project; state.demo=demo; state.mode="call"; state.files=new Map(project.files.map(file=>[file.path,file]));
   const all=project.files.flatMap(file=>file.functions);
   state.functions=new Map(all.map(fn=>[fn.id,fn]));
@@ -476,11 +508,13 @@ function renderTree(){
 const currentView=()=>state.views[state.mode];
 function select(id,mode=state.mode,recenter=false){
   if(!state.views[mode].byKey.has(id))return;
+  const selectionChanged=state.mode!==mode || state.selected!==id;
   const oldMode=state.mode;state.mode=mode;state.selected=id;
   state.activeFile=currentView().byKey.get(id).path;revealTree(state.activeFile);
   if(oldMode!==mode)state.focused=currentView().items.length>45;
   if(state.focused || oldMode!==mode || !state.layout?.positions.has(id))refresh();
   else {renderTree();renderDetails();markSelection();if(recenter)centerSelected();}
+  if(selectionChanged && !byId("sourcePanel").hidden)renderSource();
 }
 function switchView(mode){
   if(state.mode===mode)return;
@@ -537,7 +571,11 @@ function svgElement(tag,attributes){
   return node;
 }
 function createGraphNode(item){
-  const node=button("graph-node"+(item.entry?" entry":""),"",()=>select(item.id));
+  const node=button("graph-node"+(item.entry?" entry":""),"",()=>{
+    select(item.id);
+    openSourcePanel();
+  });
+  node.setAttribute("aria-controls","sourcePanel");
   node.style.height=nodeHeight+"px";
   node.dataset.id=item.id;
   node.title=item.title+" · "+item.path;
@@ -640,24 +678,59 @@ function highlight(line){
     end=match.index+match[0].length;
   }fragment.append(line.slice(end));return fragment;
 }
-function showSource(){
-  const item=currentView().byKey.get(state.selected),fn=state.mode==="call"?state.functions.get(item.id):null,file=state.files.get(item.path),content=el("div");
-  content.append(el("h2","",item.title),el("div","metadata",item.path+(fn?" · lines "+fn.firstLine+"–"+fn.lastLine:"")));
-  if(fn?.unresolved.length)content.append(el("p","metadata","Unresolved call-like names: "+fn.unresolved.join(", ")));
-  const lines=file.source.split("\n"),start=fn?fn.firstLine:1,end=fn?fn.lastLine:lines.length;
+function openSourcePanel(){
+  const panel=byId("sourcePanel");
+  if(!panel.hidden)return;
+  renderSource();
+  panel.hidden=false;
+  byId("graphWorkspace").classList.add("source-open");
+  byId("showSource").setAttribute("aria-expanded","true");
+}
+function closeSourcePanel(){
+  byId("sourcePanel").hidden=true;
+  byId("graphWorkspace").classList.remove("source-open");
+  byId("showSource").setAttribute("aria-expanded","false");
+  byId("sourceBody").replaceChildren();
+}
+function dismissSource(){
+  closeSourcePanel();
+  const selectedNode=byId("nodes").querySelector('[aria-pressed="true"]');
+  (selectedNode || byId("showSource")).focus({preventScroll:true});
+}
+function renderSource(){
+  const item=currentView().byKey.get(state.selected);
+  const file=state.files.get(item.path);
+  const fn=state.mode==="call"?state.functions.get(item.id):null;
+  const source=fn?file.source.slice(fn.first,fn.last):file.source;
+  const lines=source.split("\n"),firstLine=fn?fn.firstLine:1;
+  const body=byId("sourceBody");
+  byId("sourceKind").textContent=fn?"Function source":"File source";
+  byId("sourceName").textContent=item.title;
+  byId("sourceLocation").textContent=item.path+" · "+(lines.length===1?"line "+firstLine:"lines "+firstLine+"–"+(firstLine+lines.length-1));
   const code=el("div","source-code");
-  let next=start;
+  let next=0;
   function more(){
-    const limit=Math.min(next+399,end);
-    for(;next<=limit;next++){const row=el("div","source-line"),text=el("span");text.append(highlight(lines[next-1]));row.append(el("span","line-num",next),text);code.append(row);}
-    loadMore.hidden=next>end;
+    const limit=Math.min(next+400,lines.length);
+    const batch=document.createDocumentFragment();
+    for(;next<limit;next++){
+      const row=el("div","source-line"),text=el("span");
+      text.append(highlight(lines[next]));
+      row.append(el("span","line-num",firstLine+next),text);
+      batch.append(row);
+    }
+    code.append(batch);
+    loadMore.hidden=next===lines.length;
   }
-  const loadMore=button("outline","Show more lines",more);more();content.append(code,loadMore);
-  if(!fn && file.functions.length)content.append(relationGroup("FUNCTIONS IN THIS FILE",file.functions.map(f=>f.id),"call"));
-  showDialog(content);
+  const loadMore=button("outline","Show more lines",more);
+  more();
+  body.replaceChildren(code,loadMore);
+  if(fn?.unresolved.length)body.append(el("p","metadata","Unresolved call-like names: "+fn.unresolved.join(", ")));
+  if(!fn && file.functions.length)body.append(relationGroup("FUNCTIONS IN THIS FILE",file.functions.map(f=>f.id),"call"));
+  body.scrollTop=0;
+  body.scrollLeft=0;
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to inspect either end of the relationship.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Open a ZIP containing your C sources and headers. Your browser reads the archive on this device.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Select another block to update the source panel, or close the panel to expand the graph.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Use Fit graph to see the map, or Focus to isolate a block and its neighbors. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
@@ -685,7 +758,8 @@ window.addEventListener("drop",event=>{event.preventDefault();dragDepth=0;docume
 byId("search").oninput=renderTree;byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>180){notify("For this project, select a function or file to explore its neighborhood.");return;}state.focused=!state.focused;refresh();};
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
-byId("showSource").onclick=showSource;byId("help").onclick=guide;
+byId("showSource").onclick=()=>{openSourcePanel();byId("sourceBody").focus({preventScroll:true});};
+byId("closeSource").onclick=dismissSource;byId("help").onclick=guide;
 byId("dialog").addEventListener("click",event=>{if(event.target===byId("dialog"))byId("dialog").close();else if(event.target.closest(".chip"))byId("dialog").close();});
 byId("toggleSidebar").onclick=()=>byId("sidebar").classList.toggle("open");
 document.addEventListener("click",event=>{if(!event.target.closest("#sidebar,#toggleSidebar"))hideSidebar();});
@@ -701,7 +775,10 @@ canvas.addEventListener("keydown",event=>{
   if(shifts[event.key]){event.preventDefault();state.x+=shifts[event.key][0];state.y+=shifts[event.key][1];transform();}
   if(event.key==="+"||event.key==="=")zoom(1.25);if(event.key==="-")zoom(.8);if(event.key==="0")fitGraph();
 });
-document.addEventListener("keydown",event=>{if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();if(innerWidth<=720)byId("sidebar").classList.add("open");byId("search").focus();}if(event.key==="Escape")hideSidebar();});
+document.addEventListener("keydown",event=>{if(event.key==="/"&&!event.ctrlKey&&!event.metaKey&&!byId("dialog").open && event.target!==byId("search")){event.preventDefault();if(innerWidth<=720)byId("sidebar").classList.add("open");byId("search").focus();}if(event.key==="Escape"){
+  if(!byId("dialog").open && !byId("sidebar").classList.contains("open") && !byId("sourcePanel").hidden)dismissSource();
+  hideSidebar();
+}});
 new ResizeObserver(()=>{if(state.layout)fitGraph(true);}).observe(canvas);
 loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
 </script>
