@@ -100,9 +100,12 @@ main{min-width:0;padding:23px 27px 22px;display:flex;flex-direction:column;heigh
 .global-entry small{margin-top:3px}
 .global-more{width:100%;margin:6px 0}
 #toggleInspector{margin:-3px 0 -3px -5px;font-size:13px;font-weight:650}
-#toggleInspector[aria-expanded=false] svg{transform:rotate(-90deg)}
-#inspectorPanel.collapsed{flex:none;min-height:0}
-#inspectorPanel.collapsed .inspector-title{border-bottom:0}
+#inspectorVisibility{flex:none;margin-left:6px}
+#inspectorVisibility svg{transform:rotate(180deg)}
+#inspectorVisibility[aria-expanded=true]{background:#eaf1e2;border-color:#b8caaa}
+.source-on-click,#headerHighlightControl{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:13px var(--sans);color:var(--ink)}
+.source-on-click{cursor:pointer;padding:5px 3px}
+.source-on-click input{margin:0;accent-color:#526e3d}
 @media(min-width:721px){
   .workspace.explorer-hidden{grid-template-columns:minmax(0,1fr)}
   .workspace.explorer-hidden #sidebar{display:none}
@@ -288,15 +291,18 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
         <div class="history-tools" role="group" aria-label="Exploration history"><button id="navBack" class="panel-button" aria-label="Go back" title="Go back" disabled><i class="back-icon" data-icon="right"></i></button><button id="navForward" class="panel-button" aria-label="Go forward" title="Go forward" disabled><i data-icon="right"></i></button></div>
         <nav class="crumb" id="breadcrumbs" aria-label="Project location"></nav>
       </div>
+      <button id="inspectorVisibility" class="outline panel-visibility" aria-controls="inspectorPanel" aria-expanded="true" aria-label="Hide Inspector" title="Hide Inspector"><i data-icon="inspect"></i>Inspector</button>
       <div id="projectBadge" class="sample-badge"><span></span>Sample project</div>
     </div>
     <div class="view-toolbar">
       <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false" title="Follow calls from each caller to the function it calls"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button><button id="headerTab" aria-pressed="false" title="Trace project and external headers. Include arrows point to the file that includes them."><i data-icon="header"></i>Header includes</button></div>
       <div class="map-tools">
+        <label id="headerHighlightControl" hidden>Highlight <select id="headerHighlightScope" aria-label="Header highlight scope"><option value="direct">Direct only</option><option value="full">Full chain</option></select></label>
         <select id="mapGrouping" aria-label="Structure map grouping"><option value="folders">By folder</option><option value="files">By file</option></select>
         <select id="mapRelations" aria-label="Structure relationships"><option value="all">All relationships</option><option value="call">Calls only</option><option value="include">Includes only</option><option value="asset">File references only</option></select>
         <button id="entryButton" class="outline" title="Open the program entry point">main()</button>
         <button id="traceButton" class="outline" hidden>Trace calls</button>
+        <label class="source-on-click" title="Open the source panel when selecting a file or function"><input id="sourceOnClick" type="checkbox" aria-controls="sourcePanel" checked> Source on click</label>
         <button id="focusButton" class="outline" title="Show the selected node and its neighbors" aria-label="Focus on neighbors" aria-pressed="false"><i data-icon="focus"></i><span>Focus</span></button>
       </div>
     </div>
@@ -332,7 +338,7 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
     </section>
     </div>
     <div id="inspectorSplitter" role="separator" tabindex="0" aria-label="Resize workspace and Inspector" aria-controls="graphWorkspace inspectorPanel" aria-orientation="horizontal" aria-valuemin="35" aria-valuemax="80" aria-valuenow="72" title="Drag to resize the Inspector"></div>
-    <section id="inspectorPanel" class="inspector" aria-label="Selection details"><div class="inspector-title"><button id="toggleInspector" class="panel-button" aria-label="Hide Inspector" title="Hide Inspector" aria-expanded="true" aria-controls="inspectorTabs details"><i data-icon="down"></i> Inspector</button><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i><span id="sourceAction">View source</span></button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
+    <section id="inspectorPanel" class="inspector" aria-label="Selection details"><div class="inspector-title"><button id="toggleInspector" class="panel-button" aria-label="Hide Inspector" title="Hide Inspector" aria-expanded="true" aria-controls="inspectorPanel"><i data-icon="down"></i> Inspector</button><button id="showSource" aria-controls="sourcePanel" aria-expanded="false" class="plain"><i data-icon="code"></i><span id="sourceAction">View source</span></button></div><div id="inspectorTabs" role="tablist" aria-label="Inspector views"></div><div id="details" role="tabpanel" tabindex="0" aria-labelledby="inspect-overview"></div></section>
     </div>
   </main>
 </div>
@@ -354,10 +360,10 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
 <h3>Read the arrows</h3>
 <p>If <code>game.h</code> includes <code>timer.h</code>, the include arrow runs from <code>timer.h</code> into <code>game.h</code>. Click the arrow to open the matching <code>#include</code> line. A call arrow runs from the caller to the function it calls. A dotted file reference runs from the file that mentions a path to the asset it uses.</p>
 <h3>Trace header dependencies</h3>
-<p>In Header includes, hover over a header or focus it with the keyboard to trace its include chains. Green marks the headers it includes, and purple marks the headers that include it. Blocks with both colors belong to a cycle with that header. Click a header to keep the highlight, then use Clear highlight to return to the whole map.</p>
+<p>In Header includes, hover over a header or focus it with the keyboard to preview its relationships. Click to keep the highlight. Direct only highlights the immediate connections in each direction. Full chain follows them recursively. Green marks headers it includes, purple marks headers that include it, and both colors mark headers reached in both directions. Use Clear highlight to release the selection.</p>
 <p>Pale blue blocks represent external headers such as <code>&lt;stdio.h&gt;</code>. Select a blue block and choose View include sites to see where the project uses it.</p>
 <h3>Inspect source and variables</h3>
-<p>Click a project block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p>
+<p>With Source on click enabled, selecting a project block opens its source. Turn it off to keep the graph wide. You can still choose View source in the Inspector. Drag the divider between the graph and source to resize them. Use the Inspector button above the graph to hide or show the bottom panel. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p>
 <h3>Explore the map</h3>
 <p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p>
 <h3>What gets indexed?</h3>
@@ -1443,7 +1449,7 @@ function buildHeaderDependencies(files,relationships=files.flatMap(fileDependenc
   }
   return {...buildFileDependencies(headers,records,[...externalByName.values()]),externalByName};
 }
-function headerReach(view,id){
+function headerReach(view,id,scope){
   function walk(outgoing){
     const visited=new Set();
     if(!view.byKey.has(id))return visited;
@@ -1452,12 +1458,14 @@ function headerReach(view,id){
     while(pending.length){
       const current=pending.pop(),neighbors=outgoing?view.byKey.get(current).next:view.incoming.get(current);
       for(const next of neighbors){
-        if(!visited.has(next)){visited.add(next);pending.push(next);}
+        if(visited.has(next))continue;
+        visited.add(next);
+        if(scope!=="direct")pending.push(next);
       }
     }
     return visited;
   }
-  return {dependencies:walk(true),dependents:walk(false)};
+  return {root:id,scope,dependencies:walk(true),dependents:walk(false)};
 }
 function classifyHeaderRelation(dependency,dependent){
   if(dependency&&dependent)return "both";
@@ -1468,8 +1476,10 @@ function headerRelation(reach,id){
   return reach?classifyHeaderRelation(reach.dependencies.has(id),reach.dependents.has(id)):"";
 }
 function headerEdgeRelation(reach,from,to){
-  return reach?classifyHeaderRelation(reach.dependencies.has(from)&&reach.dependencies.has(to),
-    reach.dependents.has(from)&&reach.dependents.has(to)):"";
+  if(!reach)return "";
+  if(reach.scope==="direct")return classifyHeaderRelation(from===reach.root,to===reach.root);
+  return classifyHeaderRelation(reach.dependencies.has(from)&&reach.dependencies.has(to),
+    reach.dependents.has(from)&&reach.dependents.has(to));
 }
 function isIncludeConnection(records){
   return !!records?.length && records.every(record=>record.kind==="include");
@@ -1647,15 +1657,20 @@ function updateBreadcrumbs(){
   crumb.replaceChildren(parts);crumb.scrollLeft=crumb.scrollWidth;
 }
 function visitSource(id,mode,marker=null){
+  visitSelection(id,mode,true,marker);
+}
+function visitSelection(id,mode,showSource=byId("sourceOnClick").checked,marker=null){
   if(mode==="include" && state.mode==="headers" && state.views.headers.byKey.has(id))mode="headers";
   if(graphFullscreenView)exitGraphFullscreen();
   const highlightReady=mode!=="headers" || state.headerHighlight===id;
-  if(highlightReady && state.selected===id && state.mode===mode && displayedDeclaration===marker && !byId("sourcePanel").hidden){
+  const panelOpen=!byId("sourcePanel").hidden;
+  if(highlightReady && state.selected===id && state.mode===mode && displayedDeclaration===marker && panelOpen===showSource){
     hideSidebar();return;
   }
   rememberLocation();
+  if(!showSource && panelOpen)closeSourcePanel();
   select(id,mode,true,false);
-  openSourcePanel(marker,false);
+  if(showSource)openSourcePanel(marker,false);
   hideSidebar();
 }
 function evidenceFor(from,to){
@@ -1905,7 +1920,7 @@ function routeGraphEdges(layout,route,mirror=false){
 function diagramSvg(){
   const layout=state.layout,view=currentView(),margin=38,header=70;
   if(!layout?.items.length)return null;
-  const highlighted=state.mode==="headers" && state.headerHighlight===state.selected?headerReach(view,state.selected):null;
+  const highlighted=state.mode==="headers" && state.headerHighlight && state.headerHighlight===state.selected?headerReach(view,state.selected,headerHighlightScope):null;
   const title=state.project.name+" · "+(state.route?"Call path":{structure:"Project structure",call:"Call graph",include:"File dependencies",headers:"Header graph"}[state.mode]);
   const location=state.mode==="structure"?(state.scope||"Project root")+" · "+(state.grouping==="folders"?"By folder":"By file"):
     state.route?state.functions.get(state.route[0]).name+"() → "+state.functions.get(state.route.at(-1)).name+"()":
@@ -1997,7 +2012,8 @@ function diagramSvg(){
     label(x+11,y+41,meta,11,muted?"#626960":"#54634d",drawing);
   }
   if(highlighted){
-    label(margin,height-47,"Include arrows point into the including file.",12,"#52604a");
+    const scopeLabel=highlighted.scope==="direct"?"Direct only":"Full chain";
+    label(margin,height-47,scopeLabel+" · Include arrows point into the including file.",12,"#52604a");
     const legend=[["Includes","#e4f3d3",directionColors.dependency],["Included by","#f2e8fa",directionColors.dependent],
       ["Both directions","url(#cycle-fill)",directionColors.both],["External header","#e3f2ff","#80acc8"]];
     let x=margin;
@@ -2634,6 +2650,12 @@ function openLinkedRepository(){
 </script>
 <script>"use strict";
 const byId = id => document.getElementById(id);
+function readViewPreference(key,fallback){
+  try{return localStorage.getItem("c-atlas.view."+key)??fallback;}catch{return fallback;}
+}
+function writeViewPreference(key,value){
+  try{localStorage.setItem("c-atlas.view."+key,value);}catch{/* Preferences remain active for this session. */}
+}
 const base = path => path.split("/").at(-1);
 const iconPaths = {
   brand:'<rect x="1" y="1" width="30" height="30" rx="7" fill="#d4f495" stroke="none"/><g stroke="#2b3920" stroke-width="2.2"><path d="M10 16h5m0 0v-6h6m-6 6v6h6"/><rect x="6" y="13" width="5" height="6" rx="1" fill="#d4f495"/><rect x="20" y="7" width="5" height="5" rx="1" fill="#d4f495"/><rect x="20" y="19" width="5" height="5" rx="1" fill="#d4f495"/></g>',
@@ -2676,10 +2698,12 @@ function button(cls,label,action) {
 const state={project:null,files:new Map(),functions:new Map(),views:{},mode:"call",selected:null,focused:false,demo:false,layout:null,opened:new Set(),expandedFiles:new Set(),activeFile:null,scale:1,x:0,y:0,tree:null};
 let importWorker=null, toastTimer=0;
 let hoveredHeader=null,keyboardHeader=null;
+let headerHighlightScope=readViewPreference("headerHighlightScope","direct")==="full"?"full":"direct";
 let explorerView="files";
 const explorerQueries={files:"",globals:""};
 const narrowExplorer=window.matchMedia("(max-width:720px)");
-let desktopExplorerOpen=true,mobileExplorerOpen=false,inspectorOpen=true;
+let desktopExplorerOpen=true,mobileExplorerOpen=false;
+let inspectorOpen=readViewPreference("inspectorOpen","true")!=="false";
 function notify(message){ clearTimeout(toastTimer); byId("toast").textContent=message; byId("toast").hidden=false; toastTimer=setTimeout(()=>{byId("toast").hidden=true;},6500); }
 function buildView(items){
   const byKey=new Map(items.map(item=>[item.id,item])),incoming=new Map(items.map(item=>[item.id,[]]));
@@ -2758,15 +2782,21 @@ function setExplorerOpen(open){
 function hideSidebar(){
   if(mobileExplorerOpen){mobileExplorerOpen=false;updateExplorerVisibility();}
 }
+function updateInspectorVisibility(){
+  for(const id of ["inspectorPanel","inspectorSplitter","details"])byId(id).hidden=!inspectorOpen;
+  for(const id of ["toggleInspector","inspectorVisibility"]){
+    const control=byId(id);
+    control.setAttribute("aria-expanded",String(inspectorOpen));
+    control.title=inspectorOpen?"Hide Inspector":"Show Inspector";
+    control.setAttribute("aria-label",control.title);
+  }
+}
 function toggleInspector(){
   inspectorOpen=!inspectorOpen;
-  byId("inspectorPanel").classList.toggle("collapsed",!inspectorOpen);
-  for(const id of ["inspectorSplitter","inspectorTabs","details","showSource"])byId(id).hidden=!inspectorOpen;
-  const toggle=byId("toggleInspector");
-  toggle.setAttribute("aria-expanded",String(inspectorOpen));
-  toggle.title=inspectorOpen?"Hide Inspector":"Show Inspector";
-  toggle.setAttribute("aria-label",toggle.title);
+  writeViewPreference("inspectorOpen",String(inspectorOpen));
+  updateInspectorVisibility();
   updatePanelActions();
+  if(!inspectorOpen)byId("inspectorVisibility").focus({preventScroll:true});
 }
 function setExplorerView(view,render=true){
   explorerQueries[explorerView]=byId("search").value;
@@ -2832,7 +2862,7 @@ function renderTree(){
     for(const [items,mode] of groups)for(const item of items){
       if(![item.title,item.path].some(value=>value.toLowerCase().includes(query)))continue;
       total++;if(count>=150)continue;count++;
-      const row=button("search-item",item.title,()=>visitSource(item.id,mode));
+      const row=button("search-item",item.title,()=>visitSelection(item.id,mode));
       row.append(el("small","",item.external?item.meta:item.path));tree.append(row);
     }
     if(!count)tree.append(el("p","empty-message","No matching files or functions."));
@@ -2853,10 +2883,11 @@ function renderTree(){
         if(state.mode==="structure"){
           if(!currentView().byKey.has(file.path)){
             openStructure(containingFolder(file.path),"files",file.path);
-            openSourcePanel(null,false);
-          }else visitSource(file.path,"structure");
-        }else if(state.mode==="call" && file.functions.length) select(file.functions[0].id,"call",true);
-        else visitSource(file.path,"include");
+            if(byId("sourceOnClick").checked)openSourcePanel(null,false);
+          }else visitSelection(file.path,"structure");
+        }else if(state.mode==="call" && file.functions.length)visitSelection(file.functions[0].id,"call");
+        else visitSelection(file.path,"include");
+        if(file.functions.length && row.isConnected)renderTree();
       });
       row.title=file.path;row.style.paddingLeft=5+depth*14+"px";
       const appearance=fileAppearance(file),badge=el("span","file-symbol "+appearance.kind,appearance.mark);
@@ -2866,7 +2897,7 @@ function renderTree(){
       if(file.functions.length)row.setAttribute("aria-expanded",String(open));
       tree.append(row);
       if(open)for(const fn of file.functions){
-        const child=button("tree-row","ƒ  "+fn.name+"()",()=>visitSource(fn.id,"call"));
+        const child=button("tree-row","ƒ  "+fn.name+"()",()=>visitSelection(fn.id,"call"));
         child.title=fn.signature;child.style.paddingLeft=22+depth*14+"px";tree.append(child);
       }
     }
@@ -2986,9 +3017,9 @@ function createGraphNode(item){
   const node=button("graph-node"+(item.entry?" entry":"")+(item.external?" external-header":""),"",()=>{
     if(item.folder){openStructure(item.id,"folders",state.activeFile);return;}
     if(graphFullscreenView){select(item.id,state.mode,true);return;}
-    visitSource(item.id,state.mode);
+    visitSelection(item.id,state.mode);
   });
-  node.setAttribute("aria-controls",item.folder?"canvas details":"sourcePanel");
+  node.setAttribute("aria-controls",item.folder?"canvas details":"details sourcePanel");
   node.style.height=nodeHeight+"px";
   node.dataset.id=item.id;
   node.title=item.folder?"Open folder "+item.path:item.title+" · "+(item.external?item.meta:item.path);
@@ -3068,7 +3099,7 @@ function renderGraph(){
 function markSelection(){
   const headers=state.mode==="headers",view=currentView();
   const root=headers?(hoveredHeader||keyboardHeader||state.headerHighlight):null;
-  const reach=root?headerReach(view,root):null;
+  const reach=root?headerReach(view,root,headerHighlightScope):null;
   let cycle=false;
   for(const node of byId("nodes").children){
     const id=node.dataset.id,active=id===state.selected;
@@ -3131,7 +3162,7 @@ function relationGroup(label,ids,mode=state.mode,direction=null){
       const id=ids[index],entry=state.views[mode].byKey.get(id);
       const chip=button("chip",entry.title,()=>{
         if(entry.folder)openStructure(entry.id,"folders");
-        else visitSource(id,mode);
+        else visitSelection(id,mode);
       });
       chip.title=entry.path;
       if(!direction){items.append(chip);continue;}
@@ -3280,6 +3311,7 @@ function refresh(){
   byId("structureTab").setAttribute("aria-pressed",String(structure));
   byId("mapGrouping").hidden=!structure;byId("mapGrouping").value=state.grouping;
   byId("mapRelations").hidden=!structure;byId("mapRelations").value=state.relationshipKind;
+  byId("headerHighlightControl").hidden=!headers;byId("headerHighlightScope").value=headerHighlightScope;
   byId("entryButton").hidden=!state.entryPoints.length||call||headers;
   byId("traceButton").hidden=!call||!!state.route||state.functions.size<2;
   byId("focusButton").hidden=!!state.route||empty;
@@ -3337,7 +3369,7 @@ function dismissSource(){
   rememberLocation();
   closeSourcePanel();
   const selectedNode=byId("nodes").querySelector('[aria-pressed="true"]');
-  (selectedNode || byId(inspectorOpen?"showSource":"toggleInspector")).focus({preventScroll:true});
+  (selectedNode || byId(inspectorOpen?"showSource":"inspectorVisibility")).focus({preventScroll:true});
 }
 function renderSource(variable=null){
   displayedDeclaration=variable;
@@ -3562,6 +3594,11 @@ byId("entryButton").onclick=()=>{
 };
 byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("headerTab").onclick=()=>switchView("headers");
+byId("headerHighlightScope").onchange=event=>{
+  headerHighlightScope=event.target.value;
+  writeViewPreference("headerHighlightScope",headerHighlightScope);
+  markSelection();
+};
 byId("clearHeaderHighlight").onclick=()=>{
   rememberLocation();state.headerHighlight=null;hoveredHeader=null;keyboardHeader=null;
   markSelection();byId("headerTab").focus({preventScroll:true});
@@ -3572,11 +3609,20 @@ byId("graphFullscreen").onclick=toggleGraphFullscreen;
 byId("fullscreenSource").onclick=()=>{visitSource(state.selected,state.mode);byId("sourceBody").focus({preventScroll:true});};
 byId("fit").onclick=()=>fitGraph();byId("plus").onclick=()=>zoom(1.25);byId("minus").onclick=()=>zoom(.8);
 byId("showSource").onclick=()=>{openSourcePanel();byId("sourceBody").focus({preventScroll:true});};
+const sourceOnClick=byId("sourceOnClick");
+sourceOnClick.checked=readViewPreference("sourceOnClick","true")==="true";
+sourceOnClick.onchange=()=>{
+  writeViewPreference("sourceOnClick",String(sourceOnClick.checked));
+  if(sourceOnClick.checked)openSourcePanel(null,false);
+  else closeSourcePanel();
+};
 byId("goSymbol").onclick=showSymbolSearch;
 if(/Mac|iPhone|iPad/.test(window.navigator?.platform||""))byId("goSymbol").querySelector("kbd").textContent="⌘ K";
 byId("closeSource").onclick=dismissSource;byId("help").onclick=guide;
 byId("dialog").addEventListener("click",event=>{if(event.target===byId("dialog"))byId("dialog").close();else if(event.target.closest(".chip"))byId("dialog").close();});
 byId("toggleInspector").onclick=toggleInspector;
+byId("inspectorVisibility").onclick=toggleInspector;
+updateInspectorVisibility();
 byId("hideExplorer").onclick=()=>{setExplorerOpen(false);byId("toggleSidebar").focus();};
 byId("toggleSidebar").onclick=()=>{
   const opening=!(narrowExplorer.matches?mobileExplorerOpen:desktopExplorerOpen);
