@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#202a25"><title>C Atlas · C code explorer</title>
-<meta name="description" content="Explore C projects from GitHub or ZIP archives in your browser with interactive call and include graphs.">
+<meta name="description" content="Explore C projects from GitHub or ZIP archives in your browser with interactive call graphs and file dependency maps.">
 <style>:root{--ink:#202820;--dim:#59645a;--muted:#697568;--line:#d5dad0;--pale:#f5f7f0;--paper:#fff;--lime:#d4f495;--mono:"IBM Plex Mono",ui-monospace,"DejaVu Sans Mono",monospace;--sans:"Inter","Arial",sans-serif;font:16px var(--sans);color:var(--ink);background:#fafbf7}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button,a{color:inherit}button{cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:8px}button:focus-visible,a:focus-visible,input:focus-visible,#canvas:focus-visible{outline:3px solid #6a8e40;outline-offset:2px}button:disabled{opacity:.45;cursor:default}button svg,i svg{width:18px;height:18px}i{display:inline-flex;align-items:center;justify-content:center;font-style:normal}svg{display:block;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}button,.tabs{border-radius:6px}button{transition:background .13s,border-color .13s}button:hover:not(:disabled){filter:brightness(.97)}button[hidden],[hidden]{display:none!important}
 .topbar{height:67px;background:#fff;border-bottom:1px solid var(--line);padding:0 27px;display:flex;gap:20px;align-items:center}.wordmark{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--mono);font-size:23px;font-weight:bold;letter-spacing:-1.6px}.brand-icon,.brand-icon svg{width:34px;height:34px}.top-sep{height:22px;width:1px;background:var(--line)}.app-name{font-size:14px;color:#586253}.top-actions{margin-left:auto;display:flex;align-items:center;gap:23px}.plain{padding:6px 0;background:transparent;border:none;font-size:14px;color:#465042}.dark{background:#283522;color:white;border:1px solid #283522;padding:10px 17px;font-size:14px;font-weight:600}.dark svg{color:#d9efc4}
@@ -195,6 +195,18 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
 
 .topbar .account-launch{color:#d6e3d6;gap:6px}.account-launch svg{width:16px}.account-body p{line-height:1.5}.account-identity,.account-tools,.saved-project{display:flex;gap:12px;align-items:center}.account-identity{justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:9px}.account-tools{margin:15px 0}.saved-project{border-top:1px solid var(--line);justify-content:space-between}.saved-repo,.saved-remove{border:0;background:transparent;color:#355435}.saved-repo{padding:12px 4px;justify-content:flex-start;text-align:left;min-width:0}.saved-repo strong{font:600 13px var(--mono);overflow-wrap:anywhere}.saved-repo svg{flex:none;width:16px}.saved-remove{font:12px var(--sans);padding:7px}.saved-project-list{max-height:45dvh;overflow:auto}.account-dialog .repo-message:not(:empty){padding-top:12px}.account-tools{flex-wrap:wrap}
 @media(max-width:720px){.account-launch span{display:none}.topbar .account-launch{padding:8px 3px}}
+
+/* File references are dotted throughout the dependency views and exported maps. */
+.legend .asset-key{width:16px;border-bottom:2px dotted #785184}
+.legend .asset-style .line-key{height:0;background:transparent;border-bottom:2px dotted #785184}
+.tree-spacer{display:inline-block;flex:0 0 12px}
+.file-symbol.shader,.node-mark.shader,.kind-shader{background:#f4edf8;border-color:#c5aacd;color:#764486}
+.file-symbol.asset,.node-mark.asset,.kind-asset{background:#eaf1f6;border-color:#adc1cf;color:#375e78}
+.source-call.source-asset{color:#764486}.source-call.source-asset:hover{background:#f2e7f7}
+.asset-preview{padding:10px 3px;color:var(--ink)}
+.asset-preview h3,.asset-preview h4{font:600 13px var(--sans);margin:8px 0}
+.asset-preview p{font:13px/1.5 var(--sans);margin:6px 0 18px;color:var(--dim)}
+.asset-locations .result-item{font-size:12px}
 </style>
 </head>
 <body>
@@ -225,10 +237,10 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
       <div id="projectBadge" class="sample-badge"><span></span>Sample project</div>
     </div>
     <div class="view-toolbar">
-      <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Includes</button></div>
+      <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button></div>
       <div class="map-tools">
         <select id="mapGrouping" aria-label="Structure map grouping"><option value="folders">By folder</option><option value="files">By file</option></select>
-        <select id="mapRelations" aria-label="Structure relationships"><option value="all">Calls + includes</option><option value="call">Calls only</option><option value="include">Includes only</option></select>
+        <select id="mapRelations" aria-label="Structure relationships"><option value="all">All relationships</option><option value="call">Calls only</option><option value="include">Includes only</option><option value="asset">File references only</option></select>
         <button id="entryButton" class="outline" title="Open the program entry point">main()</button>
         <button id="traceButton" class="outline" hidden>Trace calls</button>
         <button id="focusButton" class="outline" title="Show the selected node and its neighbors" aria-label="Focus on neighbors" aria-pressed="false"><i data-icon="focus"></i><span>Focus</span></button>
@@ -242,7 +254,7 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
       <div id="canvasNote" hidden></div>
       <button id="fullscreenSource" class="outline" hidden><i data-icon="code"></i>View source</button>
       <div id="emptyGraph" hidden></div>
-      <div class="legend"><span><b class="key entry"></b><em id="entryLegend">Entry point</em></span><span><b class="key regular"></b><em id="funcLegend">Function</em></span><span><b class="line-key"></b> <em id="edgeLegend">Calls</em></span><span id="includeKey" hidden><b class="dashed-key"></b><em>Includes only</em></span></div>
+      <div class="legend"><span><b class="key entry"></b><em id="entryLegend">Entry point</em></span><span><b class="key regular"></b><em id="funcLegend">Function</em></span><span><b class="line-key"></b> <em id="edgeLegend">Calls</em></span><span id="includeKey" hidden><b class="dashed-key"></b><em>Includes only</em></span><span id="assetKey" hidden><b class="asset-key"></b><em>File reference</em></span></div>
       <div class="graph-controls"><button id="minus" aria-label="Zoom out" title="Zoom out"><i data-icon="minus"></i></button><span id="zoomLabel"></span><button id="plus" aria-label="Zoom in" title="Zoom in"><i data-icon="plus"></i></button><button id="fit" aria-label="Fit graph" title="Fit graph to view">Fit</button><span class="ctl-divider"></span><button id="graphFullscreen" aria-label="Enter graph full screen" title="Enter graph full screen" aria-pressed="false" aria-controls="canvas"><i data-icon="fit"></i></button><button id="exportGraph" aria-label="Download graph as SVG" title="Download graph as SVG"><i data-icon="download"></i></button></div>
     </div>
     <div id="paneSplitter" role="separator" tabindex="0" aria-label="Resize graph and source" aria-controls="canvas sourcePanel" aria-orientation="vertical" aria-valuemin="25" aria-valuemax="75" aria-valuenow="57" title="Drag to resize graph and source"></div>
@@ -267,13 +279,244 @@ const AtlasAnalysis = (() => {
   const controls = new Set("if else for while switch case return sizeof _Alignof alignof typeof __typeof__ _Generic _Static_assert static_assert _Alignas __attribute__ __attribute __declspec asm __asm__ do break continue goto".split(" "));
   const decorations = new Set(["__attribute__", "__attribute", "__declspec", "_Alignas", "alignas", "asm", "__asm__"]);
   const identifier = /^[A-Za-z_]\w*$/;
-  function normalize(path) {
-    const parts = [];
-    for (const part of path.replace(/\\/g, "/").split("/")) {
-      if (part === "..") parts.pop();
-      else if (part && part !== ".") parts.push(part);
+  const limits=Object.freeze({maxFileBytes:8*1024*1024,maxTotalBytes:64*1024*1024,maxFiles:5000});
+  const limitMessage="This project exceeds the limit of 64 MiB of indexed text, 8 MiB per source file, or 5,000 indexed files.";
+  const shaderExtensions=new Set("vert frag geom tesc tese comp glsl vs fs gs vsh fsh gsh vshader fshader shader wgsl hlsl hlsli fx fxh metal mesh task rgen rint rahit rchit rmiss rcall slang vertex fragment geometry compute cs tc te vertshader fragshader".split(" "));
+  const textExtensions=new Set("inc inl def txt md rst csv tsv xml json jsonc yaml yml toml ini cfg conf properties lua py sh bash zsh js mjs cjs ts jsx tsx css html htm sql cmake mk make bdf fnt obj mtl map atlas gltf svg plist".split(" "));
+  function fileKind(path){
+    const name=path.slice(path.lastIndexOf("/")+1).toLowerCase(),extension=name.split(".").at(-1);
+    if(/\.c$/.test(name))return "c";
+    if(/\.h$/.test(name))return "header";
+    if(name.includes(".")&&shaderExtensions.has(extension))return "shader";
+    if(name.includes(".")&&textExtensions.has(extension)||/^(?:makefile|cmakelists\.txt|readme|license|copying)$/.test(name))return "text";
+    return "asset";
+  }
+  const isCFile=path=>/\.[ch]$/i.test(path);
+  const cleanSource=text=>text.replace(/^\uFEFF/,"").replace(/\r\n?/g,"\n");
+
+  function createPathResolver(inventory){
+    const paths=new Set(),suffixes=new Map();
+    for(const descriptor of inventory){
+      const path=descriptor.path;
+      paths.add(path);
+      for(let start=0;start<path.length;){
+        const suffix=path.slice(start);
+        suffixes.set(suffix,suffixes.has(suffix)?null:path);
+        const separator=path.indexOf("/",start);if(separator<0)break;start=separator+1;
+      }
     }
-    return parts.join("/");
+    // Reject paths that would escape the project. Keep a suffix match only when it is unique.
+    function join(base,path){
+      const parts=base?base.split("/"):[];
+      for(const part of path.split("/")){
+        if(!part||part===".")continue;
+        if(part===".."){if(!parts.length)return null;parts.pop();}
+        else parts.push(part);
+      }
+      return parts.join("/");
+    }
+    return function resolve(name,from,mode){
+      if(!name||name.length>4096||/[\x00-\x1f\x7f]/.test(name)||
+         /^(?:[a-z][a-z\d+.-]*:|[\\/]|~\/)/i.test(name))return null;
+      const path=name.replace(/\\/g,"/");
+      const relative=join(from.slice(0,Math.max(from.lastIndexOf("/"),0)),path),root=join("",path);
+      const localFirst=mode==="quoted"||/^\.\.?\//.test(path);
+      if(localFirst && paths.has(relative))return relative;
+      if(paths.has(root))return root;
+      if(mode==="literal" && paths.has(relative))return relative;
+      return root && suffixes.get(root)||null;
+    };
+  }
+
+  // A directive ends at the first logical newline outside a string or comment.
+  function readDirective(source,offset){
+    const endPattern=/"(?:\\[\s\S]|[^"\\\n])*"|'(?:\\[\s\S]|[^'\\\n])*'|\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|\\\n|\n/g;
+    endPattern.lastIndex=offset+1;
+    let match;
+    while((match=endPattern.exec(source))&&match[0]!=="\n"){}
+    return source.slice(offset,match?match.index:source.length);
+  }
+  function directiveContents(raw){
+    const remove=/"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|\\\n/g;
+    return raw.replace(remove,token=>token.startsWith("/")||token==="\\\n"?" ".repeat(token.length):token);
+  }
+  function parseInclude(clean,base){
+    const match=/^#\s*include\s*(?:"([^"\n]+)"|<([^>\n]+)>)/.exec(clean);
+    if(!match)return null;
+    const name=match[1]??match[2];
+    return {name,quoted:match[1]!==undefined,length:name.length,offset:base+match[0].length-name.length-1};
+  }
+
+  function scanReferences(source,path,resolve){
+    const includes=[],references=[],kind=fileKind(path),extension=path.split(".").at(-1).toLowerCase();
+    let line=1,nextBreak=source?.indexOf("\n")??-1;
+    function lineAt(offset){
+      while(nextBreak!==-1 && nextBreak<offset){line++;nextBreak=source.indexOf("\n",nextBreak+1);}
+      return line;
+    }
+    function record(spelling,offset,lookup=spelling){
+      const target=lookup&&resolve(lookup,path,"literal");
+      if(target)references.push({name:spelling,target,offset,length:spelling.length,line:lineAt(offset)});
+      return !!target;
+    }
+    function literalName(spelling){
+      // Retain the literal's spelling in the source pane while resolving its decoded project path.
+      if(/[\\\n]/.test(spelling.replace(/\\[\\/]/g,"")) || /%(?:\d+\$)?[-+# 0]*\d*(?:\.\d+)?[diouxXfFeEgGaAcspn]/.test(spelling))return null;
+      return spelling.replace(/\\([\\/])/g,"$1");
+    }
+    if(!source)return {includes,references};
+    if(isCFile(path)||kind==="shader"||["inc","inl"].includes(extension)){
+      // An adjacent literal is one filename in C. Link its last nonempty fragment once.
+      let pending=null;
+      function onlyTrivia(start,end){
+        // Walk the intervening source once, including C's phase-two line splices.
+        for(let index=start;index<end;){
+          const char=source[index],next=source[index+1];
+          if(/\s/.test(char)){index++;continue;}
+          if(char==="\\"&&next==="\n"){index+=2;continue;}
+          if(char==="/"&&next==="*"){
+            const close=source.indexOf("*/",index+2);
+            if(close<0||close+2>end)return false;
+            index=close+2;continue;
+          }
+          if(char==="/"&&next==="/"){
+            const stop=source.indexOf("\n",index+2);
+            index=stop<0?end:stop+1;continue;
+          }
+          return false;
+        }
+        return true;
+      }
+      function finish(){
+        if(pending?.lookup)record(pending.spelling,pending.offset,pending.lookup);
+        pending=null;
+      }
+      function stringToken(spelling,start,end,begin){
+        if(pending&&!onlyTrivia(pending.end,begin))finish();
+        const fragment=literalName(spelling);
+        if(!pending)pending={lookup:"",spelling,offset:start};
+        pending.lookup=pending.lookup===null||fragment===null?null:pending.lookup+fragment;
+        if(spelling){pending.spelling=spelling;pending.offset=start;}
+        pending.end=end;
+      }
+      const pattern=/\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|#|(?:u8|[uUL])?"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g;
+      let match;
+      while((match=pattern.exec(source))){
+        const value=match[0],begin=match.index;
+        if(value.startsWith("/"))continue;
+        if(value==="#"){
+          finish();
+          const raw=readDirective(source,begin),clean=directiveContents(raw),include=parseInclude(clean,begin);
+          pattern.lastIndex=begin+raw.length;
+          if(include){
+            include.target=resolve(include.name,path,include.quoted?"quoted":"angle");
+            include.line=lineAt(include.offset);includes.push(include);
+          }else if(/^#\s*define\b/.test(clean)){
+            // Scan the original directive so offsets and checks between adjacent fragments stay exact.
+            const inner=/\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|'(?:\\[\s\S]|[^'\\])*'|(?:u8|[uUL])?"(?:\\[\s\S]|[^"\\])*"/g;
+            for(const piece of raw.matchAll(inner)){
+              if(piece[0].startsWith("/")||piece[0].startsWith("'"))continue;
+              const quote=piece[0].indexOf('"'),start=begin+piece.index;
+              stringToken(piece[0].slice(quote+1,-1),start+quote+1,start+piece[0].length,start);
+            }
+            finish();
+          }
+        }else if(!value.startsWith("'")){
+          const quote=value.indexOf('"');
+          stringToken(value.slice(quote+1,-1),begin+quote+1,pattern.lastIndex,begin);
+        }
+      }
+      finish();
+    }else if(extension==="obj"||extension==="mtl"){
+      const commands=extension==="obj"?/^[ \t]*mtllib[ \t]+/i:/^[ \t]*(?:map_\w+|bump|decal|disp|refl|norm)[ \t]+/i;
+      const mapOptions=/^-(?:blendu|blendv|boost|cc|clamp|imfchan|bm|texres|type|colorspace)$/i;
+      for(const row of source.matchAll(/[^\n]+/g)){
+        const command=commands.exec(row[0]);if(!command)continue;
+        const tail=row[0].slice(command[0].length),base=row.index+command[0].length;
+        const words=[...tail.matchAll(/"[^"]*"|'[^']*'|#[^\n]*|[^\s#]+/g)];
+        if(words.at(-1)?.[0].startsWith("#"))words.pop();
+        let index=0;
+        if(extension==="mtl"){
+          while(index<words.length&&words[index][0].startsWith("-")){
+            const option=words[index++][0];
+            if(/^-(?:o|s|t)$/i.test(option)){
+              for(let n=0;n<3 && /^-?(?:\d|\.\d)/.test(words[index]?.[0]||"");n++)index++;
+            }else if(option==="-mm")index+=2;
+            else if(mapOptions.test(option))index++;
+            else{index=words.length;break;}
+          }
+        }
+        const first=words[index],last=words.at(-1);if(!first)continue;
+        const combined=tail.slice(first.index,last.index+last[0].length);
+        if(words.length>index+1 && record(combined,base+first.index))continue;
+        if(extension==="obj"||words.length===index+1){
+          for(const word of words.slice(index)){
+            const quoted=/^["']/.test(word[0]);
+            record(quoted?word[0].slice(1,-1):word[0],base+word.index+(quoted?1:0));
+          }
+        }
+      }
+    }else if(kind==="text"){
+      const config=/^(?:toml|ini|cfg|conf|yaml|yml|properties)$/.test(extension);
+      const syntax=extension==="lua"?/--\[(=*)\[[\s\S]*?\]\1\]|--[^\n]*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g:
+        /^(?:py|sh|bash|zsh|toml|ini|cfg|conf|yaml|yml|properties|cmake|mk|make)$/.test(extension)?
+          /#[^\n]*|^[\t ]*;[^\n]*|"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/gm:
+        /^(?:json|jsonc|gltf|js|mjs|cjs|ts|jsx|tsx|css)$/.test(extension)?
+          /\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*|`(?:\\[\s\S]|[^`\\])*`|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g:
+        /^(?:xml|svg|plist|html|htm)$/.test(extension)?
+          /<!--[\s\S]*?(?:-->|$)|=\s*(?:"[^"]*"|'[^']*')/g:null;
+      if(syntax)for(const match of source.matchAll(syntax)){
+        const raw=match[0],quoted=raw.startsWith("=")?raw.slice(1).trimStart():raw;
+        if(!/^["'`]/.test(quoted)||quoted.startsWith('"""')||quoted.startsWith("'''")||quoted.includes("${"))continue;
+        const name=quoted.slice(1,-1);record(name,match.index+raw.length-quoted.length+1,literalName(name));
+      }
+      if(config){
+        // Unquoted scalar paths in common assignment-based configuration files.
+        for(const row of source.matchAll(/^([ \t]*[\w.-]+[ \t]*[:=][ \t]*)([^\s#;"'{}\[\],]+)[ \t]*(?:[#;][^\n]*)?$/gm)){
+          const name=row[2],offset=row.index+row[1].length,target=resolve(name,path,"literal");
+          if(target)references.push({name,offset,length:name.length,target});
+        }
+        references.sort((a,b)=>a.offset-b.offset);line=1;nextBreak=source.indexOf("\n");
+        for(const site of references)site.line=lineAt(site.offset);
+      }
+    }
+    return {includes,references};
+  }
+
+  async function collectAssetEntries(sources,inventory,readBytes){
+    const resolve=createPathResolver(inventory),byPath=new Map(inventory.map(item=>[item.path,item]));
+    const entries=sources.map(source=>({...source,source:cleanSource(source.source)}));
+    const seen=new Set(entries.map(entry=>entry.path)),utf8=new TextDecoder("utf-8",{fatal:true});
+    let total=entries.reduce((bytes,entry)=>bytes+(entry.size??byPath.get(entry.path)?.size??new TextEncoder().encode(entry.source).length),0);
+    if(entries.length>limits.maxFiles||total>limits.maxTotalBytes)throw Error(limitMessage);
+    for(let cursor=0;cursor<entries.length;){
+      const batch=[],end=entries.length;
+      while(cursor<end){
+        const entry=entries[cursor++];
+        entry.links=scanReferences(entry.source,entry.path,resolve);
+        for(const site of [...entry.links.includes,...entry.links.references]){
+          if(!site.target||seen.has(site.target))continue;
+          const descriptor=byPath.get(site.target);if(!descriptor)continue;
+          if(seen.size>=limits.maxFiles)throw Error(limitMessage);
+          seen.add(descriptor.path);
+          const asset={path:descriptor.path,size:descriptor.size,source:null};
+          entries.push(asset);
+          const size=descriptor.size;
+          if(fileKind(asset.path)==="asset"||!Number.isSafeInteger(size)||size<0||size>limits.maxFileBytes||total+size>limits.maxTotalBytes)continue;
+          total+=size;batch.push({asset,descriptor});
+        }
+      }
+      // Bound concurrency even for a single source file that refers to thousands of small assets.
+      for(let first=0;first<batch.length;first+=6){
+        await Promise.all(batch.slice(first,first+6).map(async({asset,descriptor})=>{
+          const bytes=await readBytes(descriptor);
+          if(bytes.length!==descriptor.size)throw Error("Incomplete contents for "+descriptor.path+".");
+          if(bytes.includes(0))return;
+          try{asset.source=cleanSource(utf8.decode(bytes));}catch{/* Binary data may have a text-looking extension. */}
+        }));
+      }
+    }
+    return entries;
   }
 
   function tokenize(source,onDirective){
@@ -288,13 +531,15 @@ const AtlasAnalysis = (() => {
       return lower;
     }
     // Mask literals and comments first, retaining quoted include directives for indexing.
-    const pattern = /\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*(?:\\\n[^\n]*)*|^[\t ]*#[^\n]*(?:\n(?<=\\\n)[^\n]*)*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?)\w*|->|[^\s]/gm;
+    const pattern = /\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*(?:\\\n[^\n]*)*|#|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?)\w*|->|[^\s]/gm;
     const tokens = [];
-    for (const match of source.matchAll(pattern)) {
+    let match;
+    while ((match=pattern.exec(source))) {
       const value = match[0];
       if (value.startsWith("//") || value.startsWith("/*")) continue;
-      if (value.trimStart()[0] === "#") {
-        if(onDirective)onDirective(value.trimStart(),lineOf(match.index),match.index+value.length-value.trimStart().length);
+      if(value==="#"){
+        const raw=readDirective(source,match.index);pattern.lastIndex=match.index+raw.length;
+        if(onDirective)onDirective(directiveContents(raw),lineOf(match.index),match.index);
         continue;
       }
       tokens.push({value, at:match.index});
@@ -521,12 +766,12 @@ const AtlasAnalysis = (() => {
   }
 
   function parseFile(path, original) {
-    const source = original.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+    const source = cleanSource(original);
     const includes=[],macros=[],functions=[],globals=[],typedefs=[],definitions=[],directives=[],types=new Set();
     
     const reader=tokenize(source,(directive,line,offset)=>{
-        const include = /^#\s*include\s*(["<])([^">]+)[">]/.exec(directive);
-        if (include) includes.push({name:include[2], quoted:include[1] === '"', line, offset:offset+include[0].length-include[2].length-1});
+        const include=parseInclude(directive,offset);
+        if(include)includes.push({...include,line});
         const header=/^#\s*([A-Za-z_]\w*)/.exec(directive);
         if(!header)return;
         const command=header[1],event={command,start:offset,keyword:offset+header[0].length-command.length,end:offset+directive.length};
@@ -627,22 +872,37 @@ const AtlasAnalysis = (() => {
   }
 
   function analyze(entries, name) {
-    const files = entries.map(entry => parseFile(entry.path, entry.source)).sort((a,b)=>a.path.localeCompare(b.path));
-    const paths = new Set(files.map(file=>file.path)), suffixes = new Map();
-    for (const path of paths) {
-      const parts = path.split("/");
-      for (let index=0; index<parts.length; index++) {
-        const suffix = parts.slice(index).join("/");
-        suffixes.set(suffix, suffixes.has(suffix) ? null : path);
+    const byPath=new Map(entries.map(entry=>[entry.path,entry]));
+    const resolve=createPathResolver(entries),files=[],pending=entries.filter(entry=>isCFile(entry.path));
+    const seen=new Set(pending.map(entry=>entry.path));
+    for(let index=0;index<pending.length;index++){
+      const entry=pending[index],kind=fileKind(entry.path);
+      const source=typeof entry.source==="string"&&kind!=="asset"?cleanSource(entry.source):null;
+      const links=entry.links||scanReferences(source,entry.path,resolve);
+      const file=isCFile(entry.path)?parseFile(entry.path,source??""):{
+        path:entry.path,source,lineCount:source===null?0:source.split("\n").length,includes:[],macros:[],
+        functions:[],globals:[],typedefs:[],definitions:[],directives:[]
+      };
+      file.kind=kind;file.size=entry.size??(source?source.length:0);
+      file.references=links.references;
+      if(isCFile(entry.path)){
+        // The C symbol parser owns directive.include indices. Match records by token offset.
+        const resolved=new Map(links.includes.map(site=>[site.offset,site]));
+        for(const include of file.includes){
+          const site=resolved.get(include.offset);include.target=site?.target??null;
+          if(site)include.line=site.line;
+        }
+      }else file.includes=links.includes;
+      files.push(file);
+      for(const site of [...links.includes,...links.references]){
+        if(!site.target||seen.has(site.target)||!byPath.has(site.target))continue;
+        seen.add(site.target);pending.push(byPath.get(site.target));
       }
     }
+    files.sort((left,right)=>left.path.localeCompare(right.path));
     const fileMap = new Map(files.map(file=>[file.path,file]));
     const definitions = new Map();
     for (const file of files) {
-      for (const include of file.includes) {
-        const relative = normalize(file.path.split("/").slice(0,-1).concat(include.name).join("/"));
-        include.target = include.quoted && paths.has(relative) ? relative : paths.has(include.name) ? include.name : suffixes.get(include.name) || null;
-      }
       for (const fn of file.functions) {
         if (!definitions.has(fn.name)) definitions.set(fn.name,[]);
         definitions.get(fn.name).push(fn);
@@ -693,54 +953,62 @@ const AtlasAnalysis = (() => {
     if(end < Math.max(0,data.length-65557)) invalid();
     if(short(end+4) || short(end+6) || short(end+8)!==short(end+10) || short(end+10)===65535) invalid();
     let pos = word(end+16), total = 0;
-    const entries = [], names = new Set(), directoryEnd = pos + word(end+12);
-    if (directoryEnd>end) invalid();
-    for(let index=0;index<short(end+10);index++) {
-      if(pos+46>directoryEnd || word(pos)!==0x02014b50) invalid();
-      const flags=short(pos+8), method=short(pos+10), checksum=word(pos+16), compressed=word(pos+20), size=word(pos+24), local=word(pos+42);
-      const nameLength=short(pos+28), next=pos+46+nameLength+short(pos+30)+short(pos+32);
-      if(next>directoryEnd) invalid();
-      const path=decoder.decode(data.subarray(pos+46,pos+46+nameLength)).replace(/\\/g,"/").replace(/^(?:\.\/)+/,"");
+    const inventory=[],names=new Set(),directoryEnd=pos+word(end+12);
+    if(directoryEnd>end)invalid();
+    for(let index=0;index<short(end+10);index++){
+      if(pos+46>directoryEnd || word(pos)!==0x02014b50)invalid();
+      const nameLength=short(pos+28),next=pos+46+nameLength+short(pos+30)+short(pos+32);
+      if(next>directoryEnd)invalid();
+      const raw=decoder.decode(data.subarray(pos+46,pos+46+nameLength)).replace(/\\/g,"/");
+      const record={path:raw.split("/").filter(part=>part&&part!==".").join("/"),flags:short(pos+8),
+        method:short(pos+10),checksum:word(pos+16),compressed:word(pos+20),size:word(pos+24),local:word(pos+42)};
       pos=next;
-      if(!/\.[ch]$/i.test(path) || /(^|\/)(?:__MACOSX|\.git|\.\.|\._[^/]*)($|\/)/.test(path) || path.startsWith("/")) continue;
-      if(names.has(path)) throw Error("The ZIP contains duplicate source paths.");
-      names.add(path);
-      total+=size;
-      if(total>64*1024*1024 || size>8*1024*1024 || names.size>5000) throw Error("This project exceeds the limit of 64 MiB of C source, 8 MiB per file, or 5,000 files.");
-      if(flags&1 || ![0,8].includes(method)) throw Error("Use a standard, unencrypted ZIP with stored or deflated files.");
-      if(local+30>end || word(local)!==0x04034b50) invalid();
-      const start=local+30+short(local+26)+short(local+28);
-      if(start+compressed>word(end+16)) invalid();
-      let bytes=data.subarray(start,start+compressed);
-      if(method===8) {
-        if(typeof DecompressionStream==="undefined") throw Error("Your browser needs support for ZIP decompression. Open this page in a current Firefox or Chromium browser.");
-        const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader();
-        const output=new Uint8Array(size); let offset=0;
-        for(;;) {
-          const chunk=await reader.read(); if(chunk.done) break;
-          if(offset+chunk.value.length>size) { await reader.cancel(); invalid(); }
-          output.set(chunk.value,offset); offset+=chunk.value.length;
-        }
-        if(offset!==size) invalid(); bytes=output;
-      }
-      if(bytes.length!==size) invalid();
-      let crc=0xffffffff;
-      for(const value of bytes) crc=crcTable[(crc^value)&255]^(crc>>>8);
-      if(((crc^0xffffffff)>>>0)!==checksum) invalid();
-      entries.push({path,source:decoder.decode(bytes)});
+      if(!record.path||raw.endsWith("/")||raw.startsWith("/")||raw.length>4096||
+         /^[a-z]:/i.test(raw)||/[\x00-\x1f]/.test(raw)||/(^|\/)(?:__MACOSX|\.git|\.\.|\._[^/]*)($|\/)/.test(raw))continue;
+      if(names.has(record.path))throw Error("The ZIP contains duplicate file paths.");
+      names.add(record.path);inventory.push(record);
     }
-    if(!entries.length) throw Error("No .c or .h files were found in this ZIP.");
-    const root = entries[0].path.split("/")[0]+"/";
-    if(entries.every(entry=>entry.path.startsWith(root)) && entries.some(entry=>entry.path.slice(root.length).includes("/")))
-      for(const entry of entries) entry.path=entry.path.slice(root.length);
-    return entries;
+    const sourceFiles=inventory.filter(entry=>isCFile(entry.path));
+    if(!sourceFiles.length)throw Error("No .c or .h files were found in this ZIP.");
+    const root=sourceFiles[0].path.split("/")[0]+"/";
+    if(inventory.every(entry=>entry.path.startsWith(root))&&inventory.some(entry=>entry.path.slice(root.length).includes("/")))
+      for(const entry of inventory)entry.path=entry.path.slice(root.length);
+    async function readBytes({flags,method,local,compressed,size,checksum}){
+      if(flags&1 || ![0,8].includes(method))throw Error("Use a standard, unencrypted ZIP with stored or deflated files.");
+      if(local+30>end || word(local)!==0x04034b50)invalid();
+      const start=local+30+short(local+26)+short(local+28);
+      if(start+compressed>word(end+16))invalid();
+      let bytes=data.subarray(start,start+compressed);
+      if(method===8){
+        if(typeof DecompressionStream==="undefined")throw Error("Your browser needs support for ZIP decompression. Open this page in a current Firefox or Chromium browser.");
+        const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader();
+        const output=new Uint8Array(size);let offset=0;
+        for(;;){
+          const chunk=await reader.read();if(chunk.done)break;
+          if(offset+chunk.value.length>size){await reader.cancel();invalid();}
+          output.set(chunk.value,offset);offset+=chunk.value.length;
+        }
+        if(offset!==size)invalid();bytes=output;
+      }
+      if(bytes.length!==size)invalid();
+      let crc=0xffffffff;for(const value of bytes)crc=crcTable[(crc^value)&255]^(crc>>>8);
+      if(((crc^0xffffffff)>>>0)!==checksum)invalid();
+      return bytes;
+    }
+    const sources=[];
+    if(sourceFiles.length>limits.maxFiles)throw Error(limitMessage);
+    for(const descriptor of sourceFiles){
+      total+=descriptor.size;
+      if(total>limits.maxTotalBytes||descriptor.size>limits.maxFileBytes)throw Error(limitMessage);
+      sources.push({path:descriptor.path,size:descriptor.size,source:decoder.decode(await readBytes(descriptor))});
+    }
+    return collectAssetEntries(sources,inventory,readBytes);
   }
-  return {analyze, readZip, inspectVariables};
+  return {analyze,readZip,inspectVariables,collectAssetEntries,fileKind,limits};
 })();
 </script>
-<script id="github-code">// The API supplies a commit and its file inventory. Raw source downloads use that same immutable commit.
+<script id="github-code">// Resolve source and asset references against the complete tree and fetch bytes from the same commit.
 const AtlasGitHub=(()=>{
-  const maxFileBytes=8*1024*1024,maxTotalBytes=64*1024*1024,maxFiles=5000;
   const shaPattern=/^(?:[a-f\d]{40}|[a-f\d]{64})$/i;
   const sizeMessage="This project exceeds the limit of 64 MiB of C source, 8 MiB per file, or 5,000 files.";
   const urlMessage="Enter a GitHub repository link such as https://github.com/owner/project. File and folder links are unsupported.";
@@ -785,17 +1053,22 @@ const AtlasGitHub=(()=>{
   }
 
   async function listFiles(api,treeSha,signal){
-    const files=[],paths=new Set();let total=0;
+    const {maxFileBytes,maxTotalBytes,maxFiles}=AtlasAnalysis.limits;
+    const files=[],inventory=[],paths=new Set();let total=0;
     const treeUrl=sha=>api+"/git/trees/"+sha;
     function validPath(path){
       return typeof path==="string"&&path.split("/").every(part=>part&&part!=="."&&part!==".."&&part!==".git"&&part!=="__MACOSX"&&!part.startsWith("._"));
     }
     function addFile(entry,path){
-      if(entry.type!=="blob"||!["100644","100755"].includes(entry.mode)||!(/\.[ch]$/i.test(path)))return;
+      if(entry.type!=="blob"||!["100644","100755"].includes(entry.mode))return;
       if(paths.has(path)||!Number.isSafeInteger(entry.size)||entry.size<0)throw Error("GitHub returned an invalid source file listing.");
+      paths.add(path);
+      const file={path,size:entry.size};
+      inventory.push(file);
+      if(!/\.[ch]$/i.test(path))return;
       total+=entry.size;
       if(files.length>=maxFiles||entry.size>maxFileBytes||total>maxTotalBytes)throw Error(sizeMessage);
-      paths.add(path);files.push({path,size:entry.size});
+      files.push(file);
     }
     const pending=[{sha:treeSha,prefix:""}];
     while(pending.length){
@@ -819,10 +1092,10 @@ const AtlasGitHub=(()=>{
       }
     }
     if(!files.length)throw Error("No .c or .h files were found in this repository.");
-    return files;
+    return {files,inventory};
   }
 
-  async function readSource(rawBase,file,signal){
+  async function readBytes(rawBase,file,signal){
     const encodedPath=file.path.split("/").map(encodeURIComponent).join("/");
     const response=await request(rawBase+"/"+encodedPath,signal,false);
     const reader=response.body?.getReader();
@@ -840,7 +1113,7 @@ const AtlasGitHub=(()=>{
       }
     }finally{reader.releaseLock();}
     if(offset!==bytes.length)throw Error("The download of "+file.path+" was incomplete. Retry the import.");
-    return {path:file.path,source:new TextDecoder().decode(bytes)};
+    return bytes;
   }
 
   async function download(value,{signal,onProgress=()=>{}}={}){
@@ -855,15 +1128,16 @@ const AtlasGitHub=(()=>{
       const commits=await getJson(api+"/commits?per_page=1&sha="+encodeURIComponent(branch),controller.signal);
       const commit=commits[0]?.sha,treeSha=commits[0]?.commit?.tree?.sha;
       if(!shaPattern.test(commit)||!shaPattern.test(treeSha))throw Error("GitHub did not return a readable commit for "+branch+".");
-      onProgress("Listing C sources on "+branch+"…");
-      const files=await listFiles(api,treeSha,controller.signal);
+      onProgress("Listing project files on "+branch+"…");
+      const {files,inventory}=await listFiles(api,treeSha,controller.signal);
       const rawBase="https://raw.githubusercontent.com/"+repository.fullName+"/"+commit;
-      const entries=new Array(files.length);let next=0,completed=0,lastUpdate=0;
+      const sources=new Array(files.length),decoder=new TextDecoder();let next=0,completed=0,lastUpdate=0;
       onProgress("Downloading 0 of "+files.length+" C files…");
       async function downloadNext(){
         while(next<files.length){
           const index=next++;
-          entries[index]=await readSource(rawBase,files[index],controller.signal);
+          const file=files[index],bytes=await readBytes(rawBase,file,controller.signal);
+          sources[index]={...file,source:decoder.decode(bytes)};
           completed++;
           const now=Date.now();
           if(now-lastUpdate>=150||completed===files.length){
@@ -872,6 +1146,9 @@ const AtlasGitHub=(()=>{
         }
       }
       await Promise.all(Array.from({length:Math.min(4,files.length)},downloadNext));
+      onProgress("Finding referenced project files…");
+      const entries=await AtlasAnalysis.collectAssetEntries(sources,inventory,file=>readBytes(rawBase,file,controller.signal));
+      controller.signal.throwIfAborted();
       return {entries,name:repository.repo,repository:{...repository,branch,commit}};
     }finally{
       abort();signal?.removeEventListener("abort",abort);
@@ -917,9 +1194,10 @@ void engine_update(engine_state_t *engine_state){
 }
 `},
   {path:"src/renderer.c",source:`#include "renderer.h"
-
+extern bool load_shader_program(const char *vertex_path, const char *fragment_path);
 bool renderer_init(engine_state_t *engine_state){
-  return engine_state->chunk_count > MIN_VISIBLE_CHUNKS;
+  return engine_state->chunk_count > MIN_VISIBLE_CHUNKS
+    && load_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
 }
 
 static void draw_chunks(const engine_state_t *engine_state){
@@ -983,16 +1261,82 @@ bool renderer_init(engine_state_t *engine_state);
 void render_frame(const engine_state_t *engine_state);
 
 #endif
+`},
+  {path:"shaders/chunk.vert",source:`#version 330 core
+layout(location = 0) in vec3 vertex_position;
+uniform mat4 view_projection;
+
+void main(){
+  gl_Position = view_projection * vec4(vertex_position, 1.0);
+}
+`},
+  {path:"shaders/chunk.frag",source:`#version 330 core
+out vec4 fragment_color;
+
+void main(){
+  fragment_color = vec4(0.42, 0.65, 0.30, 1.0);
+}
 `}
 ];
 </script>
-<script>// File-level evidence is shared by every level of the structure map.
+<script>const shaderStages=new Map([
+  ["vert","Vertex"],["vs","Vertex"],["vsh","Vertex"],["vshader","Vertex"],["vertex","Vertex"],
+  ["frag","Fragment"],["fs","Fragment"],["fsh","Fragment"],["fshader","Fragment"],["fragment","Fragment"],
+  ["geom","Geometry"],["gs","Geometry"],["gsh","Geometry"],["geometry","Geometry"],
+  ["comp","Compute"],["cs","Compute"],["compute","Compute"],["tesc","Tessellation control"],["tese","Tessellation evaluation"],
+  ["rgen","Ray generation"],["rint","Intersection"],["rahit","Any-hit"],["rchit","Closest-hit"],["rmiss","Miss"],
+  ["rcall","Callable"],["mesh","Mesh"],["task","Task"]
+]);
+function fileAppearance(file){
+  const parts=base(file.path).toLowerCase().split(".");
+  const extension=parts.length>1?parts.at(-1):"";
+  const kind=file.kind||AtlasAnalysis.fileKind(file.path);
+  if(kind==="c")return {kind,mark:"C",label:"C source"};
+  if(kind==="header")return {kind,mark:"h",label:"C header"};
+  if(kind==="shader"){
+    const stage=shaderStages.get(extension)||shaderStages.get(parts.at(-2));
+    return {kind,mark:"S",label:stage?stage+" shader":extension==="shader"?"Shader":extension.toUpperCase()+" shader"};
+  }
+  if(extension==="spv")return {kind:"asset",mark:"A",label:"SPIR-V binary"};
+  const label=extension?extension.toUpperCase()+(kind==="text"?" file":" asset"):"Project file";
+  return {kind:"asset",mark:"A",label};
+}
+function fileDependencies(file){
+  const records=[];
+  for(const [kind,sites] of [["include",file.includes],["asset",file.references||[]]]){
+    for(const site of sites){
+      if(site.target)records.push({kind,path:file.path,destination:site.target,site});
+    }
+  }
+  return records;
+}
+function buildFileDependencies(files,relationships=files.flatMap(fileDependencies)){
+  const connections=new Map(files.map(file=>[file.path,new Map()]));
+  for(const record of relationships){
+    if(record.kind==="call"||!connections.has(record.destination))continue;
+    const targets=connections.get(record.path);
+    if(!targets.has(record.destination))targets.set(record.destination,[]);
+    targets.get(record.destination).push(record);
+  }
+  const items=files.map(file=>{
+    const {kind,label}=fileAppearance(file),directory=containingFolder(file.path);
+    return {id:file.path,path:file.path,title:base(file.path),entry:kind==="c",
+      meta:(kind==="asset"||kind==="shader"?label+" · ":"")+(directory||"Project root"),next:[...connections.get(file.path).keys()]};
+  });
+  return {...buildView(items),connections};
+}
+function edgeAppearance(records){
+  if(records?.length){
+    if(records.every(record=>record.kind==="asset"))return {dash:"2 4",color:"#785184"};
+    if(records.every(record=>record.kind==="include"))return {dash:"5 3",color:null};
+  }
+  return {dash:null,color:null};
+}
+// File-level evidence is shared by every level of the structure map.
 function collectRelationships(files,functions){
   const relationships=[];
   for(const file of files){
-    for(const include of file.includes){
-      if(include.target)relationships.push({kind:"include",path:file.path,destination:include.target,site:include});
-    }
+    for(const record of fileDependencies(file))relationships.push(record);
     for(const fn of file.functions){
       for(const site of fn.callSites){
         relationships.push({kind:"call",path:file.path,destination:functions.get(site.target).path,caller:fn.id,site});
@@ -1035,8 +1379,10 @@ function buildStructure(files,relationships,scope,grouping,kind="all"){
   const items=[...groups.values()].sort((a,b)=>Number(b.folder)-Number(a.folder)||a.id.localeCompare(b.id));
   for(const item of items){
     const location=containingFolder(item.path).slice(scope.length).replace(/\/$/,"");
+    const appearance=item.folder?null:fileAppearance(item.files[0]);
+    const detail=appearance && (appearance.kind==="asset" || appearance.kind==="shader")?appearance.label:countLabel(item.functionCount,"function");
     item.meta=item.folder?countLabel(item.files.length,"file")+" · "+countLabel(item.functionCount,"function"):
-      (location?location+" · ":"")+countLabel(item.functionCount,"function");
+      (location?location+" · ":"")+detail;
     item.next=[...connections.get(item.id).keys()];
   }
   return {...buildView(items),connections};
@@ -1145,28 +1491,60 @@ function visitSource(id,mode,marker=null){
   hideSidebar();
 }
 function evidenceFor(from,to){
-  if(state.mode==="structure")return currentView().connections.get(from)?.get(to)||[];
-  if(state.mode==="include")return state.files.get(from).includes.filter(site=>site.target===to).map(site=>({kind:"include",path:from,destination:to,site}));
+  if(state.mode==="structure"||state.mode==="include")return currentView().connections?.get(from)?.get(to)||[];
   const caller=state.functions.get(from),callee=state.functions.get(to);
   return caller.callSites.filter(site=>site.target===to).map(site=>({kind:"call",path:caller.path,destination:callee.path,caller:from,site}));
+}
+function visitEvidence(record){
+  if(byId("dialog").open)byId("dialog").close();
+  const site=record.site,marker={name:site.name,line:site.line,offset:site.offset,path:record.path,length:site.length??site.name.length};
+  const caller=record.caller || (record.kind==="asset" && state.files.get(record.path).functions.find(fn=>fn.first<=site.offset && site.offset<fn.last)?.id);
+  visitSource(caller||record.path,caller?"call":"include",marker);
+}
+function renderAssetMetadata(file){
+  const panel=el("div","asset-preview");
+  let description=fileAppearance(file).label;
+  if(Number.isSafeInteger(file.size)&&file.size>=0)description+=" · "+file.size.toLocaleString()+(file.size===1?" byte":" bytes");
+  panel.append(el("h3","",description),el("p","","Only file metadata is available for this asset."));
+  const view=state.views.include,records=[];
+  for(const from of view.incoming.get(file.path)||[]){
+    for(const record of view.connections.get(from).get(file.path))records.push(record);
+  }
+  if(!records.length)return panel;
+  const list=el("div","asset-locations");
+  panel.append(el("h4","","Referenced at"),list);
+  let index=0;
+  function showRows(){
+    const end=Math.min(records.length,index+60);
+    for(;index<end;index++){
+      const record=records[index],row=button("result-item","",()=>visitEvidence(record));
+      row.append(el("span","",record.path+":"+record.site.line));
+      list.append(row);
+    }
+    if(index<records.length){
+      const more=button("outline","Show more locations",()=>{more.remove();const first=index;showRows();list.children[first].focus();});
+      list.append(more);
+    }
+  }
+  showRows();return panel;
 }
 function showConnection(from,to){
   const view=currentView(),records=evidenceFor(from,to);
   if(!records.length)return;
   const box=el("div","connection-dialog"),list=el("div","result-list");
   box.append(el("h2","","Connection details"),el("p","connection-pair",view.byKey.get(from).title+" → "+view.byKey.get(to).title));
-  const calls=records.filter(record=>record.kind==="call").length;
-  box.append(el("p","metadata",[calls&&countLabel(calls,"call site"),(records.length-calls)&&countLabel(records.length-calls,"include")].filter(Boolean).join(" · ")),list);
+  const counts=new Map();
+  for(const record of records)counts.set(record.kind,(counts.get(record.kind)||0)+1);
+  const labels={call:"call site",include:"include",asset:"file reference"};
+  box.append(el("p","metadata",[...counts].map(([kind,count])=>countLabel(count,labels[kind])).join(" · ")),list);
   let index=0;
   function addRows(){
     const end=Math.min(index+80,records.length);
     for(;index<end;index++){
       const record=records[index],site=record.site;
-      const title=record.kind==="call"?state.functions.get(record.caller).name+"() → "+site.name+"()":'#include '+(site.quoted?'"'+site.name+'"':'<'+site.name+'>');
-      const row=button("result-item",title,()=>{
-        byId("dialog").close();
-        visitSource(record.caller||record.path,record.kind==="call"?"call":"include",{name:site.name,line:site.line,offset:site.offset,path:record.path});
-      });
+      const title=record.kind==="call"?state.functions.get(record.caller).name+"() → "+site.name+"()":
+        record.kind==="asset"?'File reference "'+site.name+'"':'#include '+(site.quoted?'"'+site.name+'"':'<'+site.name+'>');
+      const row=button("result-item",title,()=>visitEvidence(record));
       row.append(el("small","",record.path+":"+site.line));list.append(row);
     }
     if(index<records.length){
@@ -1349,11 +1727,13 @@ function routeGraphEdges(layout,route){
 
 function diagramSvg(){
   const layout=state.layout,view=currentView(),margin=38,header=70;
-  const title=state.project.name+" · "+(state.route?"Call path":{structure:"Project structure",call:"Call graph",include:"Includes"}[state.mode]);
+  const title=state.project.name+" · "+(state.route?"Call path":{structure:"Project structure",call:"Call graph",include:"File dependencies"}[state.mode]);
   const location=state.mode==="structure"?(state.scope||"Project root")+" · "+(state.grouping==="folders"?"By folder":"By file"):
     state.route?state.functions.get(state.route[0]).name+"() → "+state.functions.get(state.route.at(-1)).name+"()":state.activeFile;
-  const captions=state.mode==="structure" && state.relationshipKind==="all"?"Solid: direct calls or mixed dependencies. Dashed: includes only.":
-    state.mode==="include" || (state.mode==="structure" && state.relationshipKind==="include")?"Arrows point from a file to a header it includes.":"Arrows point from caller to callee.";
+  const captions=state.mode==="include"?"Arrows show includes (dashes) and file references (dots).":
+    state.mode==="structure" && state.relationshipKind==="all"?"Solid arrows show calls or mixed dependencies, dashes show includes, and dots show file references.":
+    state.mode==="structure" && state.relationshipKind==="asset"?"Arrows lead from the referencing file to the file it uses.":
+    state.mode==="structure" && state.relationshipKind==="include"?"Arrows point from a file to the header it includes.":"Arrows point from caller to callee.";
   const width=Math.ceil(Math.max(layout.width+2*margin,captions.length*8+2*margin,560,(Math.max(title.length,location.length)*12)+2*margin));
   const height=Math.ceil(header+layout.height+70);
   const svg=svgElement("svg",{width,height,viewBox:"0 0 "+width+" "+height,role:"img","aria-labelledby":"map-title map-description"});
@@ -1372,10 +1752,11 @@ function diagramSvg(){
   const drawing=svgElement("g",{transform:"translate("+margin+" "+header+")"});svg.append(drawing);
   for(const edge of layout.edges){
     const attributes={d:edge.d,fill:"none",stroke:"#66795b","stroke-width":1.8,"marker-end":"url(#arrow)"};
-    if(state.mode==="structure"){
-      const sites=view.connections.get(edge.from).get(edge.to);
-      if(sites.every(record=>record.kind==="include"))attributes["stroke-dasharray"]="5 3";
-      attributes["stroke-width"]=Math.min(4,1.6+Math.log2(sites.length)*.45);
+    if(state.mode!=="call"){
+      const sites=evidenceFor(edge.from,edge.to),appearance=edgeAppearance(sites);
+      if(appearance.dash)attributes["stroke-dasharray"]=appearance.dash;
+      if(appearance.color)attributes.stroke=appearance.color;
+      if(sites.length)attributes["stroke-width"]=Math.min(4,1.6+Math.log2(sites.length)*.45);
     }
     drawing.append(svgElement("path",attributes));
   }
@@ -1413,7 +1794,7 @@ function buildSymbolIndex(project){
     byName.get(symbol.name).push(symbol);
   }
   for(const file of project.files){
-    add({kind:"file",name:base(file.path),path:file.path});
+    add({kind:"file",fileKind:fileAppearance(file).kind,name:base(file.path),path:file.path});
     for(const fn of file.functions)add({kind:"function",name:fn.name,path:file.path,line:fn.line,offset:fn.nameOffset,id:fn.id});
     for(const definition of file.definitions)add(definition);
   }
@@ -1423,6 +1804,7 @@ function buildSymbolIndex(project){
 }
 
 function sourceSymbols(file){
+  if(typeof file.source!=="string" || !/\.[ch]$/i.test(file.path))return new Map();
   const {sourceCache,byName}=state.symbols;
   if(sourceCache.has(file.path))return sourceCache.get(file.path);
   const lines=new Map(),headers=new Set(),macros=new Map(),branches=[];
@@ -1562,7 +1944,8 @@ function openSymbol(symbol){
 }
 function symbolRow(symbol,action=()=>openSymbol(symbol)){
   const row=button("symbol-row","",action),label=el("span","symbol-label");
-  row.append(el("span","symbol-kind kind-"+symbol.kind,symbol.kind));
+  const kind=symbol.kind==="file" && ["asset","shader"].includes(symbol.fileKind)?symbol.fileKind:symbol.kind;
+  row.append(el("span","symbol-kind kind-"+kind,kind));
   label.append(el("strong","",symbol.name+(symbol.kind==="function"?"()":"")),el("small","",symbol.path+(symbol.line?":"+symbol.line:"")));
   row.append(label);return row;
 }
@@ -1579,7 +1962,7 @@ function showSymbolSearch(){
   const controls=el("div","symbol-controls"),status=el("p","metadata"),list=el("div","symbol-results");
   input.type="search";input.placeholder="Search by name or file path";input.setAttribute("aria-label","Symbol name or file path");
   filter.setAttribute("aria-label","Symbol category");
-  for(const [value,label] of [["all","All symbols"],["function","Functions"],["type","Types"],["macro","Macros"],["global","Globals"],["file","Files"]]){
+  for(const [value,label] of [["all","All symbols"],["function","Functions"],["type","Types"],["macro","Macros"],["global","Globals"],["file","Files"],["asset","Assets and shaders"]]){
     const option=el("option","",label);option.value=value;filter.append(option);
   }
   filter.value="all";status.setAttribute("role","status");
@@ -1589,7 +1972,9 @@ function showSymbolSearch(){
     const scored=[];
     for(const symbol of state.symbols.symbols){
       const category=["typedef","struct","union","enum"].includes(symbol.kind)?"type":symbol.kind;
-      if(filter.value!=="all"&&filter.value!==category)continue;
+      if(filter.value==="asset"){
+        if(!["asset","shader"].includes(symbol.fileKind))continue;
+      }else if(filter.value!=="all"&&filter.value!==category)continue;
       const name=symbol.name.toLowerCase(),path=symbol.path.toLowerCase();
       if(!words.every(word=>name.includes(word)||path.includes(word)))continue;
       const rank=words.reduce((sum,word)=>sum+(name===word?0:name.startsWith(word)?1:name.includes(word)?2:3),0);
@@ -1910,7 +2295,7 @@ async function saveImportedRepository(repository,owner){
 <script>let lastRepositoryInput="",repositoryError="";
 function showOpenProject(message=""){
   const box=el("div","project-dialog"),form=el("form","repo-form"),field=el("input","trace-search");
-  const label=el("label","project-label","GitHub repository"),hint=el("p","metadata","C Atlas reads C sources from the public repository’s default branch in your browser.");
+  const label=el("label","project-label","GitHub repository"),hint=el("p","metadata","Open C sources and their referenced project files from the public repository’s default branch.");
   const status=el("p","repo-message",message||repositoryError),submit=el("button","dark","Open repository");
   field.id="repoUrlInput";field.name="repository";field.type="text";field.required=true;
   field.spellcheck=false;field.autocapitalize="none";field.autocomplete="off";field.placeholder="https://github.com/owner/repository";
@@ -2072,9 +2457,9 @@ function loadProject(project,demo=false,repository=null) {
   state.symbols=buildSymbolIndex(project);
   if(byId("dialog").open)byId("dialog").close();
   state.views.call=buildView(all.map(fn=>({id:fn.id,title:fn.name+"()",meta:base(fn.path)+" · L"+fn.line,path:fn.path,next:fn.calls,entry:fn.name==="main"})));
-  state.views.include=buildView(project.files.map(file=>({id:file.path,title:base(file.path),meta:file.path.includes("/")?file.path.slice(0,file.path.lastIndexOf("/"))+"/":"Project root",path:file.path,next:[...new Set(file.includes.map(item=>item.target).filter(Boolean))],entry:/\.c$/i.test(file.path)})));
   state.entryPoints=all.filter(fn=>fn.name==="main");
   state.relationships=collectRelationships(project.files,state.functions);
+  state.views.include=buildFileDependencies(project.files,state.relationships);
   state.route=null;
   journey.past.length=0;journey.future.length=0;updateHistory();
   state.initialGrouping=project.files.length<=(narrowExplorer.matches?5:12)?"files":"folders";
@@ -2225,12 +2610,15 @@ function renderTree(){
             openSourcePanel(null,false);
           }else visitSource(file.path,"structure");
         }else if(state.mode==="call" && file.functions.length) select(file.functions[0].id,"call",true);
-        else select(file.path,"include",true);
+        else visitSource(file.path,"include");
       });
       row.title=file.path;row.style.paddingLeft=5+depth*14+"px";
-      row.append(icon(open?"down":"right","tiny"),el("span","file-symbol"+(/\.h$/i.test(file.path)?" header":""),/\.h$/i.test(file.path)?"h":"C"),el("span","name",base(file.path)));
+      const appearance=fileAppearance(file),badge=el("span","file-symbol "+appearance.kind,appearance.mark);
+      badge.title=appearance.label;
+      row.append(file.functions.length?icon(open?"down":"right","tiny"):el("span","tree-spacer"),badge,el("span","name",base(file.path)));
       if(file.functions.length)row.append(el("span","file-row-count",file.functions.length));
-      row.setAttribute("aria-expanded",String(open));tree.append(row);
+      if(file.functions.length)row.setAttribute("aria-expanded",String(open));
+      tree.append(row);
       if(open)for(const fn of file.functions){
         const child=button("tree-row","ƒ  "+fn.name+"()",()=>visitSource(fn.id,"call"));
         child.title=fn.signature;child.style.paddingLeft=22+depth*14+"px";tree.append(child);
@@ -2337,7 +2725,11 @@ function createGraphNode(item){
   const title=el("span","node-line");
   const badge=el("span","node-mark");
   if(item.folder)badge.append(icon("folder"));
-  else badge.textContent=state.mode==="call"?"ƒ":/\.h$/i.test(item.path)?"h":"C";
+  else if(state.mode==="call")badge.textContent="ƒ";
+  else{
+    const appearance=fileAppearance(state.files.get(item.path));
+    badge.classList.add(appearance.kind);badge.textContent=appearance.mark;badge.title=appearance.label;
+  }
   title.append(badge,el("span","node-name",item.title));
   if(item.folder)title.append(icon("right","drill-icon"));
   node.append(title,el("small","",item.meta));
@@ -2365,7 +2757,7 @@ function renderGraph(){
   svg.replaceChildren();
   svg.setAttribute("width",Math.max(1,layout.width));svg.setAttribute("height",layout.height);
   const defs=svgElement("defs",{});svg.append(defs);
-  for(const [id,color] of [["normal","#83917b"],["active","#5e714d"]]){
+  for(const [id,color] of [["normal","#83917b"],["active","#5e714d"],["asset","#785184"],["asset-active","#663b75"]]){
     const marker=svgElement("marker",{id:"arrow-"+id,markerWidth:7,markerHeight:7,refX:6,refY:3.5,orient:"auto",markerUnits:"userSpaceOnUse"});
     marker.append(svgElement("path",{d:"M0,0 L7,3.5 L0,7 Z",fill:color,stroke:"none"}));defs.append(marker);
   }
@@ -2374,9 +2766,11 @@ function renderGraph(){
     const title="Inspect "+view.byKey.get(from).title+" → "+view.byKey.get(to).title;
     const hit=svgElement("path",{d,fill:"none",class:"edge-hit",role:"button",tabindex:"0","aria-label":title});
     const hint=svgElement("title",{});hint.textContent=title;hit.append(hint);
-    if(state.mode==="structure"){
+    if(view.connections){
       const sites=view.connections.get(from).get(to);
-      if(sites.every(record=>record.kind==="include"))edge.setAttribute("stroke-dasharray","5 3");
+      const appearance=edgeAppearance(sites);
+      if(appearance.color)edge.dataset.color=appearance.color;
+      if(appearance.dash)edge.setAttribute("stroke-dasharray",appearance.dash);
       edge.setAttribute("stroke-width",String(Math.min(4,1.6+Math.log2(sites.length)*.45)));
     }
     const inspect=()=>showConnection(from,to);
@@ -2390,7 +2784,13 @@ function renderGraph(){
 }
 function markSelection(){
   for(const node of byId("nodes").children){const active=node.dataset.id===state.selected;node.classList.toggle("selected",active);node.setAttribute("aria-pressed",String(active));}
-  for(const edge of byId("edges").querySelectorAll("[data-from]")){const active=edge.dataset.from===state.selected || edge.dataset.to===state.selected;edge.setAttribute("stroke",active?"#647c50":"#9ca793");edge.setAttribute("marker-end",active?"url(#arrow-active)":"url(#arrow-normal)");}
+  for(const edge of byId("edges").querySelectorAll("[data-from]")){
+    const active=edge.dataset.from===state.selected || edge.dataset.to===state.selected;
+    const color=edge.dataset.color;
+    edge.setAttribute("stroke",color?(active?"#663b75":color):(active?"#647c50":"#9ca793"));
+    const arrow=color?(active?"asset-active":"asset"):(active?"active":"normal");
+    edge.setAttribute("marker-end","url(#arrow-"+arrow+")");
+  }
 }
 function transform(){byId("stage").style.transform='translate('+state.x+'px,'+state.y+'px) scale('+state.scale+')';byId("zoomLabel").textContent=Math.round(state.scale*100)+"%";}
 function fitGraph(initial=false){
@@ -2525,8 +2925,16 @@ function renderDetails(){
   name.append(el("div","metadata",item.path+(isCall?":"+fn.line:"")));
   if(item.folder)name.append(button("chip","Open folder",()=>openStructure(item.id,"folders")));
   else if(item.entry && (isCall||structure))name.append(el("span","entry-tag",isCall?"Program entry point":"Contains main()"));
-  grid.append(name,relationGroup(isCall?"CALLED BY":structure?"USED BY":"INCLUDED BY",view.incoming.get(item.id),state.mode,"in"),relationGroup(isCall?"CALLS":structure?"DEPENDS ON":"INCLUDES",item.next,state.mode,"out"));
+  grid.append(name,relationGroup(isCall?"CALLED BY":"USED BY",view.incoming.get(item.id),state.mode,"in"),relationGroup(isCall?"CALLS":"DEPENDS ON",item.next,state.mode,"out"));
   byId("details").replaceChildren(grid);
+  if(fn){
+    const sites=state.files.get(fn.path).references||[];
+    const targets=new Set(sites.filter(site=>site.offset>=fn.first&&site.offset<fn.last).map(site=>site.target));
+    if(targets.size){
+      const assets=relationGroup("REFERENCED FILES",[...targets],"include");
+      assets.className="file-functions";panel.append(assets);
+    }
+  }
   if(!isCall&&!item.folder){
     const functions=state.files.get(item.path).functions;
     if(functions.length){
@@ -2560,9 +2968,15 @@ function refresh(){
   byId("focusButton").hidden=!!state.route;
   byId("callTab").setAttribute("aria-pressed",String(state.mode==="call"));byId("includeTab").setAttribute("aria-pressed",String(state.mode==="include"));
   byId("focusButton").setAttribute("aria-pressed",String(state.focused));
-  byId("entryLegend").textContent=call?"Entry point":structure?"Contains main":"C source";byId("funcLegend").textContent=call?"Function":structure?"File or folder":"Header";byId("edgeLegend").textContent=call?"Calls":structure?(state.relationshipKind==="call"?"Calls":state.relationshipKind==="include"?"Includes":"Calls or mixed"):"Includes";
-  byId("includeKey").hidden=!structure||state.relationshipKind!=="all";
-  byId("edgeLegend").parentElement?.classList.toggle("include-style",structure&&state.relationshipKind==="include");
+  const filter=state.relationshipKind,dependencies=state.mode==="include";
+  byId("entryLegend").textContent=call?"Entry point":structure?"Contains main":"C source";
+  byId("funcLegend").textContent=call?"Function":structure?"File or folder":"Other file";
+  byId("edgeLegend").textContent=call?"Calls":dependencies||filter==="include"?"Includes":filter==="asset"?"File reference":filter==="call"?"Calls":"Calls or mixed";
+  byId("includeKey").hidden=!structure||filter!=="all";
+  byId("assetKey").hidden=!(dependencies||structure&&filter==="all");
+  const edgeLegend=byId("edgeLegend").parentElement;
+  edgeLegend?.classList.toggle("include-style",dependencies||structure&&filter==="include");
+  edgeLegend?.classList.toggle("asset-style",structure&&filter==="asset");
   updateBreadcrumbs();
   renderTree();renderDetails();renderGraph();fitGraph(true);
 }
@@ -2610,11 +3024,18 @@ function renderSource(variable=null){
   const withinFunction=selectedFunction && (!variable || (file.path===selectedFunction.path &&
     variable.offset>=selectedFunction.first && variable.offset<selectedFunction.last));
   const fn=withinFunction?selectedFunction:null;
+  const body=byId("sourceBody"),appearance=fileAppearance(file);
+  byId("sourceName").textContent=fn?fn.name+"()":base(file.path);
+  if(typeof file.source!=="string"){
+    byId("sourceKind").textContent=appearance.label;
+    byId("sourceLocation").textContent=file.path;
+    body.replaceChildren(renderAssetMetadata(file));
+    body.scrollTop=0;body.scrollLeft=0;
+    return;
+  }
   const source=fn?file.source.slice(fn.first,fn.last):file.source;
   const lines=source.split("\n"),firstLine=fn?fn.firstLine:1;
-  const body=byId("sourceBody");
-  byId("sourceKind").textContent=fn?"Function source":"File source";
-  byId("sourceName").textContent=fn?fn.name+"()":base(file.path);
+  byId("sourceKind").textContent=fn?"Function source":appearance.kind==="shader"?appearance.label:"File source";
   const location=variable?"line "+variable.line:lines.length===1?"line "+firstLine:"lines "+firstLine+"–"+(firstLine+lines.length-1);
   byId("sourceLocation").textContent=file.path+" · "+location;
   const code=el("div","source-code");
@@ -2623,25 +3044,26 @@ function renderSource(variable=null){
   const sitesByLine=new Map();
   function indexSites(sites){
     for(const site of sites){
-      if(!site.target)continue;
+      if(!site.target || fn && (site.offset<fn.first || site.offset>=fn.last))continue;
       if(!sitesByLine.has(site.line))sitesByLine.set(site.line,[]);
       sitesByLine.get(site.line).push(site);
     }
   }
+  indexSites(file.includes);
+  indexSites(file.references||[]);
   if(fn)indexSites(fn.callSites);
-  else{
-    indexSites(file.includes);
-    for(const definition of file.functions)indexSites(definition.callSites);
-  }
-  for(const [line,symbols] of sourceSymbols(file)){
+  else for(const definition of file.functions)indexSites(definition.callSites);
+  const symbolLines=appearance.kind==="c"||appearance.kind==="header"?sourceSymbols(file):[];
+  for(const [line,symbols] of symbolLines){
     if(fn && (line<fn.firstLine || line>fn.lastLine))continue;
     const symbolsInRange=fn?symbols.filter(symbol=>symbol.offset>=fn.first && symbol.offset<fn.last):symbols;
     if(!symbolsInRange.length)continue;
     const offsets=new Set(symbolsInRange.map(symbol=>symbol.offset));
     const sites=(sitesByLine.get(line)||[]).filter(site=>!offsets.has(site.offset));
-    sitesByLine.set(line,sites.concat(symbolsInRange).sort((left,right)=>left.offset-right.offset));
+    sitesByLine.set(line,sites.concat(symbolsInRange));
   }
-  function sourceLink(site){
+  for(const sites of sitesByLine.values())sites.sort((left,right)=>left.offset-right.offset);
+  function sourceLink(site,label){
     if(site.choices){
       const first=site.choices[0],kind=first.kind==="macro"?"macro":"type";
       const link=button("source-call source-"+kind,site.name,()=>openDefinitions(site.choices));
@@ -2649,7 +3071,9 @@ function renderSource(variable=null){
       link.setAttribute("aria-label",link.title);return link;
     }
     const callee=state.functions.get(site.target);
-    const link=button("source-call",site.name,()=>visitSource(site.target,callee?"call":"include"));
+    const target=state.files.get(site.target);
+    const asset=target&&target.kind!=="c"&&target.kind!=="header";
+    const link=button(asset?"source-call source-asset":"source-call",label,()=>visitSource(site.target,callee?"call":"include"));
     link.title=callee?"Open "+callee.name+"() in "+callee.path:"Open "+site.target;
     return link;
   }
@@ -2665,16 +3089,19 @@ function renderSource(variable=null){
         const start=Math.max(fn?fn.first:0,file.source.lastIndexOf("\n",tokens[0].offset-1)+1);
         for(const token of tokens){
           const column=token.offset-start;
+          if(column<cursor||column>=line.length)continue;
+          const tokenEnd=Math.min(line.length,column+(token.length??token.name.length));
+          const label=line.slice(column,tokenEnd);
           text.append(highlight(line.slice(cursor,column)));
           if(token===selected){
             marker=el("mark","declaration-name");
             const destination=sites.find(site=>site.offset===token.offset);
-            marker.append(destination?sourceLink(destination):token.name);
+            marker.append(destination?sourceLink(destination,label):label);
             marker.tabIndex=-1;row.classList.add("declaration-line");text.append(marker);
           }else{
-            text.append(sourceLink(token));
+            text.append(sourceLink(token,label));
           }
-          cursor=column+token.name.length;
+          cursor=tokenEnd;
         }
       }
       text.append(highlight(line.slice(cursor)));
@@ -2705,7 +3132,7 @@ function renderSource(variable=null){
   }
 }
 function guide(){
-  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Choose Open project and paste a public GitHub repository URL, or choose a ZIP containing your C sources and headers. Both are indexed in your browser. GitHub projects open the latest commit on the default branch. When signed in, My projects saves the repository link so you can reopen it on another device. The source files stay in your browser during analysis.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Filter the map to calls, includes, or both. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click an underlined type or macro in source to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Includes, it runs from a file to the project header it includes. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
+  const box=el("div");box.innerHTML='<h2>Quick guide</h2><p>Choose Open project and paste a public GitHub repository URL, or choose a ZIP containing your C sources and headers. Both are indexed in your browser. GitHub projects open the latest commit on the default branch. When signed in, My projects saves the repository link so you can reopen it on another device. The source files stay in your browser during analysis.</p><h3>Start with the structure</h3><p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Use the relationship filter to show calls, includes, or file references. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p><h3>Follow a call path</h3><p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p><h3>Find a definition</h3><p>Click a linked file path to open its shader, text, or asset details. Click an underlined type or macro to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p><h3>Explore caller impact</h3><p>Select a function and open Caller impact in the Inspector. Direct callers appear first. Choose any caller to see the shortest indexed call chain back to the selected function.</p><h3>Follow the arrows</h3><p>In the call graph, an arrow runs from a caller to the function it calls. In Dependencies, an arrow runs from a file to one it uses. Includes have dashed arrows. Dotted purple arrows mark asset paths found in source. Click a block to read its source. Drag the divider between the graph and source to resize them. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p><h3>Explore the map</h3><p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p><h3>What gets indexed?</h3><p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. File references resolve against files present in the project. Names assembled at runtime or with several possible matches can be missing. System headers and unresolved external calls have no project block.</p><p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>';
   if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();cancelProjectImport();setRepositoryLocation(null);loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
