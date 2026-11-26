@@ -286,6 +286,13 @@ body.no-project :is(#workspace,#inspectorVisibility,#goSymbol,#upload),body:not(
 .project-start-actions button{min-height:44px}
 body.dragging #projectStart .project-start-card{outline:3px dashed #69943a;outline-offset:4px}
 @media(max-width:720px){#projectStart{height:calc(100dvh - 56px - var(--status-bar-height))}}
+
+#callUp{flex:none;white-space:nowrap;padding:5px 8px;gap:4px}
+#callUp svg,#fullscreenCallUp svg{transform:rotate(-90deg)}
+body:not(.graph-fullscreen) #fullscreenCallUp{display:none}
+#fullscreenCallUp{position:absolute;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));z-index:2}
+body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{top:52px}
+.crumb-current{padding:4px 3px;color:var(--ink);font-weight:600}
 </style>
 </head>
 <body class="no-project">
@@ -321,12 +328,13 @@ body.dragging #projectStart .project-start-card{outline:3px dashed #69943a;outli
       <div class="location-tools">
         <button id="toggleSidebar" class="mobile-files" aria-label="Show Project explorer" aria-controls="sidebar" aria-expanded="false" title="Show Project explorer"><i data-icon="panel"></i> Explorer</button>
         <div class="history-tools" role="group" aria-label="Exploration history"><button id="navBack" class="panel-button" aria-label="Go back" title="Go back" disabled><i class="back-icon" data-icon="right"></i></button><button id="navForward" class="panel-button" aria-label="Go forward" title="Go forward" disabled><i data-icon="right"></i></button></div>
+        <button type="button" id="callUp" class="outline" aria-controls="canvas" hidden><i data-icon="right"></i>Up one level</button>
         <nav class="crumb" id="breadcrumbs" aria-label="Project location"></nav>
       </div>
       <div id="projectBadge" class="sample-badge"><span></span>Local project</div>
     </div>
     <div class="view-toolbar">
-      <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false" title="Follow calls from each caller to the function it calls"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button><button id="headerTab" aria-pressed="false" title="Trace project and external headers. Include arrows point to the file that includes them."><i data-icon="header"></i>Header includes</button></div>
+      <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false" title="Open the project call graph"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button><button id="headerTab" aria-pressed="false" title="Trace project and external headers. Include arrows point to the file that includes them."><i data-icon="header"></i>Header includes</button></div>
       <div class="map-tools">
         <label id="headerHighlightControl" hidden>Highlight <select id="headerHighlightScope" aria-label="Header highlight scope"><option value="direct">Direct only</option><option value="full">Full chain</option></select></label>
         <select id="mapGrouping" aria-label="Structure map grouping"><option value="folders">By folder</option><option value="files">By file</option></select>
@@ -343,6 +351,7 @@ body.dragging #projectStart .project-start-card{outline:3px dashed #69943a;outli
     <div id="canvas" tabindex="0" aria-label="Interactive project graph">
       <div id="stage"><svg id="edges" role="group" aria-label="Graph connections"></svg><div id="nodes"></div></div>
       <div id="canvasNote" hidden></div>
+      <button type="button" id="fullscreenCallUp" class="outline" aria-controls="canvas" hidden><i data-icon="right"></i>Up one level</button>
       <button id="fullscreenSource" class="outline" hidden><i data-icon="code"></i><span id="fullSourceAction">View source</span></button>
       <div id="emptyGraph" role="status" hidden>No project headers were found in this import.</div>
       <div class="legend" id="graphLegend" role="group" aria-label="Graph legend">
@@ -385,7 +394,7 @@ body.dragging #projectStart .project-start-card{outline:3px dashed #69943a;outli
 <h3>Start with the structure</h3>
 <p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Use the relationship filter to show calls, includes, or file references. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p>
 <h3>Follow a call path</h3>
-<p>Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p>
+<p>Call graph opens at the project overview. Select a folder or file to see its contents, then a function to follow calls across the project. Up one level and the breadcrumbs take you back through the file, folders and project within the call graph. Arrows between groups represent calls from one group to another. Select an arrow to see the call sites. Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p>
 <h3>Find a definition</h3>
 <p>Click a linked file path to open its shader, text, or asset details. Click an underlined type or macro to open its defining line. If multiple definitions are possible, choose one by file and line. Go to symbol (Ctrl or ⌘ + K) searches across the project for functions, types, macros, globals, and files. Use Back to return to the calling code.</p>
 <h3>Explore caller impact</h3>
@@ -666,7 +675,7 @@ const AtlasAnalysis = (() => {
       return lower;
     }
     // Mask literals and comments first, retaining quoted include directives for indexing.
-    const pattern = /\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*(?:\\\n[^\n]*)*|#|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?)\w*|->|[^\s]/gm;
+    const pattern = /\/\*[\s\S]*?(?:\*\/|$)|\/\/(?:\\\n|[^\n])*|#|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|[A-Za-z_]\w*|(?:0[xX][\da-fA-F]+|\d+(?:\.\d*)?)\w*|->|[^\s]/g;
     const tokens = [];
     let match;
     while ((match=pattern.exec(source))) {
@@ -1461,6 +1470,69 @@ function buildStructure(files,relationships,scope,grouping,kind="all"){
   }
   return {...buildView(items),connections};
 }
+// Folder scopes use the same trailing slash convention as the project tree.
+function buildCallScope(files,relationships,callView,scope){
+  if(scope==="" || scope.endsWith("/")){
+    const functionFiles=files.filter(file=>file.functions.length>0);
+    const view=buildStructure(functionFiles,relationships,scope,"folders","call");
+    return {...view,level:"folder",scope};
+  }
+
+  const file=files.find(candidate=>candidate.path===scope);
+  const functions=file?.functions||[];
+  const localIds=new Set(functions.map(fn=>fn.id));
+  const items=functions.map(fn=>{
+    const item=callView.byKey.get(fn.id);
+    return {...item,next:item.next.filter(target=>localIds.has(target))};
+  });
+  return {...buildView(items),level:"file",scope};
+}
+
+function isCallGraph(){
+  return state.mode==="call" || state.mode==="callScope";
+}
+function prepareCallScope(scope){
+  state.views.callScope=buildCallScope(state.project.files,state.relationships,state.views.call,scope);
+}
+function openCallScope(scope){
+  if(state.mode==="callScope" && currentView().scope===scope)return;
+  rememberLocation();
+  prepareCallScope(scope);
+  const view=state.views.callScope,previousPath=state.activeFile;
+  const preferred=view.level==="file"?state.selected:structureKey(previousPath,scope,"folders");
+  const item=view.byKey.get(preferred)||view.items.find(candidate=>candidate.entry)||view.items[0];
+  closeSourcePanel();
+  state.mode="callScope";state.route=null;state.focused=false;
+  state.headerHighlight=null;inspectorView="overview";
+  state.selected=item?.id??null;
+  if(view.level==="file")state.activeFile=scope;
+  else if(item)state.activeFile=item.files.find(file=>file.path===previousPath)?.path||item.files[0].path;
+  revealTree(state.activeFile);hideSidebar();refresh();
+}
+function parentCallScope(){
+  if(state.mode==="call")return state.activeFile;
+  const scope=currentView().scope;
+  return scope?containingFolder(scope.endsWith("/")?scope.slice(0,-1):scope):null;
+}
+function callBreadcrumbs(parts){
+  const overview=state.mode==="callScope",scope=overview?currentView().scope:state.activeFile;
+  function segment(label,path,current){
+    if(parts.children.length)parts.append(el("span","slash","/"));
+    if(current){
+      const name=el("span","crumb-current",label);
+      name.setAttribute("aria-current","page");parts.append(name);return;
+    }
+    const link=button("crumb-link",label,()=>openCallScope(path));
+    link.title="Open "+(path||"project")+" in the call graph";parts.append(link);
+  }
+  segment(state.project.name,"",overview&&scope==="");
+  let path="";
+  for(const folder of containingFolder(scope).split("/").filter(Boolean)){
+    path+=folder+"/";segment(folder,path,overview&&path===scope);
+  }
+  if(scope&&!scope.endsWith("/"))segment(base(scope),scope,overview);
+  if(!overview)segment(state.functions.get(state.selected).name+"()",null,true);
+}
 function callPath(functions,start,end){
   if(!functions.has(start)||!functions.has(end))return null;
   const previous=new Map([[start,null]]),pending=[start];
@@ -1481,7 +1553,7 @@ function callPath(functions,start,end){
 const journey={past:[],future:[]};
 function snapshot(){
   const body=byId("sourceBody");
-  return {mode:state.mode,id:state.selected,scope:state.scope,grouping:state.grouping,kind:state.relationshipKind,route:state.route,
+  return {mode:state.mode,id:state.selected,callScope:state.mode==="callScope"?currentView().scope:null,scope:state.scope,grouping:state.grouping,kind:state.relationshipKind,route:state.route,
     activeFile:state.activeFile,focused:state.focused,headerHighlight:state.mode==="headers"?state.headerHighlight??null:null,
     inspector:inspectorView,sourceOpen:!byId("sourcePanel").hidden,
     marker:displayedDeclaration,scrollTop:body.scrollTop,scrollLeft:body.scrollLeft,
@@ -1497,7 +1569,7 @@ function updateHistory(){
   }
 }
 function rememberLocation(){
-  if(!state.project||!state.selected && state.mode!=="headers")return;
+  if(!state.project||!state.selected && state.mode!=="headers" && state.mode!=="callScope")return;
   journey.past.push(snapshot());
   if(journey.past.length>100)journey.past.shift();
   journey.future.length=0;
@@ -1528,6 +1600,7 @@ function travel(back){
   to.push(snapshot());
   const target=from.pop();
   if(state.scope!==target.scope || state.grouping!==target.grouping || state.relationshipKind!==target.kind)prepareStructure(target.scope,target.grouping,target.kind);
+  if(target.mode==="callScope")prepareCallScope(target.callScope);
   state.mode=target.mode;state.selected=target.id;state.activeFile=target.activeFile;
   state.route=target.route;state.focused=target.focused;state.headerHighlight=target.headerHighlight??null;inspectorView=target.inspector;
   revealTree(state.activeFile);closeSourcePanel();refresh();
@@ -1540,6 +1613,10 @@ function travel(back){
 }
 function updateBreadcrumbs(){
   const crumb=byId("breadcrumbs"),parts=document.createDocumentFragment();
+  if(isCallGraph()){
+    callBreadcrumbs(parts);
+    crumb.replaceChildren(parts);crumb.scrollLeft=crumb.scrollWidth;return;
+  }
   const home=button("crumb-link",state.project.name,()=>openStructure("","folders"));
   home.title="Project structure";parts.append(home);
   if(state.mode==="headers"){
@@ -1584,8 +1661,8 @@ function visitSelection(id,mode,showSource=byId("sourceOnClick").checked,marker=
   if(showSource)openSourcePanel(marker,false);
   hideSidebar();
 }
-function evidenceFor(from,to){
-  const connections=currentView().connections;
+function evidenceFor(from,to,view=currentView()){
+  const connections=view.connections;
   if(connections)return connections.get(from)?.get(to)||[];
   const caller=state.functions.get(from),callee=state.functions.get(to);
   return caller.callSites.filter(site=>site.target===to).map(site=>({kind:"call",path:caller.path,destination:callee.path,caller:from,site}));
@@ -1627,8 +1704,8 @@ function renderReferenceLocations(view,id){
   }
   showRows();return section;
 }
-function showConnection(from,to){
-  const view=currentView(),records=evidenceFor(from,to);
+function showConnection(from,to,view=currentView()){
+  const records=evidenceFor(from,to,view);
   if(!records.length)return;
   const box=el("div","connection-dialog"),list=el("div","result-list");
   box.append(el("h2","","Connection details"),el("p","connection-pair",connectionTitle(view,from,to)));
@@ -1832,8 +1909,9 @@ function diagramSvg(){
   const layout=state.layout,view=currentView(),margin=38,header=70;
   if(!layout?.items.length)return null;
   const highlighted=state.mode==="headers" && state.headerHighlight && state.headerHighlight===state.selected?headerReach(view,state.selected,headerHighlightScope):null;
-  const title=state.project.name+" · "+(state.route?"Call path":{structure:"Project structure",call:"Call graph",include:"File dependencies",headers:"Header graph"}[state.mode]);
+  const title=state.project.name+" · "+(state.route?"Call path":{structure:"Project structure",call:"Call graph",callScope:"Call graph",include:"File dependencies",headers:"Header graph"}[state.mode]);
   const location=state.mode==="structure"?(state.scope||"Project root")+" · "+(state.grouping==="folders"?"By folder":"By file"):
+    state.mode==="callScope"?(view.scope||"Project root"):
     state.route?state.functions.get(state.route[0]).name+"() → "+state.functions.get(state.route.at(-1)).name+"()":
     view.byKey.get(state.selected)?.external?view.byKey.get(state.selected).title:state.activeFile;
   const includeCaption="Include arrows point from the included file into the file containing the directive.";
@@ -2197,7 +2275,7 @@ function renderCallerImpact(fn){
   showMore();return panel;
 }
 function showCallRoute(route){
-  rememberLocation();state.route=route;state.selected=route[0];state.headerHighlight=null;
+  rememberLocation();state.mode="call";state.route=route;state.selected=route[0];state.headerHighlight=null;
   state.activeFile=state.functions.get(route[0]).path;revealTree(state.activeFile);
   state.focused=false;inspectorView="overview";
   if(byId("dialog").open)byId("dialog").close();
@@ -2627,6 +2705,11 @@ function buildView(items){
   for(const item of items) for(const target of item.next) if(incoming.has(target)){incoming.get(target).push(item.id);count++;}
   return {items,byKey,incoming,count};
 }
+function entryPointPriority(fn){
+  if(fn.path==="main.c" || fn.path==="src/main.c")return 0;
+  if(base(fn.path)==="main.c")return 1;
+  return AtlasAnalysis.isHeaderFile(fn.path)?3:2;
+}
 function loadProject(project,repository=null) {
   if(graphFullscreenView)exitGraphFullscreen();
   inspectorView="overview";
@@ -2649,7 +2732,9 @@ function loadProject(project,repository=null) {
   state.symbols=buildSymbolIndex(project);
   if(byId("dialog").open)byId("dialog").close();
   state.views.call=buildView(all.map(fn=>({id:fn.id,title:fn.name+"()",meta:base(fn.path)+" · L"+fn.line,path:fn.path,next:fn.calls,entry:fn.name==="main"})));
-  state.entryPoints=all.filter(fn=>fn.name==="main");
+  state.entryPoints=all.filter(fn=>fn.name==="main").sort((first,second)=>
+    entryPointPriority(first)-entryPointPriority(second) || first.path.split("/").length-second.path.split("/").length ||
+    first.path.localeCompare(second.path) || first.line-second.line);
   state.relationships=collectRelationships(project.files,state.functions);
   state.views.include=buildFileDependencies(project.files,state.relationships);
   state.views.headers=buildHeaderDependencies(project.files,state.relationships);
@@ -2807,7 +2892,7 @@ function renderTree(){
             openStructure(containingFolder(file.path),"files",file.path);
             if(byId("sourceOnClick").checked)openSourcePanel(null,false);
           }else visitSelection(file.path,"structure");
-        }else if(state.mode==="call" && file.functions.length)visitSelection(file.functions[0].id,"call");
+        }else if(isCallGraph())openCallScope(file.path);
         else visitSelection(file.path,"include");
         if(file.functions.length && row.isConnected)renderTree();
       });
@@ -2841,12 +2926,13 @@ function select(id,mode=state.mode,recenter=false,record=true,highlightHeader=mo
   else if(!state.views.headers.byKey.has(state.activeFile))state.activeFile=currentView().incoming.get(id)[0];
   revealTree(state.activeFile);
   if(item.folder)closeSourcePanel();
-  if(oldMode!==mode)state.focused=currentView().items.length>(mode==="headers"?180:45);
+  if(oldMode!==mode)state.focused=(oldMode==="callScope" && mode==="call") || currentView().items.length>(mode==="headers"?180:45);
   if(state.focused || leavingRoute || oldMode!==mode || !state.layout?.positions.has(id))refresh();
   else {updateBreadcrumbs();renderTree();renderDetails();markSelection();if(recenter)centerSelected();}
   if((selectionChanged || displayedDeclaration) && !byId("sourcePanel").hidden)renderSource();
 }
 function switchView(mode){
+  if(mode==="call"){openCallScope("");return;}
   if(state.mode===mode)return;
   if(mode==="structure"){openStructure(state.activeFile.startsWith(state.scope)?state.scope:containingFolder(state.activeFile),state.grouping);return;}
   const path=state.activeFile, view=state.views[mode];
@@ -2861,14 +2947,12 @@ function switchView(mode){
     const header=view.byKey.get(path)||direct.find(connected)||direct[0]||view.items.find(item=>item.next.length)||view.items[0];
     select(header.id,mode,false,true,false);return;
   }
-  if(!view.items.length){notify("No C function definitions were found in this project.");return;}
-  const target=mode==="include"?path:(state.files.get(path).functions[0]?.id||view.items.find(item=>item.entry)?.id||view.items[0].id);
-  select(target,mode);
+  select(path,mode);
 }
 const nodeHeight=54,columnGap=62,rowGap=18;
 function visibleGraphItems(view){
   if(state.route)return state.route.map(id=>view.byKey.get(id));
-  if(!state.focused && view.items.length<=180)return view.items;
+  if(state.mode==="callScope" || !state.focused && view.items.length<=180)return view.items;
   const chosen=view.byKey.get(state.selected);
   if(state.mode==="headers"){
     // Keep every potential hover path in view, so previewing it never moves the boxes.
@@ -2895,8 +2979,9 @@ function calculateLayout(view,items,widths){
     }
     return {positions,width:left-columnGap,height:nodeHeight,items};
   }
-  const local=state.focused || view.items.length>180;
-  if(!local && (state.mode==="structure" || state.mode==="headers"))return layoutStructure(view,items,widths);
+  const local=state.focused || (state.mode!=="callScope" && view.items.length>180);
+  if(!local && (state.mode==="structure" || state.mode==="headers" ||
+     (state.mode==="callScope" && (view.items.length<=180 || !view.count))))return layoutStructure(view,items,widths);
   // A bounded breadth-first layout supports cycles, disconnected components and recursion.
   const allowed=new Set(items.map(item=>item.id)),rank=new Map(),queue=[];
   function seed(id,level){if(allowed.has(id)&&!rank.has(id)){rank.set(id,level);queue.push(id);}}
@@ -2936,26 +3021,29 @@ function svgElement(tag,attributes){
   return node;
 }
 function createGraphNode(item){
+  const callGroup=state.mode==="callScope" && currentView().level==="folder";
+  const targetMode=showsFunctions()?"call":state.mode;
   const node=button("graph-node"+(item.entry?" entry":"")+(item.external?" external-header":""),"",()=>{
+    if(callGroup){openCallScope(item.id);return;}
     if(item.folder){openStructure(item.id,"folders",state.activeFile);return;}
-    if(graphFullscreenView){select(item.id,state.mode,true);return;}
-    visitSelection(item.id,state.mode);
+    if(graphFullscreenView){select(item.id,targetMode,true);return;}
+    visitSelection(item.id,targetMode);
   });
-  node.setAttribute("aria-controls",item.folder?"canvas details":"details sourcePanel");
+  node.setAttribute("aria-controls",callGroup||item.folder?"canvas details":"details sourcePanel");
   node.style.height=nodeHeight+"px";
   node.dataset.id=item.id;
-  node.title=item.folder?"Open folder "+item.path:item.title+" · "+(item.external?item.meta:item.path);
+  node.title=callGroup?"Open call graph for "+item.path:item.folder?"Open folder "+item.path:item.title+" · "+(item.external?item.meta:item.path);
   const title=el("span","node-line");
   const badge=el("span","node-mark");
   if(item.folder)badge.append(icon("folder"));
   else if(item.external){badge.textContent="<>";badge.title="External header";}
-  else if(state.mode==="call")badge.textContent="ƒ";
+  else if(showsFunctions())badge.textContent="ƒ";
   else{
     const appearance=fileAppearance(state.files.get(item.path));
     badge.classList.add(appearance.kind);badge.textContent=appearance.mark;badge.title=appearance.label;
   }
   title.append(badge,el("span","node-name",item.title));
-  if(item.folder)title.append(icon("right","drill-icon"));
+  if(callGroup||item.folder)title.append(icon("right","drill-icon"));
   node.append(title,el("small","",item.meta));
   return node;
 }
@@ -2965,6 +3053,7 @@ function renderGraph(){
   const notice=byId("canvasNote"),empty=byId("emptyGraph");
   empty.hidden=items.length>0;
   if(!items.length){
+    empty.textContent=state.mode==="callScope"?"No functions were found in "+(view.scope||"this project")+".":"No project headers were found in this import.";
     nodes.replaceChildren();svg.replaceChildren();notice.hidden=true;state.layout=null;markSelection();
     return;
   }
@@ -3076,21 +3165,23 @@ function zoom(factor,point){
   state.x=x-(x-state.x)*state.scale/previous;state.y=y-(y-state.y)*state.scale/previous;transform();
 }
 function relationGroup(label,ids,mode=state.mode,direction=null){
+  const view=state.views[mode];
   const section=el("div"),items=el("div","chips");section.append(el("div","section-label insp",label+" · "+ids.length),items);
   let index=0;
   function appendBatch(){
     const end=Math.min(index+50,ids.length);
     for(;index<end;index++){
-      const id=ids[index],entry=state.views[mode].byKey.get(id);
+      const id=ids[index],entry=view.byKey.get(id);
       const chip=button("chip",entry.title,()=>{
-        if(entry.folder)openStructure(entry.id,"folders");
+        if(mode==="callScope" && view.level==="folder")openCallScope(entry.id);
+        else if(entry.folder)openStructure(entry.id,"folders");
         else visitSelection(id,mode);
       });
       chip.title=entry.path;
       if(!direction){items.append(chip);continue;}
       const from=direction==="in"?id:state.selected,to=direction==="in"?state.selected:id;
-      const explain=button("edge-info","",()=>showConnection(from,to));
-      explain.title="Inspect connection: "+connectionTitle(state.views[mode],from,to);
+      const explain=button("edge-info","",()=>showConnection(from,to,view));
+      explain.title="Inspect connection: "+connectionTitle(view,from,to);
       explain.setAttribute("aria-label",explain.title);explain.append(icon("inspect"));
       const group=el("span","connection-chip");group.append(chip,explain);items.append(group);
     }
@@ -3142,6 +3233,9 @@ function renderVariableList(fn){
   list.append(table);
   return list;
 }
+function showsFunctions(){
+  return state.mode==="call" || (state.mode==="callScope" && currentView().level==="file");
+}
 function buildInspectorTabs(){
   const list=byId("inspectorTabs");
   for(const [index,name] of inspectorViews.entries()){
@@ -3152,7 +3246,7 @@ function buildInspectorTabs(){
     tab.addEventListener("keydown",event=>{
       const count=inspectorViews.length;
       const next={ArrowLeft:(index+count-1)%count,ArrowRight:(index+1)%count,Home:0,End:count-1}[event.key];
-      if(next===undefined||state.mode!=="call")return;
+      if(next===undefined||!showsFunctions())return;
       event.preventDefault();
       inspectTab(inspectorViews[next]);
       list.children[next].focus();
@@ -3163,37 +3257,40 @@ function buildInspectorTabs(){
 
 function renderDetails(){
   updatePanelActions();
-  const active=state.mode==="call"?inspectorView:"overview";
+  const fn=showsFunctions()?state.functions.get(state.selected):null;
+  const active=fn?inspectorView:"overview";
   const panel=byId("details");
   for(const [index,tab] of Array.from(byId("inspectorTabs").children).entries()){
     const name=inspectorViews[index],selected=name===active;
     tab.setAttribute("aria-selected",String(selected));
-    tab.disabled=state.mode!=="call" && name!=="overview";
+    tab.disabled=!fn && name!=="overview";
     tab.tabIndex=selected?0:-1;
   }
   panel.setAttribute("aria-labelledby","inspect-"+active);
   if(active!=="overview"){
-    const fn=state.functions.get(state.selected);
     panel.replaceChildren(active==="impact"?renderCallerImpact(fn):renderVariableList(fn));
     panel.scrollTop=0;
     return;
   }
-  const view=currentView(),item=view.byKey.get(state.selected),isCall=state.mode==="call";
+  const view=currentView(),item=view.byKey.get(state.selected),scoped=state.mode==="callScope";
+  const calls=state.mode==="call"||scoped;
   const headers=state.mode==="headers";
   byId("stats").textContent=headers?countLabel(view.items.length-view.externalByName.size,"project header")+" · "+countLabel(view.externalByName.size,"external header")+" · "+countLabel(view.count,"include connection"):
+    scoped?countLabel(view.items.length,view.level==="file"?"function":"group")+" · "+countLabel(view.count,"call connection")+" at this level":
     state.project.files.length+" files · "+state.functions.size+" functions · "+state.views.call.count+" call edges";
   if(!item){
-    panel.replaceChildren(el("p","empty-message","No header selected."));return;
+    panel.replaceChildren(el("p","empty-message",headers?"No header selected.":"Select a block to inspect its calls."));return;
   }
   const grid=el("div","detail-grid"),name=el("div");
   name.append(el("h2","selection-title",item.title));
-  const fn=isCall?state.functions.get(item.id):null;
   const structure=state.mode==="structure";
-  name.append(el("div","metadata",item.external?item.meta:item.path+(isCall?":"+fn.line:"")));
-  if(item.folder)name.append(button("chip","Open folder",()=>openStructure(item.id,"folders")));
-  else if(item.entry && (isCall||structure))name.append(el("span","entry-tag",isCall?"Program entry point":"Contains main()"));
-  grid.append(name,relationGroup(isCall?"CALLED BY":headers?"INCLUDED BY":"USED BY",view.incoming.get(item.id),state.mode,"in"));
-  if(!item.external)grid.append(relationGroup(isCall?"CALLS":headers?"INCLUDES":"DEPENDS ON",item.next,state.mode,"out"));
+  name.append(el("div","metadata",item.external?item.meta:item.path+(fn?":"+fn.line:"")));
+  if(scoped && view.level==="folder")name.append(button("chip",item.folder?"Open folder":"Show functions",()=>openCallScope(item.id)));
+  else if(item.folder)name.append(button("chip","Open folder",()=>openStructure(item.id,"folders")));
+  else if(item.entry && (fn||structure))name.append(el("span","entry-tag",fn?"Program entry point":"Contains main()"));
+  const relationMode=fn?"call":state.mode,relations=state.views[relationMode];
+  grid.append(name,relationGroup(calls?"CALLED BY":headers?"INCLUDED BY":"USED BY",relations.incoming.get(item.id),relationMode,"in"));
+  if(!item.external)grid.append(relationGroup(calls?"CALLS":headers?"INCLUDES":"DEPENDS ON",relations.byKey.get(item.id).next,relationMode,"out"));
   else grid.classList.add("external-details");
   byId("details").replaceChildren(grid);
   if(fn){
@@ -3204,7 +3301,7 @@ function renderDetails(){
       assets.className="file-functions";panel.append(assets);
     }
   }
-  if(!isCall&&!item.folder&&!item.external){
+  if(!fn&&!item.folder&&!item.external){
     const functions=state.files.get(item.path).functions;
     if(functions.length){
       const symbols=relationGroup("FUNCTIONS IN THIS FILE",functions.map(fn=>fn.id),"call");
@@ -3218,7 +3315,7 @@ function updatePanelActions(){
   byId("sourceAction").textContent=action;byId("fullSourceAction").textContent=action;
   if(graphFullscreenView)byId("fullscreenSource").hidden=!hasSource;
   byId("showSource").hidden=!inspectorOpen||!hasSource;
-  byId("inspectorTabs").hidden=!inspectorOpen||state.mode!=="call";
+  byId("inspectorTabs").hidden=!inspectorOpen||!selected||!showsFunctions();
   byId("traceBar").hidden=!state.route;
   if(state.route){
     const index=state.route.indexOf(state.selected);
@@ -3228,16 +3325,21 @@ function updatePanelActions(){
   }
 }
 function refresh(){
-  state.focused=!state.route && (state.focused || currentView().items.length>180);
-  const structure=state.mode==="structure",call=state.mode==="call",headers=state.mode==="headers",empty=!currentView().items.length;
+  state.focused=state.mode!=="callScope" && !state.route && (state.focused || currentView().items.length>180);
+  const structure=state.mode==="structure",call=isCallGraph(),headers=state.mode==="headers",empty=!currentView().items.length;
   byId("structureTab").setAttribute("aria-pressed",String(structure));
   byId("mapGrouping").hidden=!structure;byId("mapGrouping").value=state.grouping;
   byId("mapRelations").hidden=!structure;byId("mapRelations").value=state.relationshipKind;
   byId("headerHighlightControl").hidden=!headers;byId("headerHighlightScope").value=headerHighlightScope;
-  byId("entryButton").hidden=!state.entryPoints.length||call||headers;
-  byId("traceButton").hidden=!call||!!state.route||state.functions.size<2;
-  byId("focusButton").hidden=!!state.route||empty;
-  byId("callTab").setAttribute("aria-pressed",String(state.mode==="call"));byId("includeTab").setAttribute("aria-pressed",String(state.mode==="include"));
+  byId("entryButton").hidden=!state.entryPoints.length||showsFunctions()||headers;
+  byId("traceButton").hidden=!showsFunctions()||empty||!!state.route||state.functions.size<2;
+  const parent=call?parentCallScope():null;
+  for(const id of ["callUp","fullscreenCallUp"]){
+    const up=byId(id);
+    up.hidden=parent===null;up.title="Up to "+(parent||"project call graph");
+  }
+  byId("focusButton").hidden=state.mode==="callScope"||!!state.route||empty;
+  byId("callTab").setAttribute("aria-pressed",String(call));byId("includeTab").setAttribute("aria-pressed",String(state.mode==="include"));
   byId("headerTab").setAttribute("aria-pressed",String(headers));
   byId("graphLegend").hidden=empty;
   byId("entryKey").hidden=headers;
@@ -3246,8 +3348,8 @@ function refresh(){
   for(const id of ["fit","plus","minus","zoomLabel","exportGraph"])byId(id).hidden=empty;
   byId("focusButton").setAttribute("aria-pressed",String(state.focused));
   const filter=state.relationshipKind,dependencies=state.mode==="include";
-  byId("entryLegend").textContent=call?"Entry point":structure?"Contains main":"C source";
-  byId("funcLegend").textContent=call?"Function":structure?"File or folder":headers?"Project header":"Other file";
+  byId("entryLegend").textContent=showsFunctions()?"Entry point":structure||call?"Contains main":"C source";
+  byId("funcLegend").textContent=showsFunctions()?"Function":structure||call?"File or folder":headers?"Project header":"Other file";
   byId("edgeLegend").textContent=headers?"Direct #include":call?"Calls":dependencies||filter==="include"?"Includes":filter==="asset"?"File reference":filter==="call"?"Calls":"Calls or mixed";
   byId("includeKey").hidden=!structure||filter!=="all";
   byId("assetKey").hidden=!(dependencies||structure&&filter==="all");
@@ -3307,7 +3409,7 @@ function renderSource(variable=null){
   }
   body.setAttribute("aria-label","Source code");
   const file=state.files.get(variable?variable.path:item.path);
-  const selectedFunction=state.mode==="call"?state.functions.get(item.id):null;
+  const selectedFunction=showsFunctions()?state.functions.get(item.id):null;
   const withinFunction=selectedFunction && (!variable || (file.path===selectedFunction.path &&
     variable.offset>=selectedFunction.first && variable.offset<selectedFunction.last));
   const fn=withinFunction?selectedFunction:null;
@@ -3513,6 +3615,12 @@ byId("entryButton").onclick=()=>{
   const box=el("div");box.append(el("h2","","Choose an entry point"));
   for(const fn of state.entryPoints)box.append(button("result-item",fn.path+":"+fn.line,()=>{byId("dialog").close();visitSource(fn.id,"call");}));
   showDialog(box);
+};
+for(const id of ["callUp","fullscreenCallUp"])byId(id).onclick=()=>{
+  const parent=parentCallScope();
+  if(parent===null)return;
+  openCallScope(parent);
+  if(byId(id).hidden)byId(graphFullscreenView?"canvas":"callTab").focus({preventScroll:true});
 };
 byId("callTab").onclick=()=>switchView("call");byId("includeTab").onclick=()=>switchView("include");
 byId("headerTab").onclick=()=>switchView("headers");
