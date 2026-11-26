@@ -276,14 +276,34 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
 #sourceBody>section:has(>.asset-locations)>h4{margin:0 0 8px;font:600 13px var(--sans)}
 #sourceBody .asset-locations>.outline{margin-top:8px}
 @media(max-width:720px){.detail-grid.external-details{grid-template-columns:minmax(0,1fr)}}
+
+body.no-project :is(#workspace,#inspectorVisibility,#goSymbol,#upload),body:not(.no-project) #projectStart{display:none}
+#projectStart{display:grid;place-items:center;min-height:20rem;height:calc(100dvh - 67px - var(--status-bar-height));padding:24px;background-color:var(--pale);background-image:radial-gradient(#cfd7c8 .8px,transparent 1px);background-size:16px 16px}
+.project-start-card{width:min(100%,29rem);padding:clamp(22px,4vw,36px);border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.project-start-card h1{margin:0;font:650 26px var(--sans);letter-spacing:-.6px}
+.project-start-card p{margin:10px 0 22px;line-height:1.5;color:var(--dim)}
+.project-start-actions{display:flex;flex-wrap:wrap;gap:8px}
+.project-start-actions button{min-height:44px}
+body.dragging #projectStart .project-start-card{outline:3px dashed #69943a;outline-offset:4px}
+@media(max-width:720px){#projectStart{height:calc(100dvh - 56px - var(--status-bar-height))}}
 </style>
 </head>
-<body>
+<body class="no-project">
 <header class="topbar">
   <a class="wordmark" href="#" aria-label="C Atlas home"><span class="brand-icon" data-icon="brand"></span>C Atlas</a>
   <span class="top-sep"></span><span class="app-name">Code explorer</span>
   <div class="top-actions"><button class="symbol-launch" id="goSymbol" aria-label="Go to symbol" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k" title="Go to symbol (Ctrl or ⌘ + K)"><i data-icon="search"></i><span>Go to symbol</span><kbd>Ctrl K</kbd></button><button class="plain account-launch" id="accountHub" aria-label="My projects" title="My projects"><i data-icon="files"></i><span>My projects</span></button><button class="plain help-link" id="help" aria-label="Quick guide" title="Quick guide"><i data-icon="book"></i><span>Quick guide</span></button><button class="dark" id="upload"><i data-icon="folder"></i>Open project</button></div>
 </header>
+<main id="projectStart" aria-labelledby="startTitle">
+  <section class="project-start-card">
+    <h1 id="startTitle">Open a C project</h1>
+    <p>Explore a public GitHub repository or drop a project ZIP here.</p>
+    <div class="project-start-actions">
+      <button class="dark" id="startRepository"><i data-icon="folder"></i>Open GitHub repository</button>
+      <button class="outline" id="startZip"><i data-icon="upload"></i>Choose ZIP</button>
+    </div>
+  </section>
+</main>
 <div id="workspace" class="workspace">
   <aside id="sidebar" aria-label="Project explorer">
     <div class="side-heading"><span>Project explorer</span><button id="hideExplorer" class="panel-button" aria-label="Hide Project explorer" aria-controls="sidebar" aria-expanded="true" title="Hide Project explorer"><i data-icon="panel"></i></button></div>
@@ -303,7 +323,7 @@ body.graph-fullscreen .legend{left:max(12px,env(safe-area-inset-left));bottom:ma
         <div class="history-tools" role="group" aria-label="Exploration history"><button id="navBack" class="panel-button" aria-label="Go back" title="Go back" disabled><i class="back-icon" data-icon="right"></i></button><button id="navForward" class="panel-button" aria-label="Go forward" title="Go forward" disabled><i data-icon="right"></i></button></div>
         <nav class="crumb" id="breadcrumbs" aria-label="Project location"></nav>
       </div>
-      <div id="projectBadge" class="sample-badge"><span></span>Sample project</div>
+      <div id="projectBadge" class="sample-badge"><span></span>Local project</div>
     </div>
     <div class="view-toolbar">
       <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false" title="Follow calls from each caller to the function it calls"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button><button id="headerTab" aria-pressed="false" title="Trace project and external headers. Include arrows point to the file that includes them."><i data-icon="header"></i>Header includes</button></div>
@@ -1272,128 +1292,6 @@ const AtlasGitHub=(()=>{
   }
   return {parseRepository,download};
 })();
-</script>
-<script>const sampleFiles = [
-  {path:"src/main.c",source:`#include "engine.h"
-#include "renderer.h"
-
-int main(void){
-  engine_state_t engine_state = {0};
-
-  if(!engine_init(&engine_state)){
-    return 1;
-  }
-
-  while(engine_state.running){
-    engine_update(&engine_state);
-    render_frame(&engine_state);
-  }
-
-  return 0;
-}
-`},
-  {path:"src/engine.c",source:`#include "engine.h"
-#include "world.h"
-#include "renderer.h"
-
-bool engine_init(engine_state_t *engine_state){
-  if(!world_load(engine_state)){
-    return false;
-  }
-  engine_state->running = renderer_init(engine_state);
-  return engine_state->running;
-}
-
-void engine_update(engine_state_t *engine_state){
-  world_update(engine_state);
-  engine_state->running = false;
-}
-`},
-  {path:"src/renderer.c",source:`#include "renderer.h"
-extern bool load_shader_program(const char *vertex_path, const char *fragment_path);
-bool renderer_init(engine_state_t *engine_state){
-  return engine_state->chunk_count > MIN_VISIBLE_CHUNKS
-    && load_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
-}
-
-static void draw_chunks(const engine_state_t *engine_state){
-  for(int chunk_index = 0; chunk_index < engine_state->chunk_count; chunk_index++){
-    /* Draw this chunk's visible faces. */
-  }
-}
-
-void render_frame(const engine_state_t *engine_state){
-  draw_chunks(engine_state);
-}
-`},
-  {path:"src/world.c",source:`#include "world.h"
-
-const int initial_chunk_count = 16;
-
-bool world_load(engine_state_t *engine_state){
-  engine_state->chunk_count = initial_chunk_count;
-  return true;
-}
-
-void world_update(engine_state_t *engine_state){
-  engine_state->frame_count++;
-}
-`},
-  {path:"include/engine.h",source:`#ifndef ENGINE_H
-#define ENGINE_H
-
-#include <stdbool.h>
-
-typedef struct {
-  bool running;
-  int chunk_count;
-  unsigned int frame_count;
-} engine_state_t;
-
-bool engine_init(engine_state_t *engine_state);
-void engine_update(engine_state_t *engine_state);
-
-#endif
-`},
-  {path:"include/world.h",source:`#ifndef WORLD_H
-#define WORLD_H
-
-#include "engine.h"
-
-extern const int initial_chunk_count;
-
-bool world_load(engine_state_t *engine_state);
-void world_update(engine_state_t *engine_state);
-
-#endif
-`},
-  {path:"include/renderer.h",source:`#ifndef RENDERER_H
-#define RENDERER_H
-#define MIN_VISIBLE_CHUNKS 0
-
-#include "engine.h"
-
-bool renderer_init(engine_state_t *engine_state);
-void render_frame(const engine_state_t *engine_state);
-
-#endif
-`},
-  {path:"shaders/chunk.vert",source:`#version 330 core
-layout(location = 0) in vec3 vertex_position;
-uniform mat4 view_projection;
-
-void main(){
-  gl_Position = view_projection * vec4(vertex_position, 1.0);
-}
-`},
-  {path:"shaders/chunk.frag",source:`#version 330 core
-out vec4 fragment_color;
-
-void main(){
-  fragment_color = vec4(0.42, 0.65, 0.30, 1.0);
-}
-`}
-];
 </script>
 <script>const shaderStages=new Map([
   ["vert","Vertex"],["vs","Vertex"],["vsh","Vertex"],["vshader","Vertex"],["vertex","Vertex"],
@@ -2458,7 +2356,7 @@ function initializeAccounts(){
       readReturnRepository();cancelProjectImport();lastRepositoryInput="";repositoryError="";
       if(state.repository){
         setRepositoryLocation(null);
-        loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
+        loadProject(null);
       }
     }
     if(projectsOpen && accountsConfigured)showMyProjects();
@@ -2629,7 +2527,7 @@ function startProjectImport(request){
     if(data.error){fail(data.error);return;}
     if(data.progress){byId("status").textContent=data.progress;return;}
     if(!data.project)return;
-    cancelProjectImport();loadProject(data.project,false,data.repository||null);
+    cancelProjectImport();loadProject(data.project,data.repository||null);
     if(data.repository)lastRepositoryInput=data.repository.url;
     setRepositoryLocation(data.repository);
     if(data.repository)owner.then(id=>saveImportedRepository(data.repository,id));
@@ -2708,7 +2606,12 @@ function el(tag, cls, value) {
 function button(cls,label,action) {
   const node=el("button",cls,label); node.type="button"; node.addEventListener("click",action); return node;
 }
-const state={project:null,files:new Map(),functions:new Map(),views:{},mode:"call",selected:null,focused:false,demo:false,layout:null,opened:new Set(),expandedFiles:new Set(),activeFile:null,scale:1,x:0,y:0,tree:null};
+function emptyProjectState(){
+  return {project:null,repository:null,files:new Map(),functions:new Map(),views:{},mode:"call",
+    selected:null,focused:false,layout:null,opened:new Set(),expandedFiles:new Set(),activeFile:null,
+    scale:1,x:0,y:0,tree:null};
+}
+let state=emptyProjectState();
 let importWorker=null, toastTimer=0;
 let hoveredHeader=null,keyboardHeader=null;
 let headerHighlightScope=readViewPreference("headerHighlightScope","direct")==="full"?"full":"direct";
@@ -2724,12 +2627,23 @@ function buildView(items){
   for(const item of items) for(const target of item.next) if(incoming.has(target)){incoming.get(target).push(item.id);count++;}
   return {items,byKey,incoming,count};
 }
-function loadProject(project,demo=false,repository=null) {
-  state.repository=repository;
+function loadProject(project,repository=null) {
   if(graphFullscreenView)exitGraphFullscreen();
   inspectorView="overview";
   closeSourcePanel();
-  state.project=project; state.demo=demo; state.mode="call"; state.files=new Map(project.files.map(file=>[file.path,file]));
+  state=emptyProjectState();
+  hoveredHeader=null;keyboardHeader=null;
+  journey.past.length=0;journey.future.length=0;updateHistory();
+  document.body.classList.toggle("no-project",!project);
+  if(!project){
+    for(const id of ["nodes","edges","tree","details","globalList","breadcrumbs","stats","projectName","projectMeta","sourceName","sourceLocation"]){
+      byId(id).replaceChildren();
+    }
+    if(byId("dialog").open && !byId("dialogContent").querySelector(".account-dialog"))byId("dialog").close();
+    return;
+  }
+  state.project=project;state.repository=repository;
+  state.files=new Map(project.files.map(file=>[file.path,file]));
   const all=project.files.flatMap(file=>file.functions);
   state.functions=new Map(all.map(fn=>[fn.id,fn]));
   state.symbols=buildSymbolIndex(project);
@@ -2741,7 +2655,6 @@ function loadProject(project,demo=false,repository=null) {
   state.views.headers=buildHeaderDependencies(project.files,state.relationships);
   state.headerHighlight=null;
   state.route=null;
-  journey.past.length=0;journey.future.length=0;updateHistory();
   state.initialGrouping=project.files.length<=(narrowExplorer.matches?5:12)?"files":"folders";
   prepareStructure("",state.initialGrouping,"all");
   state.mode="structure";
@@ -2749,12 +2662,12 @@ function loadProject(project,demo=false,repository=null) {
   state.selected=structureKey(state.activeFile,state.scope,state.grouping);
   state.focused=currentView().items.length>180;
   state.opened=new Set(); state.expandedFiles=new Set();state.tree=makeTree(project.files);
-  revealTree(state.activeFile); if(demo)state.opened.add("src");
+  revealTree(state.activeFile);
   explorerQueries.files=explorerQueries.globals="";
   byId("search").value=""; byId("projectName").textContent=project.name;
-  const origin=repository?repository.fullName+" · "+repository.branch+" · "+repository.commit.slice(0,7):demo?"C sample project":"Imported C project";
+  const origin=repository?repository.fullName+" · "+repository.branch+" · "+repository.commit.slice(0,7):"Imported C project";
   byId("projectMeta").textContent=origin;byId("projectMeta").title=origin;
-  byId("projectBadge").lastChild.textContent=repository?"GitHub project":demo?"Sample project":"Local project";
+  byId("projectBadge").lastChild.textContent=repository?"GitHub project":"Local project";
   byId("fileCount").textContent=project.files.length;
   byId("globalCount").textContent=project.globals.length;
   byId("globalList").replaceChildren();
@@ -3516,10 +3429,10 @@ function renderSource(variable=null){
 }
 function guide(){
   const box=el("div");box.append(byId("guideContents").content.cloneNode(true));
-  if(!state.demo){const actions=el("div","dialog-actions");actions.append(button("outline","Open sample project",()=>{byId("dialog").close();cancelProjectImport();setRepositoryLocation(null);loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);}));box.append(actions);}
   showDialog(box);
 }
-for(const id of ["upload","dropButton"])byId(id).onclick=()=>showOpenProject();
+for(const id of ["upload","dropButton","startRepository"])byId(id).onclick=()=>showOpenProject();
+byId("startZip").onclick=()=>byId("fileInput").click();
 byId("cancelImport").onclick=cancelProjectImport;
 byId("accountHub").onclick=showMyProjects;
 byId("fileInput").onchange=event=>{importFile(event.target.files[0]);event.target.value="";};
@@ -3641,7 +3554,7 @@ byId("toggleSidebar").onclick=()=>{
 narrowExplorer.addEventListener("change",()=>{mobileExplorerOpen=false;updateExplorerVisibility();});
 updateExplorerVisibility();
 document.addEventListener("click",event=>{if(!graphFullscreenView && !event.target.closest("#sidebar,#toggleSidebar,#graphFullscreen"))hideSidebar();});
-document.querySelector(".wordmark").onclick=event=>{event.preventDefault();openStructure("",state.initialGrouping,state.entryPoints[0]?.path||state.project.files[0].path);fitGraph(true);};
+document.querySelector(".wordmark").onclick=event=>{event.preventDefault();if(!state.project){byId("startRepository").focus();return;}openStructure("",state.initialGrouping,state.entryPoints[0]?.path||state.project.files[0].path);fitGraph(true);};
 const canvas=byId("canvas");let drag=null;
 const graphNodes=byId("nodes");
 function previewHeader(event,entering,keyboard=false){
@@ -3673,6 +3586,7 @@ canvas.addEventListener("keydown",event=>{
   if(event.key==="+"||event.key==="=")zoom(1.25);if(event.key==="-")zoom(.8);if(event.key==="0")fitGraph();
 });
 document.addEventListener("keydown",event=>{
+  if(!state.project)return;
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){
     event.preventDefault();if(!event.repeat)showSymbolSearch();return;
   }
@@ -3743,7 +3657,6 @@ new ResizeObserver(()=>{
     noteCanvasSize();fitGraph(true);
   }
 }).observe(canvas);
-loadProject(AtlasAnalysis.analyze(sampleFiles,"voxel-engine"),true);
 initializeAccounts();
 openLinkedRepository();
 </script>
