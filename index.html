@@ -108,6 +108,11 @@ footer .local,#cancelImport{flex:none}
   :root{--status-bar-height:48px}
   #inspectorVisibility{min-height:44px}
 }
+@media(max-width:430px){
+  footer{gap:5px}
+  #cancelImport:not([hidden])~.local{display:none}
+  #cancelImport:not([hidden])~#inspectorVisibility{margin-left:auto}
+}
 #inspectorVisibility svg{transform:rotate(180deg)}
 #inspectorVisibility[aria-expanded=true]{background:#eaf1e2;border-color:#b8caaa}
 .source-on-click,#headerHighlightControl{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:13px var(--sans);color:var(--ink)}
