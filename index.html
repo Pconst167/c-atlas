@@ -324,6 +324,24 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
   .topbar .recent-launch{min-height:36px;padding:4px;gap:4px}
   .topbar .wordmark{white-space:nowrap;gap:5px}
 }
+
+#nodes .graph-node{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+#nodes .graph-node.moving-box{cursor:grabbing;z-index:1}
+
+/* Give the explorer a narrow divider with a larger pointer target on either side. */
+#explorerSplitter{position:absolute;z-index:2;right:-7px;top:0;bottom:0;width:14px;display:grid;place-items:center;cursor:col-resize;touch-action:none;user-select:none}
+#explorerSplitter::before{content:"";width:4px;height:34px;border-radius:4px;background:#aab4a3}
+#explorerSplitter:hover::before,#explorerSplitter:focus-visible::before,.explorer-resizing #explorerSplitter::before{background:#547542}
+.explorer-resizing,.explorer-resizing *{cursor:col-resize!important;user-select:none}
+@media(min-width:721px){
+  #workspace:not(.explorer-hidden){grid-template-columns:clamp(180px,var(--explorer-desktop-width,258px),min(calc(100% - 360px),65%)) minmax(0,1fr)}
+  #sidebar{position:relative}
+  #workspace:not(.explorer-hidden)>main{padding-left:12px}
+}
+@media(max-width:720px){
+  #sidebar{width:clamp(min(180px,calc(100vw - 32px)),var(--explorer-mobile-width,min(280px,80vw)),calc(100vw - 32px))}
+  #explorerSplitter{right:-11px;width:22px}
+}
 </style>
 </head>
 <body class="no-project">
@@ -353,6 +371,7 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
     <nav id="globalList" aria-label="Project globals" hidden></nav>
     </div>
     <button class="drop-zone" id="dropButton"><span class="drop-icon"><i data-icon="upload"></i></span><b>Open a project</b><small>GitHub repository or ZIP</small></button>
+    <div id="explorerSplitter" role="separator" tabindex="0" aria-label="Resize Project explorer" aria-controls="sidebar" aria-orientation="vertical" aria-valuemin="180" aria-valuenow="258" aria-valuemax="640" title="Drag to resize Project explorer, or use the left and right arrow keys"></div>
   </aside>
   <main aria-label="Workspace">
     <div class="title-row">
@@ -367,6 +386,7 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
     <div class="view-toolbar">
       <div class="tabs" role="group" aria-label="Graph view"><button id="structureTab" aria-pressed="true"><i data-icon="folder"></i>Structure</button><button id="callTab" aria-pressed="false" title="Open the project call graph"><i data-icon="graph"></i>Call graph</button><button id="includeTab" aria-pressed="false"><i data-icon="files"></i>Dependencies</button><button id="headerTab" aria-pressed="false" title="Trace project and external headers. Include arrows point to the file that includes them."><i data-icon="header"></i>Header includes</button></div>
       <div class="map-tools">
+        <button type="button" id="resetLayout" class="outline" aria-controls="canvas" title="Restore automatic block positions in this view" hidden>Reset layout</button>
         <label id="highlightControl" hidden>Highlight <select id="highlightScope" aria-label="Relationship highlight depth"><option value="direct">Direct only</option><option value="full">Full chain</option></select></label>
         <select id="mapGrouping" aria-label="Structure map grouping"><option value="folders">By folder</option><option value="files">By file</option></select>
         <select id="mapRelations" aria-label="Structure relationships"><option value="all">All relationships</option><option value="call">Calls only</option><option value="include">Includes only</option><option value="asset">File references only</option></select>
@@ -438,9 +458,9 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
 <p>In any graph, hover over a block or focus it with the keyboard to preview its relationships. Click or press Enter to pin the highlight. Green marks the blocks it calls, includes or uses. Purple marks the blocks that call, include or use it. Both colors mark a relationship in both directions. Direct only shows immediate neighbors. Full chain follows connections through the displayed graph. Choose Clear highlight to remove the pin.</p>
 <p>Pale blue blocks represent external headers such as <code>&lt;stdio.h&gt;</code>. Select a blue block and choose View include sites to see where the project uses it.</p>
 <h3>Inspect source and variables</h3>
-<p>With Source on click enabled, selecting a project block opens its source. Turn it off to keep the graph wide. You can still choose View source in the Inspector. Drag the divider between the graph and source to resize them. Use Hide bottom panel in the bottom-right corner to close the Inspector. Choose Show bottom panel in the same spot to reopen it. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p>
+<p>With Source on click enabled, selecting a project block opens its source. Turn it off to keep the graph wide. You can still choose View source in the Inspector. Drag the right edge of Project explorer to change its width. Drag the divider between the graph and source to resize those panels. Use Hide bottom panel in the bottom-right corner to close the Inspector. Choose Show bottom panel in the same spot to reopen it. Drag the divider above the Inspector to change its height. You can also focus a divider and use the arrow keys. Click a variable in the Inspector to jump to its highlighted declaration. In the Project explorer, choose Globals to find file-scope variables by name or file. Select one to open its definition. A declaration-only entry opens the available declaration. The Inspector shows function-body locals, named arguments, and other variables. Other variables include nested and loop declarations, block externs, and referenced variables declared at file scope in the source or its included headers. Macro-generated declarations and build-dependent code may be incomplete.</p>
 <h3>Explore the map</h3>
-<p>Drag the canvas to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p>
+<p>Drag a block to move it, or focus it and use Shift with an arrow key. Your browser saves block positions for each project and graph view. Reset layout restores the automatic arrangement for the current view. Drag the background to pan. Scroll or use + and − to zoom. Fit shows the whole map at once. The four-corner button expands the graph to full screen. Select a block there to explore its connections, or choose View source to return to the code. Press Escape or the same button to restore your panels. Focus isolates a block and its neighbors. Download graph as SVG saves the current map or call path, with labels and arrows, for sharing. On a keyboard, use Tab and Enter to select blocks, and the arrow keys to pan the canvas.</p>
 <h3>What gets indexed?</h3>
 <p>The source index recognizes common C function definitions and direct calls with a unique project definition. Macros, build-time conditions, function pointers, and complex declarators can produce missing or approximate relationships. File references resolve against files present in the project. Names assembled at runtime or with several possible matches can be missing. The header map shows external angle-bracket includes when they have no matching project file. The call graph shows functions defined in the indexed project.</p>
 <p>Projects over 45 blocks open in Focus. Above 180 blocks, use search or the file tree to explore one neighborhood at a time.</p>
@@ -1975,6 +1995,8 @@ function routeGraphEdges(layout,route,mirror=false){
     const direction=edge.side==="above"?-1:1;
     const bend=7,exitX=rightBoundary.get(edge.source.x)+13+edge.lane%4*4,enterX=endX-13-edge.lane%4*4;
     const travel=enterX>exitX?1:-1;
+    edge.trackBounds={left:Math.min(displayX(exitX),displayX(enterX))-bend,right:Math.max(displayX(exitX),displayX(enterX))+bend,
+      top:Math.min(y,endY,rail)-bend,bottom:Math.max(y,endY,rail)+bend};
     edge.d='M '+point(x,y)+' Q '+point(exitX,y)+' '+point(exitX,y+direction*bend)+
       ' V '+(rail-direction*bend)+' Q '+point(exitX,rail)+' '+point(exitX+travel*bend,rail)+
       ' H '+displayX(enterX-travel*bend)+' Q '+point(enterX,rail)+' '+point(enterX,rail-direction*bend)+
@@ -2032,7 +2054,7 @@ function diagramSvg(){
     split.append(svgElement("stop",{offset:"50%","stop-color":"#e4f3d3"}),svgElement("stop",{offset:"50%","stop-color":"#f2e8fa"}));
     defs.append(split);
   }
-  const drawing=svgElement("g",{transform:"translate("+margin+" "+header+")"});svg.append(drawing);
+  const drawing=svgElement("g",{transform:"translate("+(margin-(layout.minX||0))+" "+(header-(layout.minY||0))+")"});svg.append(drawing);
   let bothDirections=false;
   for(const edge of layout.edges){
     const attributes={d:edge.d,fill:"none",stroke:"#66795b","stroke-width":1.8,"marker-end":"url(#arrow)"};
@@ -2685,6 +2707,9 @@ const AtlasProjectCache=(()=>{
     }
     return "zip-local:"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
   }
+  function projectId(repository,zipKey){
+    return repository?repositoryId(repository.fullName):zipKey?"zip:"+zipKey:newZipId();
+  }
 
   // The filtered index has the same source text as the baseline. Store it once per file.
   function compactView(id,revision,project,removed){
@@ -2701,8 +2726,7 @@ const AtlasProjectCache=(()=>{
     return record.project;
   }
 
-  async function save(project,repository=null,zipKey=null,filteredProject=null,removed=[]){
-    const id=repository?repositoryId(repository.fullName):zipKey?"zip:"+zipKey:newZipId();
+  async function save(project,repository=null,zipKey=null,filteredProject=null,removed=[],id=projectId(repository,zipKey)){
     const revision=repository?.commit||zipKey||id;
     const info={id,revision,name:project.name,repository,zipKey,fileCount:project.files.length,openedAt:Date.now()};
     return transaction([metadata,baselines,views],"readwrite",tx=>{
@@ -2763,7 +2787,7 @@ const AtlasProjectCache=(()=>{
       for(const store of [metadata,baselines,views])tx.objectStore(store).delete(id);
     });
   }
-  return {save,list,get,saveView,touch,forget,repositoryId};
+  return {save,list,get,saveView,touch,forget,repositoryId,projectId};
 })();
 </script>
 <script>let lastRepositoryInput="",repositoryError="";
@@ -2801,8 +2825,7 @@ function queueCacheWrite(work,onError){
 function cacheImportedProject(original,visible,session,repository,zipKey){
   queueCacheWrite(async()=>{
     const filtered=session.removed.length?visible:null;
-    const entry=await AtlasProjectCache.save(original,repository,zipKey,filtered,session.removed);
-    session.cache.id=entry.id;
+    const entry=await AtlasProjectCache.save(original,repository,zipKey,filtered,session.removed,session.cache.id);
     session.cache.revision=entry.revision;
   },error=>{
     if(folderSession?.cache===session.cache)notify("Project opened. "+error.message);
@@ -2817,12 +2840,12 @@ function cacheFolderView(session,project){
   });
 }
 
-function makeFolderSession(project,repository,zipKey=null){
+function makeFolderSession(project,repository,zipKey=null,cacheId=AtlasProjectCache.projectId(repository,zipKey)){
   const entries=project.files.map(({path,source,size,includes,references})=>({
     path,source,size,links:{includes,references}
   }));
   const identity=repository?"github."+repository.fullName.toLowerCase():zipKey?"zip."+zipKey:null;
-  return {name:project.name,entries,removed:[],cache:{id:null,revision:null},storageKey:identity?"c-atlas.folders."+identity:null};
+  return {name:project.name,entries,removed:[],cache:{id:cacheId,revision:null},storageKey:identity?"c-atlas.folders."+identity:null};
 }
 
 function existingFolderChoices(session,choices){
@@ -3002,8 +3025,8 @@ async function openCachedProject(id,repositoryFallback=null){
     else notify("This project is no longer cached. Use Open project to import it again.");
     return;
   }
-  const session=makeFolderSession(entry.project,entry.repository,entry.zipKey);
-  session.cache={id:entry.id,revision:entry.revision};
+  const session=makeFolderSession(entry.project,entry.repository,entry.zipKey,entry.id);
+  session.cache.revision=entry.revision;
   session.removed=savedFolderChoices(session,entry.removed);
   function finish(project){
     loadProject(project,entry.repository,session);
@@ -3087,6 +3110,7 @@ function openLinkedRepository(){
       open.disabled=true;forget.disabled=true;
       try{
         await AtlasProjectCache.forget(id);
+        forgetProjectGraphLayouts(id);
       }catch(error){
         if(isOpen()){
           status.textContent=error.message||"Could not remove this cached project.";
@@ -3187,6 +3211,198 @@ function showFolderControls(preferred=""){
     }
   }
   showDialog(box);firstControl.focus();
+}
+</script>
+<script>// One record per moved block lets two tabs rearrange different blocks independently.
+const graphLayoutPrefix="c-atlas.graph-layout.v1.";
+const projectGraphLayouts=new Map(),layoutStorageWarnings=new Set();
+
+function graphLayoutContext(){
+  const key=[state.mode];
+  if(state.mode==="structure")key.push(state.scope,state.grouping,state.relationshipKind);
+  if(state.mode==="callScope")key.push(currentView().scope);
+  if(state.route)key.push("trace",state.route[0],state.route.at(-1));
+  else if(state.focused)key.push("focus",state.selected);
+  return JSON.stringify(key);
+}
+function projectLayoutPrefix(projectId){
+  return graphLayoutPrefix+JSON.stringify(projectId)+"/";
+}
+function layoutStorageKey(projectId,context,id){
+  return projectLayoutPrefix(projectId)+JSON.stringify([context,id]);
+}
+function validGraphPosition(position){
+  return Number.isFinite(position?.x)&&Number.isFinite(position?.y);
+}
+function savedProjectLayouts(projectId){
+  if(projectGraphLayouts.has(projectId))return projectGraphLayouts.get(projectId);
+  const layouts=new Map(),prefix=projectLayoutPrefix(projectId);
+  projectGraphLayouts.set(projectId,layouts);
+  try{
+    for(let index=0;index<localStorage.length;index++){
+      const key=localStorage.key(index);
+      if(!key?.startsWith(prefix))continue;
+      try{
+        const [context,id]=JSON.parse(key.slice(prefix.length));
+        const position=JSON.parse(localStorage.getItem(key));
+        if(typeof context!=="string"||typeof id!=="string"||!validGraphPosition(position))continue;
+        if(!layouts.has(context))layouts.set(context,new Map());
+        layouts.get(context).set(id,{x:position.x,y:position.y});
+      }catch{/* Ignore an incomplete or invalid record. */}
+    }
+  }catch{/* Private browsing may allow only the in-memory layout. */}
+  return layouts;
+}
+function graphLayoutPositions(){
+  const projectId=folderSession?.cache.id;
+  if(!projectId)return new Map();
+  const layouts=savedProjectLayouts(projectId),context=graphLayoutContext();
+  if(!layouts.has(context))layouts.set(context,new Map());
+  return layouts.get(context);
+}
+function layoutStorageUnavailable(projectId){
+  if(layoutStorageWarnings.has(projectId))return;
+  layoutStorageWarnings.add(projectId);
+  notify("Your browser could not save this graph layout. Changes are kept in this tab.");
+}
+function saveGraphLayoutPosition(id,position){
+  const projectId=folderSession?.cache.id;
+  if(!projectId||!validGraphPosition(position))return;
+  const point={x:position.x,y:position.y};
+  graphLayoutPositions().set(id,point);
+  try{localStorage.setItem(layoutStorageKey(projectId,graphLayoutContext(),id),JSON.stringify(point));}
+  catch{layoutStorageUnavailable(projectId);}
+}
+function clearCurrentGraphLayout(){
+  const projectId=folderSession?.cache.id;
+  if(!projectId)return;
+  const positions=graphLayoutPositions(),context=graphLayoutContext();
+  try{
+    for(const id of positions.keys())localStorage.removeItem(layoutStorageKey(projectId,context,id));
+  }catch{layoutStorageUnavailable(projectId);}
+  positions.clear();
+}
+function forgetProjectGraphLayouts(projectId){
+  const prefix=projectLayoutPrefix(projectId);
+  try{
+    for(let index=localStorage.length-1;index>=0;index--){
+      const key=localStorage.key(index);
+      if(key?.startsWith(prefix))localStorage.removeItem(key);
+    }
+  }catch{layoutStorageUnavailable(projectId);}
+  projectGraphLayouts.delete(projectId);layoutStorageWarnings.delete(projectId);
+}
+window.addEventListener("storage",event=>{
+  if(event.key===null){projectGraphLayouts.clear();return;}
+  if(!event.key?.startsWith(graphLayoutPrefix))return;
+  for(const projectId of projectGraphLayouts.keys()){
+    if(event.key.startsWith(projectLayoutPrefix(projectId))){projectGraphLayouts.delete(projectId);break;}
+  }
+});
+</script>
+<script>// Manual coordinates use the same unscaled stage space as the finished automatic layout.
+function initializeManualLayout(layout,savedPositions){
+  layout.minX=0;layout.minY=0;
+  layout.incidentEdges=new Map();
+  for(const [id,box] of layout.positions){
+    box.autoX=box.x;box.autoY=box.y;
+    layout.incidentEdges.set(id,[]);
+  }
+  for(const edge of layout.edges){
+    layout.incidentEdges.get(edge.from).push(edge);
+    if(edge.from!==edge.to)layout.incidentEdges.get(edge.to).push(edge);
+  }
+  const changed=new Set();
+  for(const [id,position] of savedPositions||[]){
+    const box=layout.positions.get(id);
+    if(!box||!Number.isFinite(position?.x)||!Number.isFinite(position.y))continue;
+    if(box.x===position.x&&box.y===position.y)continue;
+    box.x=position.x;box.y=position.y;
+    for(const edge of layout.incidentEdges.get(id))changed.add(edge);
+  }
+  for(const edge of changed)updateMovedEdge(edge);
+  if(savedPositions?.size)finishManualLayout(layout);
+}
+
+function updateMovedEdge(edge){
+  const {source,target}=edge;
+  // Always retain the original automatic routing when both boxes go back to their slots.
+  if(edge.automaticPath===undefined)edge.automaticPath=edge.d;
+  if(source.x===source.autoX&&source.y===source.autoY&&target.x===target.autoX&&target.y===target.autoY){
+    edge.d=edge.automaticPath;edge.manualBounds=null;
+  }else{
+    const centerX=target.x+target.width/2-source.x-source.width/2,centerY=target.y-source.y;
+    const horizontalGap=Math.abs(centerX)-(source.width+target.width)/2;
+    const verticalGap=Math.abs(centerY)-nodeHeight;
+    let startX,startY,controlX,controlY,enterX,enterY,endX,endY;
+    if(horizontalGap<0 && verticalGap<0){
+      // Both ends remain visible when boxes overlap, including a function calling itself.
+      const side=edge.from<=edge.to?1:-1,outerX=side>0?Math.max(source.x+source.width,target.x+target.width):Math.min(source.x,target.x);
+      startX=side>0?source.x+source.width:source.x;
+      endX=side>0?target.x+target.width:target.x;
+      startY=source.y+nodeHeight*.26;endY=target.y+nodeHeight*.74;
+      controlX=enterX=outerX+side*40;controlY=startY-16;enterY=endY+16;
+    }else if(horizontalGap>=0 && (verticalGap<0||Math.abs(centerX)>=Math.abs(centerY))){
+      const direction=centerX>=0?1:-1;
+      startX=direction>0?source.x+source.width:source.x;
+      endX=direction>0?target.x:target.x+target.width;
+      startY=source.y+edge.exit+direction*3;endY=target.y+edge.entry+direction*3;
+      controlX=enterX=(startX+endX)/2;controlY=startY;enterY=endY;
+    }else{
+      const direction=centerY>=0?1:-1;
+      startY=direction>0?source.y+nodeHeight:source.y;
+      endY=direction>0?target.y:target.y+nodeHeight;
+      startX=source.x+source.width/2+edge.exit-nodeHeight/2+direction*3;
+      endX=target.x+target.width/2+edge.entry-nodeHeight/2+direction*3;
+      controlX=startX;enterX=endX;controlY=enterY=(startY+endY)/2;
+    }
+    edge.d='M '+startX+' '+startY+' C '+controlX+' '+controlY+' '+enterX+' '+enterY+' '+endX+' '+endY;
+    edge.manualBounds={
+      left:Math.min(startX,controlX,enterX,endX),right:Math.max(startX,controlX,enterX,endX),
+      top:Math.min(startY,controlY,enterY,endY),bottom:Math.max(startY,controlY,enterY,endY)
+    };
+  }
+  for(const element of edge.elements||[])element.setAttribute("d",edge.d);
+}
+
+function moveLayoutBox(layout,id,x,y){
+  const box=layout.positions.get(id);
+  if(!box||!Number.isFinite(x)||!Number.isFinite(y)||box.x===x&&box.y===y)return;
+  box.x=x;box.y=y;
+  const block=layout.blocks?.get(id);
+  if(block){
+    block.node.style.left=x+"px";block.node.style.top=y+"px";
+    if(block.drill){
+      block.drill.style.left=x+box.width+"px";block.drill.style.top=y+"px";
+    }
+  }
+  let left=Math.min(layout.minX,x),top=Math.min(layout.minY,y);
+  let right=Math.max(layout.minX+layout.width,x+box.width),bottom=Math.max(layout.minY+layout.height,y+nodeHeight);
+  for(const edge of layout.incidentEdges.get(id)){
+    updateMovedEdge(edge);
+    const bounds=edge.manualBounds||edge.trackBounds;
+    if(!bounds)continue;
+    left=Math.min(left,bounds.left);top=Math.min(top,bounds.top);
+    right=Math.max(right,bounds.right);bottom=Math.max(bottom,bounds.bottom);
+  }
+  layout.minX=left;layout.minY=top;layout.width=right-left;layout.height=bottom-top;
+}
+
+// Recalculate after a gesture, avoiding a full graph scan for every pointer movement.
+function finishManualLayout(layout){
+  let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
+  for(const box of layout.positions.values()){
+    left=Math.min(left,box.x);top=Math.min(top,box.y);
+    right=Math.max(right,box.x+box.width);bottom=Math.max(bottom,box.y+nodeHeight);
+  }
+  for(const edge of layout.edges){
+    const bounds=edge.manualBounds||edge.trackBounds;
+    if(!bounds)continue;
+    left=Math.min(left,bounds.left);top=Math.min(top,bounds.top);
+    right=Math.max(right,bounds.right);bottom=Math.max(bottom,bounds.bottom);
+  }
+  if(!Number.isFinite(left))return;
+  layout.minX=left;layout.minY=top;layout.width=right-left;layout.height=bottom-top;
 }
 </script>
 <script>"use strict";
@@ -3587,6 +3803,7 @@ function createGraphNode(item){
   node.setAttribute("aria-controls",item.folder?"canvas details":"canvas details sourcePanel");
   node.style.height=nodeHeight+"px";
   node.dataset.id=item.id;
+  node.setAttribute("aria-keyshortcuts","Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight");
   node.title=item.title+" · "+(item.external?item.meta:item.path);
   const title=el("span","node-line");
   const badge=el("span","node-mark");
@@ -3631,6 +3848,7 @@ function renderGraph(){
   const view=currentView(),items=visibleGraphItems(view),nodes=byId("nodes"),svg=byId("edges");
   const notice=byId("canvasNote"),empty=byId("emptyGraph");
   empty.hidden=items.length>0;
+  byId("resetLayout").hidden=true;
   if(!items.length){
     if(!state.project.files.length){
       empty.textContent="All project folders have been removed.";
@@ -3657,6 +3875,10 @@ function renderGraph(){
   const layout=state.layout=calculateLayout(view,items,widths);
   const paths=routeGraphEdges(layout,state.route,state.mode==="headers");
   layout.edges=paths;
+  layout.blocks=new Map(blocks.map(block=>[block.node.dataset.id,block]));
+  const savedPositions=graphLayoutPositions();
+  initializeManualLayout(layout,savedPositions);
+  byId("resetLayout").hidden=!savedPositions.size;
   for(const {node,drill} of blocks){
     const position=layout.positions.get(node.dataset.id);
     node.style.left=position.x+"px";
@@ -3673,7 +3895,8 @@ function renderGraph(){
     const marker=svgElement("marker",{id:"arrow-"+id,markerWidth:7,markerHeight:7,refX:6,refY:3.5,orient:"auto-start-reverse",markerUnits:"userSpaceOnUse"});
     marker.append(svgElement("path",{d:"M0,0 L7,3.5 L0,7 Z",fill:color,stroke:"none"}));defs.append(marker);
   }
-  for(const {from,to,d} of paths){
+  for(const routed of paths){
+    const {from,to,d}=routed;
     const edge=svgElement("path",{d,fill:"none"});edge.dataset.from=from;edge.dataset.to=to;svg.append(edge);
     const title="Inspect "+connectionTitle(view,from,to);
     const hit=svgElement("path",{d,fill:"none",class:"edge-hit",role:"button",tabindex:"0","aria-label":title});
@@ -3687,7 +3910,9 @@ function renderGraph(){
       if(appearance.dash)edge.setAttribute("stroke-dasharray",appearance.dash);
       edge.setAttribute("stroke-width",String(Math.min(4,1.6+Math.log2(sites.length)*.45)));
     }
-    svg.append(svgElement("path",{d,fill:"none",class:"cycle-overlay","aria-hidden":"true"}));
+    const overlay=svgElement("path",{d,fill:"none",class:"cycle-overlay","aria-hidden":"true"});
+    svg.append(overlay);
+    routed.elements=[edge,overlay,hit];
     const inspect=()=>showConnection(from,to);
     hit.addEventListener("click",inspect);
     hit.addEventListener("keydown",event=>{
@@ -3696,6 +3921,15 @@ function renderGraph(){
     svg.append(hit);
   }
   markSelection();
+}
+function updateDraggedBox(id,x,y){
+  moveLayoutBox(state.layout,id,x,y);
+}
+function commitDraggedBox(id){
+  finishManualLayout(state.layout);
+  const position=state.layout.positions.get(id);
+  saveGraphLayoutPosition(id,{x:position.x,y:position.y});
+  byId("resetLayout").hidden=false;
 }
 function markSelection(){
   const root=hoveredNode||keyboardNode||state.pinnedHighlight;
@@ -3734,10 +3968,11 @@ function markSelection(){
 function transform(){byId("stage").style.transform='translate('+state.x+'px,'+state.y+'px) scale('+state.scale+')';byId("zoomLabel").textContent=Math.round(state.scale*100)+"%";}
 function fitGraph(initial=false){
   if(!state.layout)return;
-  const box=byId("canvas"),{width,height}=state.layout;
+  const box=byId("canvas"),{width,height,minX=0,minY=0}=state.layout;
   const fit=Math.min((box.clientWidth-46)/Math.max(width,1),(box.clientHeight-84)/Math.max(1,height),1.15);
   state.scale=Math.max(.045,initial && box.clientWidth<530?Math.max(.75,fit):fit);
-  state.x=(box.clientWidth-width*state.scale)/2;state.y=(box.clientHeight-32-height*state.scale)/2;
+  state.x=(box.clientWidth-width*state.scale)/2-minX*state.scale;
+  state.y=(box.clientHeight-32-height*state.scale)/2-minY*state.scale;
   if(initial && box.clientWidth<530)centerSelected();else transform();
 }
 function centerSelected(){
@@ -4239,6 +4474,11 @@ byId("clearHighlight").onclick=()=>{
   byId(graphFullscreenView?"canvas":tab).focus({preventScroll:true});
 };
 byId("focusButton").onclick=()=>{if(state.focused && currentView().items.length>180){notify("For this project, select a function or file to explore its neighborhood.");return;}state.focused=!state.focused;refresh();};
+byId("resetLayout").onclick=()=>{
+  clearCurrentGraphLayout();
+  renderGraph();fitGraph();
+  byId("canvas").focus({preventScroll:true});
+};
 byId("exportGraph").onclick=downloadGraph;
 byId("graphFullscreen").onclick=toggleGraphFullscreen;
 byId("fullscreenSource").onclick=()=>{visitSource(state.selected,state.mode);byId("sourceBody").focus({preventScroll:true});};
@@ -4378,5 +4618,218 @@ new ResizeObserver(()=>{
 }).observe(canvas);
 initializeAccounts();
 openLinkedRepository();
+</script>
+<script>(() => {
+  let gesture = null;
+  let suppressedClick = null;
+  let frame = 0;
+
+  function graphPoint(event) {
+    const bounds = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - bounds.left - canvas.clientLeft - state.x) / state.scale,
+      y: (event.clientY - bounds.top - canvas.clientTop - state.y) / state.scale
+    };
+  }
+
+  graphNodes.addEventListener("pointerdown", event => {
+    const node = event.target.closest(".graph-node");
+    if (!node || gesture || event.button !== 0 || event.ctrlKey) return;
+    const position = state.layout?.positions.get(node.dataset.id);
+    if (!position) return;
+    const point = graphPoint(event);
+    gesture = {
+      pointerId: event.pointerId, node, id: node.dataset.id, layout: state.layout,
+      startX: event.clientX, startY: event.clientY,
+      originalX: position.x, originalY: position.y,
+      offsetX: point.x - position.x, offsetY: point.y - position.y,
+      x: position.x, y: position.y, moving: false
+    };
+    // Keep tracking even when a fast first movement crosses the edge of the page.
+    try { node.setPointerCapture(event.pointerId); } catch {}
+  });
+
+  function applyPosition() {
+    frame = 0;
+    if (!gesture || state.layout !== gesture.layout) return;
+    const position = state.layout.positions.get(gesture.id);
+    if (position && (position.x !== gesture.x || position.y !== gesture.y)) {
+      updateDraggedBox(gesture.id, gesture.x, gesture.y);
+    }
+  }
+
+  function trackPointer(event) {
+    if (!gesture || event.pointerId !== gesture.pointerId) return;
+    if (state.layout !== gesture.layout || !gesture.node.isConnected) {
+      finish(false);
+      return;
+    }
+    if (!gesture.moving) {
+      const threshold = event.pointerType === "touch" ? 8 : 5;
+      if (Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) < threshold) return;
+      gesture.moving = true;
+      gesture.node.classList.add("moving-box");
+    }
+    const point = graphPoint(event);
+    gesture.x = point.x - gesture.offsetX;
+    gesture.y = point.y - gesture.offsetY;
+    if (!frame) frame = requestAnimationFrame(applyPosition);
+    event.preventDefault();
+  }
+
+  function finish(save) {
+    if (!gesture) return;
+    const current = gesture;
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    if (current.moving) {
+      suppressedClick = { pointerId: current.pointerId, time: performance.now() };
+      if (state.layout === current.layout && current.node.isConnected) {
+        if (!save) {
+          current.x = current.originalX;
+          current.y = current.originalY;
+        }
+        applyPosition();
+        if (save && (current.x !== current.originalX || current.y !== current.originalY)) {
+          commitDraggedBox(current.id);
+        } else {
+          finishManualLayout(current.layout);
+        }
+      }
+      current.node.classList.remove("moving-box");
+    }
+    gesture = null;
+    if (current.node.hasPointerCapture(current.pointerId)) {
+      current.node.releasePointerCapture(current.pointerId);
+    }
+  }
+
+  document.addEventListener("pointermove", trackPointer, { passive: false });
+  document.addEventListener("pointerup", event => {
+    if (gesture?.pointerId !== event.pointerId) return;
+    trackPointer(event);
+    finish(true);
+  });
+  document.addEventListener("pointercancel", event => {
+    if (gesture?.pointerId === event.pointerId) finish(false);
+  });
+  document.addEventListener("lostpointercapture", event => {
+    if (gesture?.pointerId === event.pointerId && (event.target === gesture.node || !gesture.node.isConnected)) finish(false);
+  });
+  window.addEventListener("blur", () => finish(false));
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || !gesture?.moving) return;
+    event.preventDefault();
+    event.stopPropagation();
+    finish(false);
+  }, true);
+
+  // Ignore only the click generated by a completed drag. A new press is a new action.
+  document.addEventListener("pointerdown", () => { suppressedClick = null; }, true);
+  canvas.addEventListener("click", event => {
+    if (!suppressedClick || event.detail === 0 || performance.now() - suppressedClick.time > 800) return;
+    if (event.pointerId > 0 && event.pointerId !== suppressedClick.pointerId) return;
+    suppressedClick = null;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
+  const steps = { ArrowUp: [0, -12], ArrowDown: [0, 12], ArrowLeft: [-12, 0], ArrowRight: [12, 0] };
+  graphNodes.addEventListener("keydown", event => {
+    if (gesture || !event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    const node = event.target.closest(".graph-node"), step = steps[event.key];
+    const position = node && state.layout?.positions.get(node.dataset.id);
+    if (!position || !step) return;
+    event.preventDefault();
+    updateDraggedBox(node.dataset.id, position.x + step[0], position.y + step[1]);
+    commitDraggedBox(node.dataset.id);
+  });
+})();
+</script>
+<script>(()=>{
+  const workspace=byId("workspace"),splitter=byId("explorerSplitter");
+  const preferences={};
+  const widthProperties={explorerWidth:"--explorer-desktop-width",mobileExplorerWidth:"--explorer-mobile-width"};
+  for(const key of ["explorerWidth","mobileExplorerWidth"]){
+    const value=Number(readViewPreference(key,null));
+    if(Number.isFinite(value)&&value>0){
+      preferences[key]=value;
+      workspace.style.setProperty(widthProperties[key],value+"px");
+    }
+  }
+  let drag=null,currentWidth=0;
+  function preferenceKey(){return narrowExplorer.matches?"mobileExplorerWidth":"explorerWidth";}
+  function applyWidth(value){
+    const viewport=document.documentElement.clientWidth||workspace.clientWidth;
+    if(!viewport)return;
+    const mobile=narrowExplorer.matches;
+    const maximum=mobile?Math.max(1,viewport-32):Math.min(viewport-360,Math.round(viewport*.65));
+    const minimum=Math.min(180,maximum);
+    const defaultWidth=mobile?Math.min(280,viewport*.8):viewport>=1450?285:viewport<=1000?212:258;
+    currentWidth=Math.round(Math.max(minimum,Math.min(maximum,value??defaultWidth)));
+    workspace.style.setProperty(widthProperties[preferenceKey()],currentWidth+"px");
+    splitter.setAttribute("aria-valuemin",minimum);
+    splitter.setAttribute("aria-valuemax",maximum);
+    splitter.setAttribute("aria-valuenow",currentWidth);
+    splitter.setAttribute("aria-valuetext",currentWidth+" pixels");
+  }
+  function saveWidth(){
+    const key=preferenceKey();
+    preferences[key]=currentWidth;
+    writeViewPreference(key,String(currentWidth));
+  }
+  function endDrag(commit){
+    if(!drag)return;
+    const {pointerId,preference}=drag;
+    drag=null;
+    workspace.classList.remove("explorer-resizing");
+    if(commit&&preference===preferenceKey())saveWidth();
+    else{
+      if(preferences[preference]!==undefined)workspace.style.setProperty(widthProperties[preference],preferences[preference]+"px");
+      else workspace.style.removeProperty(widthProperties[preference]);
+      applyWidth(preferences[preferenceKey()]);
+    }
+    if(splitter.hasPointerCapture(pointerId))splitter.releasePointerCapture(pointerId);
+  }
+  function updateBounds(){
+    if(drag&&drag.preference!==preferenceKey())endDrag(false);
+    applyWidth(drag?currentWidth:preferences[preferenceKey()]);
+  }
+  splitter.addEventListener("pointerdown",event=>{
+    if(drag||event.button!==0||event.isPrimary===false)return;
+    updateBounds();
+    event.preventDefault();splitter.focus({preventScroll:true});
+    drag={pointerId:event.pointerId,origin:event.clientX,width:currentWidth,preference:preferenceKey()};
+    splitter.setPointerCapture(event.pointerId);
+    workspace.classList.add("explorer-resizing");
+  });
+  function resizePointer(event){
+    applyWidth(drag.width+event.clientX-drag.origin);
+  }
+  splitter.addEventListener("pointermove",event=>{
+    if(drag?.pointerId===event.pointerId)resizePointer(event);
+  });
+  splitter.addEventListener("pointerup",event=>{
+    if(drag?.pointerId!==event.pointerId)return;
+    resizePointer(event);endDrag(true);
+  });
+  for(const type of ["pointercancel","lostpointercapture"]){
+    splitter.addEventListener(type,event=>{
+      if(drag?.pointerId===event.pointerId)endDrag(false);
+    });
+  }
+  splitter.addEventListener("keydown",event=>{
+    if(drag)return;
+    updateBounds();
+    const position={ArrowLeft:currentWidth-16,ArrowRight:currentWidth+16,Home:-Infinity,End:Infinity}[event.key];
+    if(position===undefined)return;
+    event.preventDefault();applyWidth(position);saveWidth();
+  });
+  splitter.addEventListener("focus",updateBounds);
+  updateBounds();
+  window.addEventListener("resize",updateBounds);
+  narrowExplorer.addEventListener("change",updateBounds);
+  new ResizeObserver(updateBounds).observe(workspace);
+})();
 </script>
 </body></html>
