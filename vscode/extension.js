@@ -30,7 +30,7 @@ function openGraph(context, folder, onClose) {
   let latest = null, delivered = null;
   let navigation = null, nextRequestId = 0;
   const ownsUri = uri => vscode.workspace.getWorkspaceFolder(uri)?.uri.toString() === folderUri;
-  const relativePath = uri => vscode.workspace.asRelativePath(uri, false);
+  const { relativePath } = indexer;
 
   function send(message) {
     return !disposed && ready && webview.postMessage(message);
@@ -107,7 +107,7 @@ function openGraph(context, folder, onClose) {
   }
 
   async function rebuild(version) {
-    if (disposed || !ready || version !== revision) return;
+    if (disposed || (!ready && !navigation) || version !== revision) return;
     const active = new vscode.CancellationTokenSource();
     request = active;
     pending = false;
@@ -133,7 +133,7 @@ function openGraph(context, folder, onClose) {
     request?.cancel();
     const version = ++revision;
     pending = true;
-    if (!disposed && ready && (panel.visible || navigation)) timer = setTimeout(() => rebuild(version), delay);
+    if (!disposed && (navigation || (ready && panel.visible))) timer = setTimeout(() => rebuild(version), delay);
   }
 
   function relevant(uri) {
@@ -143,7 +143,7 @@ function openGraph(context, folder, onClose) {
   }
 
   function filesystemChanged(uri, inventoryChanged) {
-    if (!ownsUri(uri) || /(?:^|\/)(?:\.git|\.hg|\.svn|node_modules)(?:\/|$)/.test(relativePath(uri))) return;
+    if (!ownsUri(uri) || (!relativePath(uri) && uri.toString() !== folderUri)) return;
     indexer.invalidate(uri, inventoryChanged);
     if (inventoryChanged || relevant(uri)) schedule();
   }
@@ -164,6 +164,7 @@ function openGraph(context, folder, onClose) {
   }
 
   const follower = createPreviewFollower(vscode, {
+    isGraphActive: () => panel.active,
     accepts: uri => !disposed && ownsUri(uri) && isProjectSource(relativePath(uri))
       && vscode.workspace.getConfiguration('cAtlas', folder.uri).get('followFilePreviews', true),
     onPreview: showFile
@@ -237,6 +238,7 @@ function openGraph(context, folder, onClose) {
       if (event.removed.some(removed => removed.uri.toString() === folderUri)) panel.dispose();
     }),
     panel.onDidChangeViewState(() => {
+      if (panel.active) follower.graphActivated();
       if (!panel.visible || !ready) return;
       if (pending) schedule(0);
       void deliver();

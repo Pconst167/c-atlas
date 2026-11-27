@@ -138,7 +138,7 @@ function createWorkspaceIndexer(folder) {
     return { project, sources: indexed };
   }
 
-  return { build, invalidate, reset };
+  return { build, invalidate, relativePath, reset };
 }
 
 function analyzeInWorker(name, sources, paths, read, token) {

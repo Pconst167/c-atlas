@@ -2,7 +2,7 @@
   "name": "c-atlas",
   "displayName": "C Atlas",
   "description": "Explore C projects with live, interactive call graphs, file dependencies and source navigation.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "Pconst167",
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
           "type": "boolean",
           "default": true,
           "scope": "resource",
-          "description": "When this workspace’s graph is open, show newly previewed C sources and headers in C Atlas. Existing and edited tabs stay open."
+          "description": "Follow C sources and headers in the open graph. From the graph you can also select an already-open file or work with editor previews disabled."
         }
       }
     },

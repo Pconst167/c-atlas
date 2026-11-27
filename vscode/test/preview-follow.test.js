@@ -17,7 +17,7 @@ function signal() {
 
 function workspace(context) {
   context.mock.timers.enable({ apis: ['setTimeout'] });
-  const changedTabs = signal(), changedGroups = signal(), calls = [];
+  const changedTabs = signal(), changedGroups = signal(), changedEditor = signal(), calls = [];
   const left = { viewColumn: 1, tabs: [] }, right = { viewColumn: 2, tabs: [] };
   const groups = {
     all: [left, right], activeTabGroup: left,
@@ -29,26 +29,33 @@ function workspace(context) {
   const graph = { group: left, input: {}, isPreview: false };
   left.tabs.push(graph);
   left.activeTab = graph;
-  let enabled = true;
-  const follower = createPreviewFollower({ window: { tabGroups: groups }, TabInputText }, {
+  let enabled = true, previews = true;
+  const follower = createPreviewFollower({
+    window: { tabGroups: groups, onDidChangeActiveTextEditor: changedEditor.subscribe },
+    workspace: { getConfiguration: () => ({ get: () => previews }) }, TabInputText
+  }, {
+    isGraphActive: () => groups.activeTabGroup?.activeTab === graph,
     accepts: uri => enabled && /\.(c|h)$/.test(uri.toString()),
     onPreview: (uri, tab, isCurrent) => calls.push({ uri, tab, isCurrent })
   });
   context.after(() => follower.dispose());
   const emit = changes => changedTabs.fire({ opened: [], closed: [], changed: [], ...changes });
-  function activate(tab) {
+  function activate(tab, event = 'group') {
     groups.activeTabGroup = tab.group;
     tab.group.activeTab = tab;
-    changedGroups.fire({ changed: [tab.group], opened: [], closed: [] });
+    if (event === 'editor') changedEditor.fire({ document: { uri: tab.input.uri } });
+    else if (event === 'changed') emit({ changed: [tab] });
+    else changedGroups.fire({ changed: [tab.group], opened: [], closed: [] });
   }
-  function open(path, { group = left, active = true, ...overrides } = {}) {
+  function open(path, { group = left, active = true, event = 'open', ...overrides } = {}) {
     const tab = { group, isDirty: false, isPreview: true, isPinned: false, input: new TabInputText(new URL(path)), ...overrides };
     group.tabs.push(tab);
     if (active) {
       groups.activeTabGroup = group;
       group.activeTab = tab;
     }
-    emit({ opened: [tab] });
+    if (event === 'model') changedGroups.fire({ changed: [group], opened: [], closed: [] });
+    else emit({ opened: [tab] });
     return tab;
   }
   function close(tab) {
@@ -56,7 +63,7 @@ function workspace(context) {
     if (tab.group.activeTab === tab) tab.group.activeTab = undefined;
     emit({ closed: [tab] });
   }
-  return { calls, left, right, graph, open, activate, close, emit, follower, enable: value => { enabled = value; }, tick: ms => context.mock.timers.tick(ms) };
+  return { calls, left, right, graph, open, activate, close, emit, follower, setPreviews: value => { previews = value; }, enable: value => { enabled = value; }, tick: ms => context.mock.timers.tick(ms) };
 }
 
 test('follows a newly active preview once, and distinguishes tab liveness from focus', t => {
@@ -76,7 +83,8 @@ test('follows a newly active preview once, and distinguishes tab liveness from f
   assert.equal(follower.isCleanPreview(tab, new URL('file://different/work/main.c')), false);
   activate(tab);
   tick(500);
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
+  assert.equal(follower.isCleanPreview(tab, uri), false, 'a reactivated preview must remain open');
   close(tab);
   assert.equal(follower.isCleanPreview(tab, uri), false);
 });
@@ -176,4 +184,62 @@ test('failed source jumps release suppression and disposal cancels pending work'
   tick(500);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].isCurrent(), false);
+});
+
+test('a click from the graph follows an existing regular tab through an active-editor or changed-only event', t => {
+  const { open, activate, tick, calls, graph, follower } = workspace(t);
+  for (const event of ['editor', 'changed']) {
+    const existing = open('file:///work/' + event + '.c', { active: false, isPreview: false });
+    tick(500);
+    activate(graph);
+    activate(existing, event);
+    tick(500);
+    assert.equal(calls.at(-1).tab, existing);
+    assert.equal(follower.isCleanPreview(existing, existing.input.uri), false);
+  }
+  assert.equal(calls.length, 2);
+});
+
+test('with previews disabled files opened from the graph are followed and kept, and editing other files keeps focus', t => {
+  const { open, tick, setPreviews, calls, follower } = workspace(t);
+  setPreviews(false);
+  const regular = open('file:///work/main.c', { isPreview: false });
+  tick(500);
+  assert.deepEqual(calls.map(call => call.tab), [regular]);
+  assert.equal(follower.isCleanPreview(regular, regular.input.uri), false);
+  open('file:///work/another.c', { isPreview: false });
+  tick(500);
+  assert.equal(calls.length, 1);
+});
+
+test('late preview flags or a group-only model refresh can report the single click', t => {
+  const { open, tick, emit, calls, follower } = workspace(t);
+  const delayed = open('file:///work/first.c', { isPreview: false });
+  tick(500);
+  assert.equal(calls.length, 0);
+  delayed.isPreview = true;
+  emit({ changed: [delayed] });
+  tick(500);
+  const refreshed = open('file:///work/second.h', { event: 'model' });
+  tick(500);
+  assert.deepEqual(calls.map(call => call.tab), [delayed, refreshed]);
+  assert.equal(follower.isCleanPreview(refreshed, refreshed.input.uri), true);
+});
+
+test('a refreshed tab model still recognizes a source editor opened explicitly from the graph', async t => {
+  const { open, activate, emit, tick, calls, graph, follower, right } = workspace(t);
+  const uri = new URL('file:///work/edit.c');
+  let original;
+  await follower.showSource(uri, async () => {
+    original = open(uri, { active: false, group: right });
+    return { viewColumn: right.viewColumn };
+  });
+  const replacement = { ...original };
+  right.tabs = [replacement];
+  emit({ changed: [replacement] });
+  activate(graph);
+  activate(replacement, 'editor');
+  tick(500);
+  assert.equal(calls.length, 0);
+  assert.equal(follower.isCleanPreview(replacement, uri), false);
 });

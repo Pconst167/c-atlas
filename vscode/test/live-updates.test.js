@@ -24,7 +24,7 @@ async function until(predicate) {
   assert.fail('Timed out waiting for the graph');
 }
 
-test('only the latest editor version is displayed, including after a hidden panel is reopened', async () => {
+function hostFixture(t) {
   class Uri {
     constructor(pathname) { this.path = pathname; }
     toString() { return 'file://' + this.path; }
@@ -38,7 +38,7 @@ test('only the latest editor version is displayed, including after a hidden pane
   };
   const messages = [], builds = [], errors = [];
   const panel = {
-    visible: true, reveal() {}, onDidDispose: signal(), onDidChangeViewState: signal(),
+    visible: true, reveal() { this.visible = true; }, onDidDispose: signal(), onDidChangeViewState: signal(),
     dispose() { this.onDidDispose.emit(); },
     webview: {
       asWebviewUri: uri => uri, cspSource: 'fixture:', onDidReceiveMessage: signal(),
@@ -51,11 +51,11 @@ test('only the latest editor version is displayed, including after a hidden pane
     onDidRenameFiles: signal(), onDidChangeConfiguration: signal(), onDidChangeWorkspaceFolders: signal(),
     createFileSystemWatcher: () => ({ dispose() {}, onDidChange: signal(), onDidCreate: signal(), onDidDelete: signal() })
   };
-  let explore;
+  const commands = new Map();
   const vscode = {
     Uri, workspace, ViewColumn: { Active: 1 }, RelativePattern: class {},
-    commands: { registerCommand(name, callback) { if (name === "cAtlas.exploreWorkspace") explore = callback; return { dispose() {} }; } },
-    window: { tabGroups: { all: [], onDidChangeTabs: signal(), onDidChangeTabGroups: signal() }, createWebviewPanel: () => panel, showErrorMessage: error => errors.push(error) },
+    commands: { registerCommand(name, callback) { commands.set(name, callback); return { dispose() {} }; } },
+    window: { tabGroups: { all: [], onDidChangeTabs: signal(), onDidChangeTabGroups: signal() }, onDidChangeActiveTextEditor: signal(), createWebviewPanel: () => panel, showErrorMessage: error => errors.push(error) },
     CancellationTokenSource: class {
       token = { isCancellationRequested: false };
       cancel() { this.token.isCancellationRequested = true; }
@@ -63,6 +63,7 @@ test('only the latest editor version is displayed, including after a hidden pane
     }
   };
   const indexer = {
+    relativePath: () => 'main.c',
     build: token => new Promise(resolve => builds.push({ token, resolve: version => resolve({
       project: { version }, sources: new Map([['main.c', source]])
     }) }))
@@ -75,36 +76,55 @@ test('only the latest editor version is displayed, including after a hidden pane
       if (name === './workspace-index') return { createWorkspaceIndexer: () => indexer, isProjectSource: () => true };
       return load.call(this, name, ...args);
     };
+    delete require.cache[require.resolve('../extension')];
     extension = require('../extension');
   } finally { Module._load = load; }
 
   extension.activate(context);
+  t.after(() => { for (const subscription of context.subscriptions) subscription.dispose(); });
   const edit = () => workspace.onDidChangeTextDocument.emit({ contentChanges: ['edit'], document: { uri: source } });
-  const versions = () => messages.filter(message => message.type === 'project').map(message => message.project.version);
-  try {
-    await explore(folder.uri);
-    await panel.webview.onDidReceiveMessage.emit({ type: 'ready' });
-    await until(() => builds.length === 1);
-    await edit();
-    await edit();
-    assert.equal(builds[0].token.isCancellationRequested, true);
-    await until(() => builds.length === 2);
-    builds[1].resolve(2);
-    await until(() => versions().length === 1);
-    builds[0].resolve(1);
-    await pause(0);
-    assert.deepEqual(versions(), [2]);
+  return { folder, source, panel, messages, builds, errors, commands, edit };
+}
 
-    panel.visible = false;
-    await edit();
-    await pause(400);
-    assert.equal(builds.length, 2);
-    panel.visible = true;
-    await panel.onDidChangeViewState.emit();
-    await until(() => builds.length === 3);
-    builds[2].resolve(3);
-    await until(() => versions().length === 2);
-    assert.deepEqual(versions(), [2, 3]);
-    assert.deepEqual(errors, []);
-  } finally { for (const subscription of context.subscriptions) subscription.dispose(); }
+test('only the latest editor version is displayed, including after a hidden panel is reopened', async t => {
+  const { folder, panel, messages, builds, errors, commands, edit } = hostFixture(t);
+  const versions = () => messages.filter(message => message.type === 'project').map(message => message.project.version);
+  await commands.get('cAtlas.exploreWorkspace')(folder.uri);
+  await panel.webview.onDidReceiveMessage.emit({ type: 'ready' });
+  await until(() => builds.length === 1);
+  await edit();
+  await edit();
+  assert.equal(builds[0].token.isCancellationRequested, true);
+  await until(() => builds.length === 2);
+  builds[1].resolve(2);
+  await until(() => versions().length === 1);
+  builds[0].resolve(1);
+  await pause(0);
+  assert.deepEqual(versions(), [2]);
+
+  panel.visible = false;
+  await edit();
+  await pause(400);
+  assert.equal(builds.length, 2);
+  panel.visible = true;
+  await panel.onDidChangeViewState.emit();
+  await until(() => builds.length === 3);
+  builds[2].resolve(3);
+  await until(() => versions().length === 2);
+  assert.deepEqual(versions(), [2, 3]);
+  assert.deepEqual(errors, []);
+});
+
+test('a file requested before the hidden graph has started is indexed, revealed and delivered on ready', async t => {
+  const { folder, source, panel, messages, builds, commands } = hostFixture(t);
+  await commands.get('cAtlas.exploreWorkspace')(folder.uri);
+  panel.visible = false;
+  commands.get('cAtlas.showFileInGraph')(source);
+  await until(() => builds.length === 1);
+  builds[0].resolve(1);
+  await until(() => panel.visible);
+  assert.deepEqual(messages, []);
+  await panel.webview.onDidReceiveMessage.emit({ type: 'ready' });
+  assert.deepEqual(messages.map(message => message.type), ['project', 'revealFile']);
+  assert.equal(messages[1].path, 'main.c');
 });

@@ -4,7 +4,7 @@ Explore a C project in an editor tab. The graph runs locally against your open w
 
 ## Install and open
 
-1. [Download c-atlas-0.2.0.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.2.0.vsix).
+1. [Download c-atlas-0.2.1.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.2.1.vsix).
 2. In VS Code, open **Extensions**, select **…** at the top of the view, then choose **Install from VSIX…** and select the downloaded file.
 3. Open your project's folder. Press **Ctrl+Shift+P** and run **C Atlas: Explore Workspace**. In a multi-root workspace, choose the folder to index.
 
@@ -14,7 +14,9 @@ For a local workspace, C Atlas reads the source on your machine. With a remote V
 
 With C Atlas open, single-click a C source or header in VS Code’s Explorer. A source file opens its function graph, a header opens its include graph, and a source file with no indexed functions opens in **Dependencies**. If you are already browsing **Dependencies**, the graph stays in that view and selects the file. Files are matched by their full workspace-relative paths.
 
-VS Code briefly opens a text preview first. C Atlas brings the graph forward, then closes the new preview after locating the file. VS Code uses the same preview mechanism for some other navigation, including Quick Open. For a file already open in a regular tab, or if editor previews are disabled, right-click the file in Explorer and choose **Show in C Atlas**. This command also opens the graph if needed.
+With the graph in front, you can also select a file that is already open or use this feature with VS Code editor previews disabled. C Atlas brings the graph forward when VS Code activates the file. It closes a fresh temporary preview only after locating the file. Regular tabs stay open. Switching directly to a file from the graph tab or using Quick Open can trigger the same behavior.
+
+To go straight to the graph for any indexed C source or header, right-click the file in Explorer and choose **Show in C Atlas**. This also works for a file with unsaved edits and when the graph is closed.
 
 To keep normal preview behavior while the graph is open, switch off **C Atlas: Follow File Previews** in Settings. Source jumps made from the graph still open the actual editor.
 

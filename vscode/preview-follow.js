@@ -2,24 +2,45 @@
 
 const settleDelay = 400;
 
-function createPreviewFollower(vscode, { accepts, onPreview }) {
+function createPreviewFollower(vscode, { accepts, onPreview, isGraphActive = () => false }) {
   const groups = vscode.window.tabGroups;
   const openingSource = new Set(), sourceTabs = new WeakSet();
-  const newlyOpened = new Map();
+  const recentlyOpened = new Map(), closeable = new WeakSet();
   const subscriptions = [];
-  let pending, disposed = false;
+  let previousTab = groups.activeTabGroup?.activeTab, graphTab, leavingGraph = false;
+  let knownResources = textTabs(), pending, disposed = false;
 
   function matches(tab, uri) {
     return tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString();
   }
 
-  function isCleanPreview(tab, uri) {
-    return !disposed && !sourceTabs.has(tab) && tab.isPreview && !tab.isPinned && !tab.isDirty && matches(tab, uri)
+  function resourceKey(tab) {
+    return tab.group.viewColumn + '\n' + tab.input.uri.toString();
+  }
+
+  function textTabs() {
+    const resources = new Map();
+    for (const group of groups.all) {
+      for (const tab of group.tabs) {
+        if (tab.input instanceof vscode.TabInputText) resources.set(resourceKey(tab), tab);
+      }
+    }
+    return resources;
+  }
+
+  function graphActivated() {
+    leavingGraph = true;
+    const tab = groups.activeTabGroup?.activeTab;
+    if (tab && !(tab.input instanceof vscode.TabInputText)) graphTab = tab;
+  }
+
+  function clean(tab, uri) {
+    return !disposed && !sourceTabs.has(tab) && !tab.isPinned && !tab.isDirty && matches(tab, uri)
       && groups.all.includes(tab.group) && tab.group.tabs.includes(tab) && accepts(uri);
   }
 
-  function active(tab) {
-    return groups.activeTabGroup === tab.group && tab.group.activeTab === tab;
+  function isCleanPreview(tab, uri) {
+    return closeable.has(tab) && tab.isPreview && clean(tab, uri);
   }
 
   function cancelPending() {
@@ -27,27 +48,75 @@ function createPreviewFollower(vscode, { accepts, onPreview }) {
     pending = undefined;
   }
 
-  function forgetNew(tab) {
-    const candidate = newlyOpened.get(tab);
-    if (candidate) clearTimeout(candidate.timer);
-    newlyOpened.delete(tab);
+  function forgetNew(key) {
+    clearTimeout(recentlyOpened.get(key));
+    recentlyOpened.delete(key);
+  }
+
+  function canFollow(candidate) {
+    const { tab, uri } = candidate;
+    if (pending !== candidate || groups.activeTabGroup?.activeTab !== tab || !clean(tab, uri)) return false;
+    if (tab.isPreview) return true;
+    if (candidate.sawPreview || !candidate.fromGraph) return false;
+    return !candidate.fresh || !vscode.workspace.getConfiguration('workbench.editor', uri).get('enablePreview', true);
   }
 
   function update() {
-    if (pending && (!isCleanPreview(pending.tab, pending.uri) || !active(pending.tab))) cancelPending();
+    // A complete group-model update can introduce a tab without a tab-open event.
+    // Use resources here because VS Code can replace all the tab wrapper objects at once.
+    const resources = textTabs();
+    for (const [key, tab] of resources) {
+      const previous = knownResources.get(key);
+      if (previous && previous !== tab && sourceTabs.has(previous)) sourceTabs.add(tab);
+      if (!previous) {
+        sourceJump(tab, tab.input.uri);
+        forgetNew(key);
+        recentlyOpened.set(key, setTimeout(() => forgetNew(key), settleDelay));
+      }
+    }
+    for (const key of recentlyOpened.keys()) {
+      if (!resources.has(key)) forgetNew(key);
+    }
+    knownResources = resources;
+
     const tab = groups.activeTabGroup?.activeTab;
-    const candidate = newlyOpened.get(tab);
+    if (tab !== previousTab) {
+      const sameResource = tab?.input instanceof vscode.TabInputText && pending && matches(tab, pending.uri)
+        && tab.group.viewColumn === pending.tab.group.viewColumn;
+      if (sameResource) pending.tab = tab;
+      else {
+        const fromGraph = leavingGraph || (!!graphTab && previousTab === graphTab);
+        cancelPending();
+        if (tab) leavingGraph = false;
+        if (tab?.input instanceof vscode.TabInputText) {
+          const key = resourceKey(tab), uri = tab.input.uri;
+          const fresh = recentlyOpened.has(key);
+          forgetNew(key);
+          closeable.delete(tab);
+          if ((fresh || fromGraph) && !sourceJump(tab, uri) && clean(tab, uri)) {
+            pending = { uri, tab, fresh, fromGraph, sawPreview: false, delivered: false };
+          }
+        } else if (tab && (tab === graphTab || isGraphActive())) graphActivated();
+      }
+      previousTab = tab;
+    }
+
+    const candidate = pending;
     if (!candidate) return;
-    forgetNew(tab);
-    const { uri } = candidate;
-    if (!isCleanPreview(tab, uri)) return;
-    cancelPending();
-    pending = candidate;
-    // Give VS Code time to promote a double-click or an edit to a regular tab.
-    const isCurrent = () => pending === candidate && isCleanPreview(tab, uri) && active(tab);
+    if (!clean(candidate.tab, candidate.uri) || (candidate.sawPreview && !candidate.tab.isPreview)) {
+      cancelPending();
+      return;
+    }
+    candidate.sawPreview ||= candidate.tab.isPreview;
+    if (candidate.delivered || candidate.timer || !canFollow(candidate)) return;
+    // Let a double-click promote a preview and give typing a chance to mark it dirty.
+    const isCurrent = () => canFollow(candidate);
     candidate.timer = setTimeout(() => {
-      if (isCurrent()) onPreview(uri, tab, isCurrent);
-      else if (pending === candidate) cancelPending();
+      candidate.timer = undefined;
+      if (!isCurrent()) return;
+      candidate.delivered = true;
+      if (candidate.fresh && candidate.tab.isPreview) closeable.add(candidate.tab);
+      onPreview(candidate.uri, candidate.tab, isCurrent);
     }, settleDelay);
   }
 
@@ -67,18 +136,9 @@ function createPreviewFollower(vscode, { accepts, onPreview }) {
     return false;
   }
 
-  subscriptions.push(groups.onDidChangeTabs(event => {
-    for (const tab of event.closed) forgetNew(tab);
-    for (const tab of event.opened) {
-      if (!(tab.input instanceof vscode.TabInputText)) continue;
-      const uri = tab.input.uri;
-      if (sourceJump(tab, uri) || !isCleanPreview(tab, uri)) continue;
-      // VS Code can report a new tab before reporting that its group is active.
-      forgetNew(tab);
-      newlyOpened.set(tab, { tab, uri, timer: setTimeout(() => forgetNew(tab), settleDelay) });
-    }
-    update();
-  }), groups.onDidChangeTabGroups(update));
+  if (isGraphActive()) graphActivated();
+  subscriptions.push(groups.onDidChangeTabs(update), groups.onDidChangeTabGroups(update),
+    vscode.window.onDidChangeActiveTextEditor(update));
 
   async function showSource(uri, open) {
     if (pending?.uri.toString() === uri.toString()) cancelPending();
@@ -104,11 +164,11 @@ function createPreviewFollower(vscode, { accepts, onPreview }) {
   function dispose() {
     disposed = true;
     cancelPending();
-    for (const tab of newlyOpened.keys()) forgetNew(tab);
+    for (const key of recentlyOpened.keys()) forgetNew(key);
     for (const opening of openingSource) releaseSource(opening);
     for (const subscription of subscriptions) subscription.dispose();
   }
-  return { dispose, isCleanPreview, showSource };
+  return { dispose, graphActivated, isCleanPreview, showSource };
 }
 
 module.exports = { createPreviewFollower };
