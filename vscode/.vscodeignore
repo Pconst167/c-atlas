@@ -1,0 +1,12 @@
+.gitignore
+.vscodeignore
+.vscode/**
+.vscode-test/**
+test/**
+tests/**
+**/*.test.js
+**/*.test.cjs
+build-webview.js
+*.vsix
+webview/**
+releases/**

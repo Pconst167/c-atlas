@@ -684,7 +684,7 @@ const AtlasAnalysis = (() => {
     return {includes,references};
   }
 
-  async function collectAssetEntries(sources,inventory,readBytes){
+  async function collectAssetEntries(sources,inventory,readBytes,sizeOf){
     const resolve=createPathResolver(inventory),byPath=new Map(inventory.map(item=>[item.path,item]));
     const entries=sources.map(source=>({...source,source:cleanSource(source.source)}));
     const seen=new Set(entries.map(entry=>entry.path)),utf8=new TextDecoder("utf-8",{fatal:true});
@@ -700,9 +700,9 @@ const AtlasAnalysis = (() => {
           const descriptor=byPath.get(site.target);if(!descriptor)continue;
           if(seen.size>=limits.maxFiles)throw Error(limitMessage);
           seen.add(descriptor.path);
-          const asset={path:descriptor.path,size:descriptor.size,source:null};
+          const size=descriptor.size??(sizeOf?await sizeOf(descriptor):undefined);
+          const asset={path:descriptor.path,size,source:null};
           entries.push(asset);
-          const size=descriptor.size;
           if(fileKind(asset.path)==="asset"||!Number.isSafeInteger(size)||size<0||size>limits.maxFileBytes||total+size>limits.maxTotalBytes)continue;
           total+=size;batch.push({asset,descriptor});
         }
@@ -711,7 +711,7 @@ const AtlasAnalysis = (() => {
       for(let first=0;first<batch.length;first+=6){
         await Promise.all(batch.slice(first,first+6).map(async({asset,descriptor})=>{
           const bytes=await readBytes(descriptor);
-          if(bytes.length!==descriptor.size)throw Error("Incomplete contents for "+descriptor.path+".");
+          if(bytes.length!==asset.size)throw Error("Incomplete contents for "+descriptor.path+".");
           if(bytes.includes(0))return;
           try{asset.source=cleanSource(utf8.decode(bytes));}catch{/* Binary data may have a text-looking extension. */}
         }));

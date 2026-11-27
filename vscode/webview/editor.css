@@ -1,0 +1,14 @@
+/* Keep the diagram's relationship colors consistent with SVG exports. */
+body{background:#fafbf7;color:var(--ink);padding:0;font-size:14px}
+.topbar{background:var(--vscode-editorGroupHeader-tabsBackground,#202a25);color:var(--vscode-foreground,#f4f6ee);border-bottom:1px solid var(--vscode-panel-border,#85917e)}
+.topbar :is(.wordmark,.app-name,.plain,.symbol-launch){color:inherit}
+.topbar .symbol-launch{background:transparent;border-color:var(--vscode-panel-border,#85917e)}
+.topbar kbd{color:inherit;border-color:var(--vscode-panel-border,#85917e)}
+.topbar .top-sep{background:var(--vscode-panel-border,#85917e)}
+#workspace{height:calc(100dvh - 67px - var(--status-bar-height))}
+#projectStart{background-color:var(--vscode-editor-background,#fafbf7);background-image:none}
+.project-start-card{color:var(--vscode-foreground,#202820);background:var(--vscode-editor-background,#fafbf7);border-color:var(--vscode-panel-border,#999)}
+.project-start-card p{color:var(--vscode-descriptionForeground,#657064)}
+#openEditor{font-size:12px;padding:3px 8px;margin-left:auto;border-color:var(--line)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--vscode-focusBorder,#27647d);outline-offset:2px}
+@media(max-width:720px){#workspace{height:calc(100dvh - 56px - var(--status-bar-height))}}

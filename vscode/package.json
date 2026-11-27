@@ -1,0 +1,41 @@
+{
+  "name": "c-atlas",
+  "displayName": "C Atlas",
+  "description": "Explore C projects with live, interactive call graphs, file dependencies and source navigation.",
+  "version": "0.1.0",
+  "publisher": "Pconst167",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pconst167/c-atlas.git",
+    "directory": "vscode"
+  },
+  "homepage": "https://github.com/Pconst167/c-atlas/tree/main/vscode",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Visualization", "Programming Languages"],
+  "keywords": ["C", "call graph", "headers", "dependencies", "visualization"],
+  "extensionKind": ["workspace"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": true },
+    "virtualWorkspaces": { "supported": true }
+  },
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cAtlas.exploreWorkspace",
+        "title": "Explore Workspace",
+        "category": "C Atlas"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "cAtlas.exploreWorkspace", "when": "workspaceFolderCount > 0" }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node build-webview.js",
+    "test": "npm run build && node --test test/*.test.js",
+    "vscode:prepublish": "npm run build"
+  }
+}
