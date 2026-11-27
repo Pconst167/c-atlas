@@ -38,7 +38,7 @@ test('only the latest editor version is displayed, including after a hidden pane
   };
   const messages = [], builds = [], errors = [];
   const panel = {
-    visible: true, onDidDispose: signal(), onDidChangeViewState: signal(),
+    visible: true, reveal() {}, onDidDispose: signal(), onDidChangeViewState: signal(),
     dispose() { this.onDidDispose.emit(); },
     webview: {
       asWebviewUri: uri => uri, cspSource: 'fixture:', onDidReceiveMessage: signal(),
@@ -54,8 +54,8 @@ test('only the latest editor version is displayed, including after a hidden pane
   let explore;
   const vscode = {
     Uri, workspace, ViewColumn: { Active: 1 }, RelativePattern: class {},
-    commands: { registerCommand(name, callback) { explore = callback; return { dispose() {} }; } },
-    window: { createWebviewPanel: () => panel, showErrorMessage: error => errors.push(error) },
+    commands: { registerCommand(name, callback) { if (name === "cAtlas.exploreWorkspace") explore = callback; return { dispose() {} }; } },
+    window: { tabGroups: { all: [], onDidChangeTabs: signal(), onDidChangeTabGroups: signal() }, createWebviewPanel: () => panel, showErrorMessage: error => errors.push(error) },
     CancellationTokenSource: class {
       token = { isCancellationRequested: false };
       cancel() { this.token.isCancellationRequested = true; }

@@ -2,7 +2,7 @@
   "name": "c-atlas",
   "displayName": "C Atlas",
   "description": "Explore C projects with live, interactive call graphs, file dependencies and source navigation.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "Pconst167",
   "repository": {
     "type": "git",
@@ -25,11 +25,30 @@
         "command": "cAtlas.exploreWorkspace",
         "title": "Explore Workspace",
         "category": "C Atlas"
+      },
+      {
+        "command": "cAtlas.showFileInGraph",
+        "title": "Show in C Atlas"
       }
     ],
+    "configuration": {
+      "title": "C Atlas",
+      "properties": {
+        "cAtlas.followFilePreviews": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "When this workspace’s graph is open, show newly previewed C sources and headers in C Atlas. Existing and edited tabs stay open."
+        }
+      }
+    },
     "menus": {
       "commandPalette": [
-        { "command": "cAtlas.exploreWorkspace", "when": "workspaceFolderCount > 0" }
+        { "command": "cAtlas.exploreWorkspace", "when": "workspaceFolderCount > 0" },
+        { "command": "cAtlas.showFileInGraph", "when": "workspaceFolderCount > 0 && resourceExtname =~ /^\\.(c|h|hh|hpp|hxx|inc|inl)$/i" }
+      ],
+      "explorer/context": [
+        { "command": "cAtlas.showFileInGraph", "when": "!explorerResourceIsFolder && workspaceFolderCount > 0 && resourceExtname =~ /^\\.(c|h|hh|hpp|hxx|inc|inl)$/i", "group": "navigation@50" }
       ]
     }
   },

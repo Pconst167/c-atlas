@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createWorkspaceIndexer, isProjectSource } = require('./workspace-index');
+const { createPreviewFollower } = require('./preview-follow');
 
 const editDelay = 350;
 
@@ -27,6 +28,7 @@ function openGraph(context, folder, onClose) {
   let disposed = false, ready = false, pending = true;
   let revision = 0, timer, request;
   let latest = null, delivered = null;
+  let navigation = null, nextRequestId = 0;
   const ownsUri = uri => vscode.workspace.getWorkspaceFolder(uri)?.uri.toString() === folderUri;
   const relativePath = uri => vscode.workspace.asRelativePath(uri, false);
 
@@ -35,15 +37,72 @@ function openGraph(context, folder, onClose) {
   }
 
   async function deliver() {
-    if (!latest || !ready || disposed || !panel.visible || latest === delivered) return;
+    if (!latest || !ready || disposed || !panel.visible) return;
     const result = latest;
-    delivered = result;
     try {
-      const received = await send({ type: 'project', project: result.project, name: folder.name, workspaceId, storage: settings });
-      if (!received && delivered === result) delivered = null;
+      if (result !== delivered) {
+        delivered = result;
+        if (!await send({ type: 'project', project: result.project, name: folder.name, workspaceId, storage: settings })) {
+          if (delivered === result) delivered = null;
+          return;
+        }
+      }
+      const target = navigation;
+      if (target?.revealed && !target.sent && latest === result) {
+        target.sent = true;
+        if (!await send({ type: 'revealFile', path: target.path, requestId: target.id })) target.sent = false;
+      }
     } catch (error) {
       if (delivered === result) delivered = null;
       if (!disposed) vscode.window.showErrorMessage('C Atlas could not display the graph. ' + error.message);
+    }
+  }
+
+  function prepareNavigation() {
+    const target = navigation;
+    if (!target || target.revealed || !latest) return;
+    if (target.isCurrent && !target.isCurrent()) {
+      navigation = null;
+      return;
+    }
+    const removed = settings['c-atlas.folders.workspace.' + workspaceId];
+    let isHidden = false;
+    if (removed) {
+      try {
+        const folders = JSON.parse(removed);
+        isHidden = Array.isArray(folders) && folders.some(prefix => typeof prefix === 'string' && target.path.startsWith(prefix));
+      } catch { /* A malformed saved folder preference is ignored by the graph as well. */ }
+    }
+    if (!latest.sources.has(target.path) || isHidden) {
+      navigation = null;
+      if (!target.tab) vscode.window.showInformationMessage('This file is outside the current C Atlas index.');
+      return;
+    }
+    target.revealed = true;
+    const keepExplorerFocus = !!target.tab && target.tab.group.viewColumn === panel.viewColumn;
+    panel.reveal(panel.viewColumn, keepExplorerFocus);
+  }
+
+  function showFile(uri, tab, isCurrent) {
+    if (!ownsUri(uri) || disposed) return;
+    navigation = { id: ++nextRequestId, uri, path: relativePath(uri), tab, isCurrent, revealed: false, sent: false };
+    if (!latest || (!latest.sources.has(navigation.path) && (pending || request))) {
+      if (!request || pending) schedule(0);
+      return;
+    }
+    prepareNavigation();
+    void deliver();
+  }
+
+  async function finishNavigation(message) {
+    const target = navigation;
+    if (!target?.sent || target.id !== message.requestId || target.path !== message.path) return;
+    navigation = null;
+    if (message.found !== true || !target.tab || !panel.visible) return;
+    // The editor may have become dirty, been pinned, or been reactivated while the graph was rendering.
+    const groups = vscode.window.tabGroups;
+    if (groups.activeTabGroup.activeTab !== target.tab && follower.isCleanPreview(target.tab, target.uri)) {
+      await groups.close(target.tab, true);
     }
   }
 
@@ -57,6 +116,7 @@ function openGraph(context, folder, onClose) {
       const result = await indexer.build(active.token);
       if (disposed || active.token.isCancellationRequested || version !== revision) return;
       latest = result;
+      prepareNavigation();
       await deliver();
     } catch (error) {
       if (!disposed && !active.token.isCancellationRequested && version === revision) {
@@ -73,7 +133,7 @@ function openGraph(context, folder, onClose) {
     request?.cancel();
     const version = ++revision;
     pending = true;
-    if (!disposed && ready && panel.visible) timer = setTimeout(() => rebuild(version), delay);
+    if (!disposed && ready && (panel.visible || navigation)) timer = setTimeout(() => rebuild(version), delay);
   }
 
   function relevant(uri) {
@@ -96,14 +156,19 @@ function openGraph(context, folder, onClose) {
     const line = Number.isSafeInteger(message.line) ? message.line - 1 : 0;
     const column = Number.isSafeInteger(message.column) ? message.column - 1 : 0;
     const position = doc.validatePosition(new vscode.Position(Math.max(0, line), Math.max(0, column)));
-    const editor = await vscode.window.showTextDocument(doc, {
+    const editor = await follower.showSource(uri, () => vscode.window.showTextDocument(doc, {
       viewColumn: vscode.ViewColumn.Beside, preserveFocus: true, preview: true,
       selection: new vscode.Range(position, position)
-    });
+    }));
     editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
   }
 
-  subscriptions.push(webview.onDidReceiveMessage(async message => {
+  const follower = createPreviewFollower(vscode, {
+    accepts: uri => !disposed && ownsUri(uri) && isProjectSource(relativePath(uri))
+      && vscode.workspace.getConfiguration('cAtlas', folder.uri).get('followFilePreviews', true),
+    onPreview: showFile
+  });
+  subscriptions.push(follower, webview.onDidReceiveMessage(async message => {
     if (!message || typeof message !== 'object' || disposed) return;
     try {
       switch (message.type) {
@@ -112,6 +177,9 @@ function openGraph(context, folder, onClose) {
           delivered = null;
           if (latest) await deliver();
           if (pending) schedule(0);
+          break;
+        case 'fileRevealed':
+          await finishNavigation(message);
           break;
         case 'refresh':
           indexer.reset();
@@ -171,7 +239,7 @@ function openGraph(context, folder, onClose) {
     panel.onDidChangeViewState(() => {
       if (!panel.visible || !ready) return;
       if (pending) schedule(0);
-      else void deliver();
+      void deliver();
     }),
     panel.onDidDispose(() => {
       disposed = true;
@@ -182,12 +250,17 @@ function openGraph(context, folder, onClose) {
     }));
   webview.html = template.replaceAll('{{MEDIA_URI}}', webview.asWebviewUri(media).toString())
     .replaceAll('{{CSP_SOURCE}}', webview.cspSource);
-  return panel;
+  return { panel, showFile };
 }
 
 function activate(context) {
   const panels = new Map();
-  context.subscriptions.push({ dispose() { for (const panel of panels.values()) panel.dispose(); } });
+  function graphFor(folder) {
+    const key = folder.uri.toString();
+    if (!panels.has(key)) panels.set(key, openGraph(context, folder, () => panels.delete(key)));
+    return panels.get(key);
+  }
+  context.subscriptions.push({ dispose() { for (const graph of panels.values()) graph.panel.dispose(); } });
   context.subscriptions.push(vscode.commands.registerCommand('cAtlas.exploreWorkspace', async resource => {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders?.length) {
@@ -196,10 +269,13 @@ function activate(context) {
     }
     const folder = resource instanceof vscode.Uri ? vscode.workspace.getWorkspaceFolder(resource) :
       folders.length === 1 ? folders[0] : await vscode.window.showWorkspaceFolderPick({ placeHolder: 'Choose a folder to explore with C Atlas' });
-    if (!folder) return;
-    const key = folder.uri.toString();
-    if (panels.has(key)) panels.get(key).reveal();
-    else panels.set(key, openGraph(context, folder, () => panels.delete(key)));
+    if (folder) graphFor(folder).panel.reveal();
+  }));
+  context.subscriptions.push(vscode.commands.registerCommand('cAtlas.showFileInGraph', resource => {
+    const uri = resource instanceof vscode.Uri ? resource : vscode.window.activeTextEditor?.document.uri;
+    const folder = uri && vscode.workspace.getWorkspaceFolder(uri);
+    if (folder) graphFor(folder).showFile(uri);
+    else vscode.window.showInformationMessage('Select a file in a workspace folder to show it in C Atlas.');
   }));
 }
 

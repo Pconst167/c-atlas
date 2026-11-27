@@ -38,7 +38,7 @@ app = replaceOnce(app, 'byId("startRepository").focus()', 'byId("refreshWorkspac
 const adapters = [read("workspace.js"), app, moduleWith("function graphPoint(event)"),
   moduleWith('const widthProperties={explorerWidth:'), read("editor.js")];
 const js = read("bootstrap.js") + "\nfunction startGraph(editor,localStorage){\n\"use strict\";\n" +
-  [...shared, ...adapters].join("\n;\n") + "\nreturn receiveProject;\n}\n";
+  [...shared, ...adapters].join("\n;\n") + "\nreturn {receiveProject,revealWorkspaceFile};\n}\n";
 
 const css = source.match(/<style>([\s\S]*?)<\/style>/)?.[1];
 if (!css) throw new Error("Missing C Atlas stylesheet");

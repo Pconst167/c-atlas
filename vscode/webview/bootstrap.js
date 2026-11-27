@@ -4,6 +4,7 @@
   const records = new Map();
   let graph = null;
   let workspaceId;
+  let pendingFile=null;
   // Only layout coordinates and UI preferences cross this boundary.
   const storage = {
     get length() { return records.size; },
@@ -19,9 +20,18 @@
       if (records.delete(key)) editor.postMessage({type:"storage",key,value:null});
     }
   };
+  function revealFile(message){
+    const found=graph.revealWorkspaceFile(message.path);
+    editor.postMessage({type:"fileRevealed",path:message.path,requestId:message.requestId,found});
+  }
   window.addEventListener("message",event=>{
     const message=event.data;
     if (!message || typeof message !== "object") return;
+    if (message.type === "revealFile" && typeof message.path === "string" && message.path) {
+      if (graph) revealFile(message);
+      else pendingFile=message;
+      return;
+    }
     if (message.type === "project") {
       if (!message.project || !Array.isArray(message.project.files)) return;
       if (workspaceId !== message.workspaceId) {
@@ -32,7 +42,11 @@
         }
       }
       graph ||= startGraph(editor,storage);
-      graph(message);
+      graph.receiveProject(message);
+      if (pendingFile!==null) {
+        revealFile(pendingFile);
+        pendingFile=null;
+      }
       return;
     }
     if ((message.type==="status" || message.type==="error") && typeof message.message === "string") {

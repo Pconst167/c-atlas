@@ -22,6 +22,27 @@ function stableFunctionIds(project){
   }
 }
 
+function revealWorkspaceFile(path){
+  const file=state.files.get(path);
+  if(!file){
+    const filtered=folderSession?.removed.some(folder=>path.startsWith(folder));
+    notify(filtered?"This folder is hidden in C Atlas. Restore it from Structure to see the file.":"This file is outside the current C Atlas index.");
+    return false;
+  }
+  if(state.mode!=="include" && !AtlasAnalysis.isHeaderFile(path) && file.functions.length){
+    openCallScope(path);
+    // A previous selection can be a cross-file neighbor in the new graph.
+    if(state.activeFile!==path){
+      const local=currentView().items.find(item=>!item.contextOnly);
+      if(local)select(local.id,"callScope",true,false,false);
+    }
+    return true;
+  }
+  const mode=state.mode!=="include" && AtlasAnalysis.isHeaderFile(path)?"headers":"include";
+  if(state.mode!==mode || state.selected!==path)visitSelection(path,mode,false);
+  return true;
+}
+
 function applyFolderChanges(removed){
   if(!folderSession || !workspaceMessage)return;
   if(removed.length)localStorage.setItem(folderSession.storageKey,JSON.stringify(removed));
