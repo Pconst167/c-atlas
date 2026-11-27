@@ -4,21 +4,23 @@ Explore a C project in an editor tab. The graph runs locally against your open w
 
 ## Install and open
 
-1. [Download c-atlas-0.2.1.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.2.1.vsix).
+1. [Download c-atlas-0.3.0.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.3.0.vsix).
 2. In VS Code, open **Extensions**, select **…** at the top of the view, then choose **Install from VSIX…** and select the downloaded file.
 3. Open your project's folder. Press **Ctrl+Shift+P** and run **C Atlas: Explore Workspace**. In a multi-root workspace, choose the folder to index.
 
 For a local workspace, C Atlas reads the source on your machine. With a remote VS Code workspace the extension runs against the remote files. Opening a graph requires no account, upload, or compilation.
 
-## Follow files from Explorer
+## Open files from VS Code’s Explorer
 
-With C Atlas open, single-click a C source or header in VS Code’s Explorer. A source file opens its function graph, a header opens its include graph, and a source file with no indexed functions opens in **Dependencies**. If you are already browsing **Dependencies**, the graph stays in that view and selects the file. Files are matched by their full workspace-relative paths.
+1. Press **Ctrl+Shift+P** and run **C Atlas: Enable Graph Opens in This Workspace** once for the project.
+2. Open **C Atlas: Explore Workspace**. In the built-in Explorer on the left, open a `.c` file to see its call graph or a header to see its include graph. VS Code’s usual single-click or double-click preference applies.
+3. Close the workspace graph when you want file opens to go straight to the text editor again. You can also open a definition in the editor alongside the graph with **Source on click**.
 
-With the graph in front, you can also select a file that is already open or use this feature with VS Code editor previews disabled. C Atlas brings the graph forward when VS Code activates the file. It closes a fresh temporary preview only after locating the file. Regular tabs stay open. Switching directly to a file from the graph tab or using Quick Open can trigger the same behavior.
+With this option enabled, VS Code sends file opens to C Atlas directly. This includes opens from Quick Open. The command sets workspace file associations for C sources and supported headers. Run **C Atlas: Disable Graph Opens in This Workspace** to restore their previous settings. Other file types and more specific filename rules keep their own editors.
 
-To go straight to the graph for any indexed C source or header, right-click the file in Explorer and choose **Show in C Atlas**. This also works for a file with unsaved edits and when the graph is closed.
+Data-only C files open in **Dependencies**. If you are already in that view, opening another indexed file selects it there. C Atlas falls back to source for files outside the graph index.
 
-To keep normal preview behavior while the graph is open, switch off **C Atlas: Follow File Previews** in Settings. Source jumps made from the graph still open the actual editor.
+You can always right-click a source or header and choose **Show in C Atlas**, even when the graph is closed. Without the workspace associations, **C Atlas: Follow File Previews** can follow editor changes after VS Code opens a file. Switch it off in Settings to keep ordinary source previews while the graph is open.
 
 ## Explore
 

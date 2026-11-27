@@ -69,11 +69,14 @@ function hostFixture(t) {
     }) }))
   };
   const load = Module._load;
-  let extension;
+  let extension, lookupGraph;
   try {
     Module._load = function(name, ...args) {
       if (name === 'vscode') return vscode;
       if (name === './workspace-index') return { createWorkspaceIndexer: () => indexer, isProjectSource: () => true };
+      if (name === './file-opener') return {
+        registerFileOpener(api, lookup) { lookupGraph = lookup; return { dispose() {} }; }
+      };
       return load.call(this, name, ...args);
     };
     delete require.cache[require.resolve('../extension')];
@@ -83,7 +86,7 @@ function hostFixture(t) {
   extension.activate(context);
   t.after(() => { for (const subscription of context.subscriptions) subscription.dispose(); });
   const edit = () => workspace.onDidChangeTextDocument.emit({ contentChanges: ['edit'], document: { uri: source } });
-  return { folder, source, panel, messages, builds, errors, commands, edit };
+  return { folder, source, panel, messages, builds, errors, commands, edit, lookupGraph };
 }
 
 test('only the latest editor version is displayed, including after a hidden panel is reopened', async t => {
@@ -127,4 +130,29 @@ test('a file requested before the hidden graph has started is indexed, revealed 
   await panel.webview.onDidReceiveMessage.emit({ type: 'ready' });
   assert.deepEqual(messages.map(message => message.type), ['project', 'revealFile']);
   assert.equal(messages[1].path, 'main.c');
+});
+
+test('the file opener reuses an existing graph and completes only after its own selection is acknowledged', async t => {
+  const { folder, source, panel, messages, builds, commands, lookupGraph } = hostFixture(t);
+  assert.equal(lookupGraph(source), undefined);
+  await commands.get('cAtlas.exploreWorkspace')(folder.uri);
+  await panel.webview.onDidReceiveMessage.emit({ type: 'ready' });
+  await until(() => builds.length === 1);
+  builds[0].resolve(1);
+  await until(() => messages.some(message => message.type === 'project'));
+  const graph = lookupGraph(source);
+  const first = graph.routeFile(source, () => true);
+  const second = graph.routeFile(source, () => true);
+  assert.equal(await first, 'superseded');
+  const requests = messages.filter(message => message.type === 'revealFile');
+  assert.equal(requests.length, 2);
+  const acknowledge = request => panel.webview.onDidReceiveMessage.emit({ ...request, type: 'fileRevealed', found: true });
+  await acknowledge(requests[0]);
+  await acknowledge(requests[1]);
+  assert.equal(await second, 'shown');
+  assert.equal(await graph.routeFile(source, () => false), 'superseded');
+  const closing = graph.routeFile(source, () => true);
+  panel.dispose();
+  assert.equal(await closing, 'unavailable');
+  assert.equal(lookupGraph(source), undefined);
 });

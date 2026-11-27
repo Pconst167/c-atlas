@@ -92,6 +92,37 @@ async function run() {
   } finally {
     if (editor.document.isDirty) await editor.document.save();
   }
+
+  const graph = groups.all.flatMap(group => group.tabs).find(tab => tab.input instanceof vscode.TabInputWebview
+    && tab.label.startsWith('C Atlas · '));
+  assert.ok(graph, 'The workspace graph must remain open behind the source tab.');
+  await vscode.workspace.getConfiguration('cAtlas', folder).update('followFilePreviews', false, vscode.ConfigurationTarget.Workspace);
+  await vscode.commands.executeCommand('cAtlas.enableExplorerGraph');
+  try {
+    const associations = vscode.workspace.getConfiguration('workbench', folder).get('editorAssociations');
+    assert.equal(associations['*.c'], 'cAtlas.fileGraph');
+    assert.equal(associations['*.h'], 'cAtlas.fileGraph');
+    // Start on a text tab and use an ordinary file open so VS Code resolves the associated editor.
+    assert.ok(matchesFile(activeTab(), editFile));
+    await vscode.commands.executeCommand('vscode.open', freshFile);
+    await waitFor('the original graph to take the associated header', () => activeTab() === graph);
+    const openerExists = () => groups.all.some(group => group.tabs.some(tab =>
+      tab.input instanceof vscode.TabInputCustom && tab.input.viewType === 'cAtlas.fileGraph'));
+    await waitFor('the temporary graph opener to close', () => !openerExists());
+    assert.equal(findFileTab(freshFile), undefined);
+
+    await groups.close(graph);
+    await vscode.commands.executeCommand('vscode.open', freshFile);
+    await waitFor('an editable text tab after closing the graph', () =>
+      matchesFile(activeTab(), freshFile) && !openerExists()
+      && vscode.window.activeTextEditor?.document.uri.toString() === freshFile.toString());
+    const sourceEditor = vscode.window.activeTextEditor;
+    assert.ok(await sourceEditor.edit(edit => edit.insert(new vscode.Position(0, 0), '// native fallback\n')));
+    assert.equal(sourceEditor.document.isDirty, true);
+    assert.ok(await sourceEditor.document.save());
+  } finally {
+    await vscode.commands.executeCommand('cAtlas.disableExplorerGraph');
+  }
   console.log('C Atlas native editor navigation passed.');
 }
 
