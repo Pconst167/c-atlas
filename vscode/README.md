@@ -4,7 +4,7 @@ Explore a C project in an editor tab. The graph runs locally against your open w
 
 ## Install and open
 
-1. [Download c-atlas-0.3.0.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.3.0.vsix).
+1. [Download c-atlas-0.4.0.vsix](https://raw.githubusercontent.com/Pconst167/c-atlas/main/vscode/releases/c-atlas-0.4.0.vsix).
 2. In VS Code, open **Extensions**, select **…** at the top of the view, then choose **Install from VSIX…** and select the downloaded file.
 3. Open your project's folder. Press **Ctrl+Shift+P** and run **C Atlas: Explore Workspace**. In a multi-root workspace, choose the folder to index.
 
@@ -24,6 +24,7 @@ You can always right-click a source or header and choose **Show in C Atlas**, ev
 
 ## Explore
 
+- Use VS Code’s Explorer to browse files. Open **Globals** in C Atlas to search workspace-wide variables by name or file path. Select a result to open its declaration in the editor.
 - **Structure** groups files and folders. **Call graph** shows relationships between functions. A file view includes its direct callers and callees in other project files. The arrows point from caller to callee.
 - **Dependencies** includes file references such as shaders. **Header includes** follows directives with arrows pointing from the included header into the file that includes it.
 - Hover to preview relationships or click to select a block. Use the chevron to drill down. Enable **Source on click** to open the corresponding definition in a VS Code editor next to the graph.

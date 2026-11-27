@@ -1,0 +1,14 @@
+<section id="globalsView" aria-labelledby="globalsTab" hidden>
+  <div class="globals-toolbar">
+    <label class="globals-search"><i data-icon="search"></i><input type="search" id="globalsSearch" aria-label="Filter globals by name or file path" placeholder="Find a variable or file path" autocomplete="off" spellcheck="false"></label>
+    <span id="globalsCount" role="status"></span>
+  </div>
+  <div id="globalsScroll">
+    <table class="globals-table" aria-label="Global variable declarations">
+      <thead><tr><th scope="col">Variable</th><th scope="col">Declaration</th><th scope="col">Location</th></tr></thead>
+      <tbody id="globalsList"></tbody>
+    </table>
+    <p id="globalsEmpty" hidden></p>
+    <button id="globalsMore" class="outline" type="button" hidden>Show more globals</button>
+  </div>
+</section>

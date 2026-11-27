@@ -2,6 +2,16 @@
 let folderSession=null, workspaceMessage=null, restoringGraph=false;
 const projectLoadPending=()=>false;
 
+function handleWorkspaceSearchShortcut(event){
+  if(event.key!=="/" || event.ctrlKey || event.metaKey || event.altKey || byId("dialog").open)return false;
+  if(event.target.isContentEditable || event.target.closest?.("input, textarea, select"))return false;
+  event.preventDefault();
+  if(graphFullscreenView)exitGraphFullscreen();
+  if(byId("globalsView").hidden)showSymbolSearch();
+  else byId("globalsSearch").focus();
+  return true;
+}
+
 function stableFunctionIds(project){
   const changed=new Map();
   for(const file of project.files){
@@ -99,9 +109,7 @@ function receiveProject(message){
   const sameWorkspace=workspaceMessage && workspaceMessage.workspaceId===message.workspaceId;
   const previous=sameWorkspace && state.project ? {
     location:snapshot(),past:[...journey.past],future:[...journey.future],files:state.files,
-    opened:state.opened,expanded:state.expandedFiles,explorer:explorerView,
-    queries:{...explorerQueries},treeScroll:byId("tree").scrollTop,
-    globalsScroll:byId("globalList").scrollTop,inspectorScroll:byId("details").scrollTop
+    inspectorScroll:byId("details").scrollTop
   }:null;
   workspaceMessage=message;
   const original=message.project;
@@ -134,11 +142,6 @@ function receiveProject(message){
           state.activeFile=first?.files?.[0]?.path||first?.path||state.activeFile;state.focused=false;
         }
       }
-      state.opened=previous.opened;
-      state.expandedFiles=previous.expanded;
-      revealTree(state.activeFile);
-      Object.assign(explorerQueries,previous.queries);
-      setExplorerView(previous.explorer,false);
       refresh();
       if(location){
         if(location.sourceOpen)previewSource(location.marker,false);
@@ -146,15 +149,12 @@ function receiveProject(message){
         state.x=location.x;state.y=location.y;state.scale=location.scale;
         transform();noteCanvasSize();
       }
-      byId("tree").scrollTop=previous.treeScroll;byId("globalList").scrollTop=previous.globalsScroll;
       byId("details").scrollTop=previous.inspectorScroll;updateHistory();
     }
     if(!original.files.length){
       byId("emptyGraph").textContent="No C sources or headers in this workspace folder. Add a .c or .h file to start the graph.";
       byId("status").textContent="Waiting for C sources";
     }
-    byId("projectMeta").textContent="Workspace folder";
-    byId("projectMeta").title=message.name||original.name;
     byId("projectBadge").lastChild.textContent="Workspace";
     byId("retryWorkspace").hidden=true;
   }finally{restoringGraph=false;}

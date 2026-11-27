@@ -5,10 +5,15 @@ body{background:#fafbf7;color:var(--ink);padding:0;font-size:14px}
 .topbar .symbol-launch{background:transparent;border-color:var(--vscode-panel-border,#85917e)}
 .topbar kbd{color:inherit;border-color:var(--vscode-panel-border,#85917e)}
 .topbar .top-sep{background:var(--vscode-panel-border,#85917e)}
-#workspace{height:calc(100dvh - 67px - var(--status-bar-height))}
+#workspace.workspace{grid-template-columns:minmax(0,1fr);height:calc(100dvh - 67px - var(--status-bar-height))}
+body:not(.graph-fullscreen) #workspace>main{padding-inline:clamp(12px,2vw,32px)}
 #projectStart{background-color:var(--vscode-editor-background,#fafbf7);background-image:none}
 .project-start-card{color:var(--vscode-foreground,#202820);background:var(--vscode-editor-background,#fafbf7);border-color:var(--vscode-panel-border,#999)}
 .project-start-card p{color:var(--vscode-descriptionForeground,#657064)}
 #openEditor{font-size:12px;padding:3px 8px;margin-left:auto;border-color:var(--line)}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--vscode-focusBorder,#27647d);outline-offset:2px}
-@media(max-width:720px){#workspace{height:calc(100dvh - 56px - var(--status-bar-height))}}
+@media(max-width:720px){#workspace.workspace{height:calc(100dvh - 56px - var(--status-bar-height))}}
+@media(max-width:560px){
+  .view-toolbar .tabs{display:flex;flex-wrap:wrap}
+  .view-toolbar .tabs button{flex:1 1 auto}
+}
