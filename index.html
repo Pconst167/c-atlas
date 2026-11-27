@@ -293,6 +293,11 @@ body:not(.graph-fullscreen) #fullscreenCallUp{display:none}
 #fullscreenCallUp{position:absolute;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));z-index:2}
 body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{top:52px}
 .crumb-current{padding:4px 3px;color:var(--ink);font-weight:600}
+
+#folderChoice{min-width:0;max-width:100%;width:100%}
+#folderImpact{overflow-wrap:anywhere}
+#folderControls{white-space:nowrap}
+#emptyGraph>.outline{display:flex;margin:12px auto}
 </style>
 </head>
 <body class="no-project">
@@ -339,6 +344,7 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
         <label id="headerHighlightControl" hidden>Highlight <select id="headerHighlightScope" aria-label="Header highlight scope"><option value="direct">Direct only</option><option value="full">Full chain</option></select></label>
         <select id="mapGrouping" aria-label="Structure map grouping"><option value="folders">By folder</option><option value="files">By file</option></select>
         <select id="mapRelations" aria-label="Structure relationships"><option value="all">All relationships</option><option value="call">Calls only</option><option value="include">Includes only</option><option value="asset">File references only</option></select>
+        <button type="button" id="folderControls" class="outline" aria-haspopup="dialog" hidden><i data-icon="folder"></i><span id="folderControlsLabel">Remove folder…</span></button>
         <button id="entryButton" class="outline" title="Open the program entry point">main()</button>
         <button id="traceButton" class="outline" hidden>Trace calls</button>
         <label class="source-on-click" title="Open the source panel when selecting a file or function"><input id="sourceOnClick" type="checkbox" aria-controls="sourcePanel" checked> Source on click</label>
@@ -393,6 +399,7 @@ body.graph-fullscreen #canvas:has(#fullscreenCallUp:not([hidden])) #canvasNote{t
 <p>Choose Open project and paste a public GitHub repository URL, or choose a ZIP containing your C sources and headers. Both are indexed in your browser. GitHub projects open the latest commit on the default branch. When signed in, My projects saves the repository link so you can reopen it on another device. The source files stay in your browser during analysis.</p>
 <h3>Start with the structure</h3>
 <p>Use By folder to see directories and open a folder block to go inside. By file shows all files under the current folder. Breadcrumbs take you up a level. Use the relationship filter to show calls, includes, or file references. An arrow combines the matching source locations. Click it, or use the connection button in the Inspector, to see the exact lines. Open a file and pick a function in the Inspector to enter the call graph.</p>
+<p>Choose Remove folder in Structure, or right-click a folder block, to remove that folder and its descendants from the project index. C Atlas updates every view and remembers your choices in this browser. Open Folders to restore a removed folder.</p>
 <h3>Follow a call path</h3>
 <p>Call graph opens at the project overview. Select a folder or file to see its contents, then a function to follow calls across the project. Up one level and the breadcrumbs take you back through the file, folders and project within the call graph. Arrows between groups represent calls from one group to another. Select an arrow to see the call sites. Use main() to start at an entry point. In the call graph, choose Trace calls and a destination to isolate a shortest indexed call path. Step along it or click an underlined call in the function source. Back and Forward revisit your selections.</p>
 <h3>Find a definition</h3>
@@ -1015,9 +1022,10 @@ const AtlasAnalysis = (() => {
     return variables.sort((a,b)=>a.name.localeCompare(b.name)||a.path.localeCompare(b.path)||a.offset-b.offset);
   }
 
-  function analyze(entries, name) {
+  function analyze(entries, name, retainAllFiles=false) {
     const byPath=new Map(entries.map(entry=>[entry.path,entry]));
-    const resolve=createPathResolver(entries),files=[],pending=entries.filter(entry=>isProjectSource(entry.path));
+    const resolve=createPathResolver(entries),files=[];
+    const pending=retainAllFiles?entries.slice():entries.filter(entry=>isProjectSource(entry.path));
     const seen=new Set(pending.map(entry=>entry.path));
     for(let index=0;index<pending.length;index++){
       const entry=pending[index],kind=fileKind(entry.path);
@@ -1086,6 +1094,29 @@ const AtlasAnalysis = (() => {
     return {name, files, globals:projectGlobals(files)};
   }
 
+  function withoutFolders(project,folders=[]){
+    const excluded=new Set();
+    for(const folder of folders){
+      if(typeof folder!=="string")throw Error("Choose a project folder to remove.");
+      const path=folder.replace(/\/$/,"");
+      if(path.split("/").some(part=>!part||part==="."||part===".."))throw Error("Choose a project folder to remove.");
+      excluded.add(path);
+    }
+    const entries=[];
+    for(const file of project.files){
+      let separator=file.path.indexOf("/");
+      while(separator>=0 && !excluded.has(file.path.slice(0,separator)))separator=file.path.indexOf("/",separator+1);
+      if(separator>=0)continue;
+      const entry={path:file.path,source:file.source,size:file.size};
+      // On full restore, preserve resolutions made with the entire original archive's inventory.
+      if(!excluded.size)entry.links=file.links||(file.references&&{includes:file.includes,references:file.references});
+      entries.push(entry);
+    }
+    // Re-resolve calls, includes and asset links against just the surviving paths.
+    // Indexed assets outside the excluded folders stay available even if their last caller was removed.
+    return analyze(entries,project.name,true);
+  }
+
   const crcTable = Uint32Array.from({length:256}, (_,value)=>{
     for(let bit=0;bit<8;bit++) value = value&1 ? 0xedb88320 ^ (value>>>1) : value>>>1;
     return value>>>0;
@@ -1150,7 +1181,7 @@ const AtlasAnalysis = (() => {
     }
     return collectAssetEntries(sources,inventory,readBytes);
   }
-  return {analyze,readZip,inspectVariables,collectAssetEntries,fileKind,isHeaderFile,isProjectSource,limits,limitMessage};
+  return {analyze,withoutFolders,readZip,inspectVariables,collectAssetEntries,fileKind,isHeaderFile,isProjectSource,limits,limitMessage};
 })();
 </script>
 <script id="github-code">// Resolve source and asset references against the complete tree and fetch bytes from the same commit.
@@ -1587,8 +1618,8 @@ function openStructure(scope="",grouping=state.grouping,preferred=state.activeFi
   prepareStructure(scope,grouping,kind);
   const view=state.views.structure;
   const item=view.byKey.get(key)||view.items.find(node=>node.entry)||view.items[0];
-  state.mode="structure";state.route=null;state.selected=item.id;state.headerHighlight=null;
-  state.activeFile=item.files.find(file=>file.path===preferred)?.path||item.files[0].path;
+  state.mode="structure";state.route=null;state.selected=item?.id??null;state.headerHighlight=null;
+  state.activeFile=item?.files.find(file=>file.path===preferred)?.path||item?.files[0].path||"";
   revealTree(state.activeFile);
   state.focused=view.items.length>180;
   closeSourcePanel();
@@ -2560,58 +2591,149 @@ function showOpenProject(message=""){
   showDialog(box);field.focus();
 }
 
+let folderSession=null;
+
+function makeFolderSession(project,repository,zipKey=null){
+  const entries=project.files.map(({path,source,size,includes,references})=>({
+    path,source,size,links:{includes,references}
+  }));
+  const identity=repository?"github."+repository.fullName.toLowerCase():zipKey?"zip."+zipKey:null;
+  return {name:project.name,entries,removed:[],storageKey:identity?"c-atlas.folders."+identity:null};
+}
+
+function existingFolderChoices(session,choices){
+  if(!Array.isArray(choices)||!choices.length)return [];
+  const folders=new Set();
+  for(const {path} of session.entries){
+    for(let slash=path.indexOf("/");slash>=0;slash=path.indexOf("/",slash+1)){
+      folders.add(path.slice(0,slash+1));
+    }
+  }
+  return [...new Set(choices.filter(choice=>folders.has(choice)))].sort();
+}
+
+function savedFolderChoices(session){
+  if(!session.storageKey)return [];
+  try{return existingFolderChoices(session,JSON.parse(localStorage.getItem(session.storageKey)));}
+  catch{return [];}
+}
+
+function storeFolderChoices(session){
+  if(session.storageKey){
+    try{
+      if(session.removed.length)localStorage.setItem(session.storageKey,JSON.stringify(session.removed));
+      else localStorage.removeItem(session.storageKey);
+      return true;
+    }catch{/* Browsers may deny access to site storage. */}
+  }
+  return false;
+}
+
 function runProjectWorker(){
   self.onmessage=async({data})=>{
     try{
-      let entries,name,repository=null;
+      if(data.folderSource){
+        self.postMessage({project:AtlasAnalysis.withoutFolders(data.folderSource,data.removed)});
+        return;
+      }
+      let entries,name,repository=null,zipKey=null;
       if(data.file){
-        name=data.name;entries=await AtlasAnalysis.readZip(await data.file.arrayBuffer());
+        name=data.name;
+        const bytes=await data.file.arrayBuffer();
+        entries=await AtlasAnalysis.readZip(bytes);
+        if(globalThis.crypto?.subtle){
+          try{
+            const digest=await crypto.subtle.digest("SHA-256",bytes);
+            zipKey=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
+          }catch{/* The project can still open with session-only folder choices. */}
+        }
       }else{
         const result=await AtlasGitHub.download(data.repository,{onProgress:progress=>self.postMessage({progress})});
         ({entries,name,repository}=result);
       }
       self.postMessage({progress:"Indexing "+name+"…"});
-      self.postMessage({project:AtlasAnalysis.analyze(entries,name),repository});
-    }catch(error){self.postMessage({error:error.message||"Unable to open this project."});}
+      self.postMessage({project:AtlasAnalysis.analyze(entries,name),repository,zipKey});
+    }catch(error){self.postMessage({error:error.message||"Unable to index this project."});}
   };
 }
 
 function cancelProjectImport(){
   if(importWorker)importWorker.terminate();
   importWorker=null;byId("cancelImport").hidden=true;
+  updateFolderControls();
   byId("status").textContent="Ready";
 }
-function startProjectImport(request){
-  cancelProjectImport();repositoryError="";hideSidebar();
-  const owner=(accountReady||Promise.resolve()).then(()=>AtlasAccounts.currentUser()?.id);
+
+function runAnalysis(request,status,onResult,onError){
+  cancelProjectImport();
   const source=[byId("analysis-code").textContent,byId("github-code").textContent,"("+runProjectWorker.toString()+")();"].join("\n");
   const url=URL.createObjectURL(new Blob([source],{type:"text/javascript"}));
   let worker;
-  try{worker=new Worker(url);}catch{notify("The analysis worker could not start. Reload the page and try again.");return;}
+  try{worker=new Worker(url);}catch{onError("The analysis worker could not start. Reload the page and try again.");return;}
   finally{URL.revokeObjectURL(url);}
-  importWorker=worker;byId("cancelImport").hidden=false;
-  byId("status").textContent=request.file?"Indexing "+request.file.name+"…":"Connecting to GitHub…";
+  importWorker=worker;byId("cancelImport").hidden=false;byId("status").textContent=status;
+  updateFolderControls();
   function fail(message){
     if(importWorker!==worker)return;
-    cancelProjectImport();byId("status").textContent="Import failed";
-    if(request.repository){
-      lastRepositoryInput=request.repository;repositoryError=message;
-      if(!byId("dialog").open){showOpenProject();return;}
-    }
-    notify(message);
+    cancelProjectImport();onError(message);
   }
   worker.onmessage=({data})=>{
     if(importWorker!==worker)return;
     if(data.error){fail(data.error);return;}
     if(data.progress){byId("status").textContent=data.progress;return;}
     if(!data.project)return;
-    cancelProjectImport();loadProject(data.project,data.repository||null);
-    if(data.repository)lastRepositoryInput=data.repository.url;
-    setRepositoryLocation(data.repository);
-    if(data.repository)owner.then(id=>saveImportedRepository(data.repository,id));
+    cancelProjectImport();onResult(data);
   };
   worker.onerror=()=>fail("The project could not be indexed in this browser.");
-  worker.postMessage(request);
+  try{worker.postMessage(request);}catch(error){fail(error.message||"Unable to send this project for indexing.");}
+}
+
+function rebuildFolderView(session,onResult,onError){
+  const folderSource={name:session.name,files:session.entries};
+  runAnalysis({folderSource,removed:session.removed},"Updating project index…",data=>onResult(data.project),onError);
+}
+
+function applyFolderChanges(nextRemoved){
+  if(!folderSession||importWorker)return;
+  const previous=folderSession,repository=state.repository;
+  const session={...previous,removed:existingFolderChoices(previous,nextRemoved)};
+  const location={scope:state.scope,grouping:state.grouping,kind:state.relationshipKind,activeFile:state.activeFile};
+  rebuildFolderView(session,project=>{
+    if(folderSession!==previous)return;
+    loadProject(project,repository,session,location);
+    const saved=storeFolderChoices(session);
+    notify(saved?"Folder changes applied.":"Folder changes applied for this visit.");
+  },message=>{
+    if(folderSession!==previous)return;
+    byId("status").textContent="Folder update failed";notify(message);
+  });
+}
+
+function startProjectImport(request){
+  repositoryError="";hideSidebar();
+  const owner=(accountReady||Promise.resolve()).then(()=>AtlasAccounts.currentUser()?.id);
+  function fail(message){
+    byId("status").textContent="Import failed";
+    if(request.repository){
+      lastRepositoryInput=request.repository;repositoryError=message;
+      if(!byId("dialog").open){showOpenProject();return;}
+    }
+    notify(message);
+  }
+  const status=request.file?"Indexing "+request.file.name+"…":"Connecting to GitHub…";
+  runAnalysis(request,status,data=>{
+    const repository=data.repository||null;
+    const session=makeFolderSession(data.project,repository,data.zipKey);
+    session.removed=savedFolderChoices(session);
+    function finish(project){
+      loadProject(project,repository,session);
+      if(repository)lastRepositoryInput=repository.url;
+      setRepositoryLocation(repository);
+      if(repository)owner.then(id=>saveImportedRepository(repository,id));
+    }
+    if(session.removed.length)rebuildFolderView(session,finish,fail);
+    else finish(data.project);
+  },fail);
 }
 function importFile(file){
   if(!file)return;
@@ -2635,6 +2757,86 @@ function openLinkedRepository(){
   lastRepositoryInput=reference;
   try{startProjectImport({repository:AtlasGitHub.parseRepository(reference).url});}
   catch(error){showOpenProject(error.message);}
+}
+</script>
+<script>function visibleFolderCounts(entries,removed){
+  const counts=new Map(),excluded=new Set(removed);
+  for(const file of entries){
+    const folders=[];
+    let hidden=false;
+    for(let slash=file.path.indexOf("/");slash!==-1;slash=file.path.indexOf("/",slash+1)){
+      const folder=file.path.slice(0,slash+1);
+      if(excluded.has(folder)){hidden=true;break;}
+      folders.push(folder);
+    }
+    if(!hidden)for(const folder of folders)counts.set(folder,(counts.get(folder)||0)+1);
+  }
+  return counts;
+}
+
+function showFolderControls(preferred=""){
+  const session=folderSession;
+  if(!session)return;
+  const counts=visibleFolderCounts(session.entries,session.removed);
+  const box=el("div","project-dialog"),form=el("div","repo-form");
+  const choice=el("select","trace-search"),impact=el("p","metadata");
+  const close=()=>byId("dialog").close();
+  function apply(removed){
+    if(folderSession!==session)return;
+    close();applyFolderChanges(removed);
+  }
+  box.append(el("h2","",counts.size?"Remove folder":"Project folders"),
+    el("p","","Folder changes apply to this project in C Atlas on this browser. Your original files stay in the repository or ZIP."));
+  const actions=el("div","dialog-actions");
+  const cancel=button("outline",counts.size?"Cancel":"Close",close);
+  cancel.id="cancelFolderChanges";actions.append(cancel);
+  let firstControl=cancel;
+  if(counts.size){
+    const label=el("label","project-label","Folder");
+    choice.id="folderChoice";label.htmlFor=choice.id;
+    impact.id="folderImpact";impact.setAttribute("role","status");
+    choice.setAttribute("aria-describedby",impact.id);
+    const placeholder=el("option","","Choose a folder");
+    placeholder.value="";placeholder.disabled=true;choice.append(placeholder);
+    for(const folder of [...counts.keys()].sort((a,b)=>a.localeCompare(b))){
+      const option=el("option","",folder);
+      option.value=folder;choice.append(option);
+    }
+    const remove=button("dark","Remove folder",()=>{
+      if(counts.has(choice.value))apply([...session.removed,choice.value]);
+    });
+    remove.id="confirmFolderRemoval";
+    function updateImpact(){
+      const count=counts.get(choice.value);
+      remove.disabled=count===undefined;
+      impact.textContent=count===undefined?"":choice.value+" contains "+countLabel(count,"indexed file")+". You can restore this folder here.";
+    }
+    let current=preferred||state.scope||"";
+    if(!current.endsWith("/"))current=containingFolder(current);
+    choice.value=counts.has(current)?current:"";
+    updateImpact();choice.addEventListener("change",updateImpact);
+    form.append(label,choice,impact);actions.append(remove);firstControl=choice;
+    box.append(form);
+  }else if(!session.removed.length){
+    box.append(el("p","metadata","All indexed files are at the project root."));
+  }
+  box.append(actions);
+  if(session.removed.length){
+    const list=el("div","saved-project-list");
+    box.append(el("h3","","Removed folders"),list);
+    for(const folder of [...session.removed].sort((a,b)=>a.localeCompare(b))){
+      const row=el("div","saved-project"),name=el("span","metadata",folder);
+      const restore=button("saved-remove","Restore",()=>apply(session.removed.filter(path=>path!==folder)));
+      restore.dataset.restoreFolder=folder;restore.setAttribute("aria-label","Restore "+folder);
+      const parent=session.removed.find(path=>path!==folder && folder.startsWith(path));
+      if(parent){
+        restore.disabled=true;restore.title="Restore "+parent+" first";
+        name.textContent=folder+" (inside "+parent+")";
+      }else if(firstControl===cancel)firstControl=restore;
+      row.append(name,restore);list.append(row);
+    }
+  }
+  showDialog(box);firstControl.focus();
 }
 </script>
 <script>"use strict";
@@ -2710,11 +2912,12 @@ function entryPointPriority(fn){
   if(base(fn.path)==="main.c")return 1;
   return AtlasAnalysis.isHeaderFile(fn.path)?3:2;
 }
-function loadProject(project,repository=null) {
+function loadProject(project,repository=null,session=null,location=null) {
   if(graphFullscreenView)exitGraphFullscreen();
   inspectorView="overview";
   closeSourcePanel();
   state=emptyProjectState();
+  folderSession=project?(session||makeFolderSession(project,repository)):null;
   hoveredHeader=null;keyboardHeader=null;
   journey.past.length=0;journey.future.length=0;updateHistory();
   document.body.classList.toggle("no-project",!project);
@@ -2741,10 +2944,15 @@ function loadProject(project,repository=null) {
   state.headerHighlight=null;
   state.route=null;
   state.initialGrouping=project.files.length<=(narrowExplorer.matches?5:12)?"files":"folders";
-  prepareStructure("",state.initialGrouping,"all");
+  let scope=location?.scope||"";
+  while(scope&&!project.files.some(file=>file.path.startsWith(scope)))scope=containingFolder(scope.slice(0,-1));
+  prepareStructure(scope,location?.grouping||state.initialGrouping,location?.kind||"all");
   state.mode="structure";
-  state.activeFile=(state.entryPoints[0]||all[0]||project.files[0]).path;
-  state.selected=structureKey(state.activeFile,state.scope,state.grouping);
+  const preferred=location?.activeFile;
+  const fallback=state.entryPoints[0]?.path||all[0]?.path||project.files[0]?.path||"";
+  state.activeFile=state.files.has(preferred)&&preferred.startsWith(scope)?preferred:
+    fallback.startsWith(scope)?fallback:currentView().items[0]?.files[0].path||"";
+  state.selected=state.activeFile?structureKey(state.activeFile,state.scope,state.grouping):null;
   state.focused=currentView().items.length>180;
   state.opened=new Set(); state.expandedFiles=new Set();state.tree=makeTree(project.files);
   revealTree(state.activeFile);
@@ -3053,7 +3261,10 @@ function renderGraph(){
   const notice=byId("canvasNote"),empty=byId("emptyGraph");
   empty.hidden=items.length>0;
   if(!items.length){
-    empty.textContent=state.mode==="callScope"?"No functions were found in "+(view.scope||"this project")+".":"No project headers were found in this import.";
+    if(!state.project.files.length){
+      empty.textContent="All project folders have been removed.";
+      empty.append(button("outline","Restore folders…",()=>showFolderControls()));
+    }else empty.textContent=state.mode==="callScope"?"No functions were found in "+(view.scope||"this project")+".":"No project headers were found in this import.";
     nodes.replaceChildren();svg.replaceChildren();notice.hidden=true;state.layout=null;markSelection();
     return;
   }
@@ -3279,7 +3490,7 @@ function renderDetails(){
     scoped?countLabel(view.items.length,view.level==="file"?"function":"group")+" · "+countLabel(view.count,"call connection")+" at this level":
     state.project.files.length+" files · "+state.functions.size+" functions · "+state.views.call.count+" call edges";
   if(!item){
-    panel.replaceChildren(el("p","empty-message",headers?"No header selected.":"Select a block to inspect its calls."));return;
+    panel.replaceChildren(el("p","empty-message",!state.project.files.length?"No files to inspect.":headers?"No header selected.":"Select a block to inspect its calls."));return;
   }
   const grid=el("div","detail-grid"),name=el("div");
   name.append(el("h2","selection-title",item.title));
@@ -3324,7 +3535,15 @@ function updatePanelActions(){
     byId("prevStep").disabled=index===0;byId("nextStep").disabled=index===state.route.length-1;
   }
 }
+function updateFolderControls(){
+  const control=byId("folderControls"),removed=folderSession?.removed.length||0;
+  control.hidden=state.mode!=="structure"||!folderSession||(!removed&&!folderSession.entries.some(file=>file.path.includes("/")));
+  control.disabled=!!importWorker;
+  byId("folderControlsLabel").textContent=removed?"Folders ("+removed+" removed)":"Remove folder…";
+}
 function refresh(){
+  updateFolderControls();
+  for(const id of ["callTab","includeTab","headerTab","mapGrouping","mapRelations"])byId(id).disabled=!state.project.files.length;
   state.focused=state.mode!=="callScope" && !state.route && (state.focused || currentView().items.length>180);
   const structure=state.mode==="structure",call=isCallGraph(),headers=state.mode==="headers",empty=!currentView().items.length;
   byId("structureTab").setAttribute("aria-pressed",String(structure));
@@ -3601,6 +3820,7 @@ for(const name of ["files","globals"]){
   });
 }
 byId("search").oninput=()=>explorerView==="files"?renderTree():renderGlobals();
+byId("folderControls").onclick=()=>showFolderControls(state.scope);
 byId("structureTab").onclick=()=>switchView("structure");
 byId("mapGrouping").onchange=event=>openStructure(state.scope,event.target.value);
 byId("mapRelations").onchange=event=>openStructure(state.scope,state.grouping,state.activeFile,event.target.value);
@@ -3662,9 +3882,15 @@ byId("toggleSidebar").onclick=()=>{
 narrowExplorer.addEventListener("change",()=>{mobileExplorerOpen=false;updateExplorerVisibility();});
 updateExplorerVisibility();
 document.addEventListener("click",event=>{if(!graphFullscreenView && !event.target.closest("#sidebar,#toggleSidebar,#graphFullscreen"))hideSidebar();});
-document.querySelector(".wordmark").onclick=event=>{event.preventDefault();if(!state.project){byId("startRepository").focus();return;}openStructure("",state.initialGrouping,state.entryPoints[0]?.path||state.project.files[0].path);fitGraph(true);};
+document.querySelector(".wordmark").onclick=event=>{event.preventDefault();if(!state.project){byId("startRepository").focus();return;}openStructure("",state.initialGrouping,state.entryPoints[0]?.path||state.project.files[0]?.path||"");fitGraph(true);};
 const canvas=byId("canvas");let drag=null;
 const graphNodes=byId("nodes");
+graphNodes.addEventListener("contextmenu",event=>{
+  if(state.mode!=="structure"||importWorker)return;
+  const node=event.target.closest?.(".graph-node"),item=node&&currentView().byKey.get(node.dataset.id);
+  if(!item?.folder)return;
+  event.preventDefault();showFolderControls(item.path);
+});
 function previewHeader(event,entering,keyboard=false){
   if(state.mode!=="headers"||event.pointerType==="touch")return;
   const element=entering?event.target:event.relatedTarget;
